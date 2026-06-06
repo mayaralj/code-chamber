@@ -27,6 +27,56 @@ const io = new Server(server, {
 app.use("/api/questions", questionsRouter);
 app.use("/api/users", usersRouter);
 
+// Store active rooms
+const rooms = {};
+
+// Socket.io logic
+io.on("connection", (socket) => {
+  // Print out userid that connected
+  console.log("A user connected: " + socket.id);
+
+  // Listen for room creation
+  socket.on("create-room", ({ username }) => {
+    // Create a random code
+    const code = Math.random().toString(36).substring(2, 6).toUpperCase();
+
+    // Store new room in active rooms
+    rooms[code] = {
+      host: socket.id,
+      players: [{ id: socket.id, username }],
+    };
+
+    // Put the creator in the room
+    socket.join(code);
+
+    // Emit back to the creator
+    socket.emit("room-created", { code, players: rooms[code].players });
+    console.log(`Room ${code} created by ${username}`);
+  });
+
+  // Listen for on room join
+  socket.on("join-room", ({ code, username }) => {
+    // Check if room exists
+    const room = rooms[code];
+    if (!room) {
+      socket.emit("error", { message: "Room not found" });
+      return;
+    }
+
+    // Push player to room
+    room.players.push({ id: socket.id, username });
+
+    // Put player in the room
+    socket.join(code);
+
+    // Emit back to the player that joined
+    socket.emit("room-joined", { code, players: room.players });
+    // Emit to the rest of players inside that room
+    socket.to(code).emit("player-joined", { players: room.players });
+    console.log(`Player ${username} joined room ${code}`);
+  });
+});
+
 // Start the server
 server.listen(PORT, () => {
   console.log(`SERVER STARTED ON PORT ${PORT}`);
