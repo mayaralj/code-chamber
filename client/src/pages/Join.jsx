@@ -1,9 +1,38 @@
 import { useNavigate } from "react-router-dom";
 import { useState } from "react";
+import socket from "../socket";
 
 const Join = () => {
   const navigate = useNavigate();
+  // Show modal state
   const [showModal, setShowModal] = useState(false);
+  // code state for joining by code
+  const [code, setCode] = useState("");
+  // error state
+  const [error, setError] = useState("");
+
+  // Handle join function
+  const handleJoin = () => {
+    // Check for valid code
+    if (code.trim() === "") {
+      return;
+    }
+
+    // Emit join room to server
+    socket.emit("join-room", { code: code.toUpperCase(), username: "Mayar" }); // Temp username
+
+    // Listen for room joined event
+    socket.once("room-joined", ({ code, players }) => {
+      navigate(`/game-wait/${code}`, {
+        state: { username: "Mayar", players, isHost: false }, // Temp username
+      });
+    });
+
+    // Listen for error event
+    socket.once("room-join-error", ({ message }) => {
+      setError(message);
+    });
+  };
 
   // Join lobby by code or by going to the list of public lobbies
   return (
@@ -39,21 +68,30 @@ const Join = () => {
               type="text"
               maxLength={6}
               placeholder="Enter code..."
-              className="bg-gray-700 text-white px-3 py-2 rounded border border-gray-600 focus:outline-none focus:ring-1 focus:ring-orange-100"
+              className={`bg-gray-700 uppercase placeholder:normal-case text-white px-3 py-2 rounded border border-gray-600 focus:outline-none focus:ring-1 ${error ? "border-red-500" : "focus:ring-orange-100"}`}
+              value={code}
+              onChange={(e) => setCode(e.target.value)}
             />
+            {/* Error Message */}
+            {error && <p className="text-red-500">{error}</p>}
             {/* Container for buttons */}
             <div className="flex gap-4">
               {/* Join Button */}
               <button
                 className="cursor-pointer bg-orange-50 text-gray-900 font-bold py-2 px-6 rounded hover:bg-orange-100 flex-1"
-                onClick={() => navigate("/game-wait/code")} // placeholder for now
+                onClick={handleJoin}
               >
                 Join
               </button>
               {/* Cancel Button */}
               <button
                 className="cursor-pointer bg-gray-700 text-white font-bold py-2 px-6 rounded hover:bg-gray-600 flex-1"
-                onClick={() => setShowModal(false)}
+                onClick={() => {
+                  // Reset states and close modal
+                  setShowModal(false);
+                  setError("");
+                  setCode("");
+                }}
               >
                 Cancel
               </button>
