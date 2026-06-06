@@ -2,7 +2,8 @@ import { Routes, Route } from "react-router-dom";
 import Home from "./pages/Home";
 import CreateLobby from "./pages/CreateLobby";
 import Lobbies from "./pages/Lobbies";
-import LobbyWait from "./pages/LobbyWait";
+import GameWait from "./pages/GameWait";
+import Join from "./pages/Join";
 import Game from "./pages/Game";
 
 const App = () => {
@@ -10,8 +11,9 @@ const App = () => {
     <Routes>
       <Route path="/" element={<Home />} />
       <Route path="/create" element={<CreateLobby />} />
+      <Route path="/join" element={<Join />} />
       <Route path="/lobbies" element={<Lobbies />} />
-      <Route path="/lobby/:code" element={<LobbyWait />} />
+      <Route path="/game-wait/:code" element={<GameWait />} />
       <Route path="/game/:code" element={<Game />} />
     </Routes>
   );

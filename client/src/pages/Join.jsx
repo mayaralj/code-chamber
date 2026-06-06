@@ -46,7 +46,7 @@ const Join = () => {
               {/* Join Button */}
               <button
                 className="cursor-pointer bg-orange-50 text-gray-900 font-bold py-2 px-6 rounded hover:bg-orange-100 flex-1"
-                onClick={() => navigate("/lobby/code")} // placeholder for now
+                onClick={() => navigate("/game-wait/code")} // placeholder for now
               >
                 Join
               </button>

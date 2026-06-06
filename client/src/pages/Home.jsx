@@ -15,17 +15,17 @@ const Home = () => {
         {/* First Button to create lobby */}
         <button
           className="bg-orange-100 cursor-pointer hover:bg-orange-200 text-gray-800 text-3xl font-bold py-50 px-20 rounded"
-          onClick={() => navigate("/create-lobby")}
+          onClick={() => navigate("/create")}
         >
           Create Lobby
         </button>
 
-        {/* Second Button to Find lobby */}
+        {/* Second Button to Join lobby */}
         <button
           className="bg-gray-700 cursor-pointer hover:bg-gray-600 text-white text-3xl font-bold py-50 px-20 rounded"
-          onClick={() => navigate("/lobbies")}
+          onClick={() => navigate("/join")}
         >
-          Find Lobby
+          Join Lobby
         </button>
       </div>
     </div>

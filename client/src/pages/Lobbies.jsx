@@ -114,7 +114,7 @@ const Lobbies = () => {
             </p>
             <button
               className="bg-orange-100 hover:bg-orange-200 text-gray-950 font-bold py-2 px-4 rounded cursor-pointer mt-2"
-              onClick={() => navigate(`/lobby/${lobby.id}`)}
+              onClick={() => navigate(`/game-wait/${lobby.id}`)}
             >
               Join Lobby
             </button>
