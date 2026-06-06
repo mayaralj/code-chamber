@@ -36,30 +36,37 @@ io.on("connection", (socket) => {
   console.log("A user connected: " + socket.id);
 
   // Listen for room creation
-  socket.on("create-room", ({ username }) => {
-    // Create a random code
-    const code = Math.random().toString(36).substring(2, 6).toUpperCase();
+  socket.on(
+    "create-room",
+    ({ username, lobbyName, maxPlayers, isPublic, difficulty }) => {
+      // Create a random code
+      const code = Math.random().toString(36).substring(2, 6).toUpperCase();
 
-    // Store new room in active rooms
-    rooms[code] = {
-      host: socket.id,
-      players: [{ id: socket.id, username }],
-    };
+      // Store new room in active rooms
+      rooms[code] = {
+        host: socket.id,
+        players: [{ id: socket.id, username }],
+        lobbyName,
+        maxPlayers,
+        isPublic,
+        difficulty,
+      };
 
-    // Put the creator in the room
-    socket.join(code);
+      // Put the creator in the room
+      socket.join(code);
 
-    // Emit back to the creator
-    socket.emit("room-created", { code, players: rooms[code].players });
-    console.log(`Room ${code} created by ${username}`);
-  });
+      // Emit back to the creator
+      socket.emit("room-created", { code, players: rooms[code].players });
+      console.log(`Room ${code} created by ${username}`);
+    },
+  );
 
   // Listen for on room join
   socket.on("join-room", ({ code, username }) => {
     // Check if room exists
     const room = rooms[code];
     if (!room) {
-      socket.emit("error", { message: "Room not found" });
+      socket.emit("room-join-error", { message: "Room not found" });
       return;
     }
 
