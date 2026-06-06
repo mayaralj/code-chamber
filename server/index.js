@@ -75,6 +75,17 @@ io.on("connection", (socket) => {
     socket.to(code).emit("player-joined", { players: room.players });
     console.log(`Player ${username} joined room ${code}`);
   });
+
+  // Start game event
+  socket.on("start-game", ({ code }) => {
+    io.to(code).emit("game-started", code);
+    console.log(`Game started in room ${code}`);
+  });
+
+  // Handle disconnection
+  socket.on("disconnect", () => {
+    console.log("user disconnected: " + socket.id);
+  });
 });
 
 // Start the server
