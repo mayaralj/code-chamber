@@ -1,7 +1,28 @@
 import { useNavigate } from "react-router-dom";
+import { useState } from "react";
+import socket from "../socket";
 
 const CreateLobby = () => {
+  // Username state
+  const [username, setUsername] = useState("Mayar"); // Temp username
   const navigate = useNavigate();
+
+  // Handle create function
+  const handleCreate = () => {
+    // Ensure a real username
+    if (username.trim() === "") {
+      return;
+    }
+
+    // Emit create room to server
+    socket.emit("create-room", { username });
+    // Listen for room created event
+    socket.once("room-created", ({ code, players }) => {
+      navigate(`/game-wait/${code}`, {
+        state: { username, players, isHost: true },
+      });
+    });
+  };
   return (
     // Create lobby form
     <div className="min-h-screen bg-gray-950 text-white flex flex-col items-center justify-start pt-35 gap-6">
@@ -39,7 +60,7 @@ const CreateLobby = () => {
         {/* Create Button */}
         <button
           className="bg-orange-100 cursor-pointer hover:bg-orange-200 text-gray-800 text-2xl font-bold py-1 px-4 rounded self-center"
-          onClick={() => navigate("/game-wait")}
+          onClick={handleCreate}
         >
           Create Lobby
         </button>
