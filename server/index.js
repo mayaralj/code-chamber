@@ -1,5 +1,7 @@
 // Imports
 import express from "express";
+import { Server } from "socket.io";
+import http from "http";
 
 // Routes
 import questionsRouter from "./routes/questions.js";
@@ -12,11 +14,20 @@ const PORT = process.env.PORT || 5000;
 const app = express();
 app.use(express.json());
 
+// Server
+const server = http.createServer(app);
+const io = new Server(server, {
+  cors: {
+    origin: "http://localhost:3000",
+    methods: ["GET", "POST"],
+  },
+});
+
 // Use the routes
 app.use("/api/questions", questionsRouter);
 app.use("/api/users", usersRouter);
 
 // Start the server
-app.listen(PORT, () => {
+server.listen(PORT, () => {
   console.log(`SERVER STARTED ON PORT ${PORT}`);
 });
