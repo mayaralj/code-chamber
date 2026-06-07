@@ -70,6 +70,12 @@ io.on("connection", (socket) => {
       return;
     }
 
+    // Check if room is full
+    if (room.players.length >= room.maxPlayers) {
+      socket.emit("room-join-error", { message: "Room is full" });
+      return;
+    }
+
     // Push player to room
     room.players.push({ id: socket.id, username });
 

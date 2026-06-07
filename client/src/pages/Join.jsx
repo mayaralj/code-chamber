@@ -23,6 +23,9 @@ const Join = () => {
 
     // Listen for room joined event
     socket.once("room-joined", ({ code, players }) => {
+      // Turn off error listener in case they joined successfully
+      socket.off("room-join-error");
+      // Navigate to game wait with the room code and players list
       navigate(`/game-wait/${code}`, {
         state: { username: "Mayar", players, isHost: false }, // Temp username
       });
@@ -30,6 +33,9 @@ const Join = () => {
 
     // Listen for error event
     socket.once("room-join-error", ({ message }) => {
+      // Turn off other socket listener
+      socket.off("room-joined");
+      // Set error message
       setError(message);
     });
   };
