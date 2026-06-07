@@ -1,90 +1,53 @@
 import { useNavigate } from "react-router-dom";
+import { useState, useEffect } from "react";
+import socket from "../socket";
 
 const Lobbies = () => {
   const navigate = useNavigate();
-  // Placeholder lobbies
-  const lobbies = [
-    {
-      id: 1,
-      lobbyName: "Lobby 1",
-      host: "Player1",
-      players: 3,
-      maxPlayers: 4,
-      code: "ABCD",
-    },
-    {
-      id: 2,
-      lobbyName: "Lobby 2",
-      host: "Player2",
-      players: 2,
-      maxPlayers: 4,
-      code: "EFGH",
-    },
-    {
-      id: 3,
-      lobbyName: "Lobby 3",
-      host: "Player3",
-      players: 1,
-      maxPlayers: 4,
-      code: "IJKL",
-    },
-    {
-      id: 4,
-      lobbyName: "Lobby 4",
-      host: "Player4",
-      players: 4,
-      maxPlayers: 4,
-      code: "MNOP",
-    },
-    {
-      id: 5,
-      lobbyName: "Lobby 5",
-      host: "Player5",
-      players: 2,
-      maxPlayers: 4,
-      code: "QRST",
-    },
-    {
-      id: 6,
-      lobbyName: "Lobby 6",
-      host: "Player6",
-      players: 1,
-      maxPlayers: 4,
-      code: "UVWX",
-    },
-    {
-      id: 7,
-      lobbyName: "Lobby 7",
-      host: "Player7",
-      players: 3,
-      maxPlayers: 4,
-      code: "YZAB",
-    },
-    {
-      id: 8,
-      lobbyName: "Lobby 8",
-      host: "Player8",
-      players: 2,
-      maxPlayers: 4,
-      code: "CDEF",
-    },
-    {
-      id: 9,
-      lobbyName: "Lobby 9",
-      host: "Player9",
-      players: 1,
-      maxPlayers: 4,
-      code: "GHIJ",
-    },
-    {
-      id: 10,
-      lobbyName: "Lobby 10",
-      host: "Player10",
-      players: 4,
-      maxPlayers: 4,
-      code: "KLMN",
-    },
-  ];
+  const [lobbies, setLobbies] = useState([]);
+  const [error, setError] = useState("");
+
+  // Fetch list of public lobbies
+  useEffect(() => {
+    socket.emit("get-rooms");
+    socket.on("rooms-list", (rooms) => {
+      setLobbies(rooms);
+    });
+
+    // Clean up socket listeners on unmount
+    return () => {
+      socket.off("rooms-list");
+    };
+  }, []);
+
+  // Handle join function
+  const handleJoin = (code) => {
+    // Check for valid code
+    if (code.trim() === "") {
+      return;
+    }
+
+    // Emit join room to server
+    socket.emit("join-room", { code: code.toUpperCase(), username: "Mayar" }); // Temp username
+
+    // Listen for room joined event
+    socket.once("room-joined", ({ roomInfo }) => {
+      // Turn off error listener in case they joined successfully
+      socket.off("room-join-error");
+      // Navigate to game wait with the room code and players list
+      navigate(`/game-wait/${code}`, {
+        state: { username: "Mayar", isHost: false, roomInfo }, // Temp username
+      });
+    });
+
+    // Listen for error event
+    socket.once("room-join-error", ({ message }) => {
+      // Turn off other socket listener
+      socket.off("room-joined");
+      // Set error message
+      setError(message);
+    });
+  };
 
   // Display list of public lobbies with option to click and join
   return (
@@ -108,16 +71,18 @@ const Lobbies = () => {
           >
             {/* Lobby Info */}
             <h2 className="text-xl font-bold">{lobby.lobbyName}</h2>
-            <p>Host: {lobby.host}</p>
+            <p>Host: {lobby.host.username}</p>
             <p>
-              Players: {lobby.players}/{lobby.maxPlayers}
+              Players: {lobby.players.length}/{lobby.maxPlayers}
             </p>
             <button
               className="bg-orange-100 hover:bg-orange-200 text-gray-950 font-bold py-2 px-4 rounded cursor-pointer mt-2"
-              onClick={() => navigate(`/game-wait/${lobby.id}`)}
+              onClick={() => handleJoin(lobby.code)}
             >
               Join Lobby
             </button>
+            {/* Display Error if exists */}
+            {error && <p className="text-red-500">{error}</p>}
           </div>
         ))}
       </div>

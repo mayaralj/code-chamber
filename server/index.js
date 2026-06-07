@@ -30,6 +30,12 @@ app.use("/api/users", usersRouter);
 // Store active rooms
 const rooms = {};
 
+// BRoadcast rooms helper
+const broadcastRooms = () => {
+  const publicRooms = Object.values(rooms).filter((room) => room.isPublic);
+  io.emit("rooms-list", publicRooms);
+};
+
 // Socket.io logic
 io.on("connection", (socket) => {
   // Print out userid that connected
@@ -44,7 +50,7 @@ io.on("connection", (socket) => {
 
       // Store new room in active rooms
       rooms[code] = {
-        host: socket.id,
+        host: { id: socket.id, username },
         code,
         players: [{ id: socket.id, username }],
         lobbyName,
@@ -89,6 +95,8 @@ io.on("connection", (socket) => {
     });
     // Emit to the rest of players inside that room
     socket.to(code).emit("player-joined", { players: room.players });
+    // Broadcast updated rooms list to all clients
+    broadcastRooms();
     console.log(`Player ${username} joined room ${code}`);
   });
 
@@ -98,9 +106,15 @@ io.on("connection", (socket) => {
     console.log(`Game started in room ${code}`);
   });
 
+  // Listen for getting all rooms for lobby page
+  socket.on("get-rooms", () => {
+    broadcastRooms();
+  });
+
   // Handle disconnection
   socket.on("disconnect", () => {
     console.log("user disconnected: " + socket.id);
+    broadcastRooms();
   });
 });
 
