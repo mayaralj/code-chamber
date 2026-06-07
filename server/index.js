@@ -45,6 +45,7 @@ io.on("connection", (socket) => {
       // Store new room in active rooms
       rooms[code] = {
         host: socket.id,
+        code,
         players: [{ id: socket.id, username }],
         lobbyName,
         maxPlayers,
@@ -56,7 +57,7 @@ io.on("connection", (socket) => {
       socket.join(code);
 
       // Emit back to the creator
-      socket.emit("room-created", { code, players: rooms[code].players });
+      socket.emit("room-created", { roomInfo: rooms[code] });
       console.log(`Room ${code} created by ${username}`);
     },
   );
@@ -83,7 +84,9 @@ io.on("connection", (socket) => {
     socket.join(code);
 
     // Emit back to the player that joined
-    socket.emit("room-joined", { code, players: room.players });
+    socket.emit("room-joined", {
+      roomInfo: rooms[code],
+    });
     // Emit to the rest of players inside that room
     socket.to(code).emit("player-joined", { players: room.players });
     console.log(`Player ${username} joined room ${code}`);

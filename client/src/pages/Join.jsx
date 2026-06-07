@@ -22,12 +22,12 @@ const Join = () => {
     socket.emit("join-room", { code: code.toUpperCase(), username: "Mayar" }); // Temp username
 
     // Listen for room joined event
-    socket.once("room-joined", ({ code, players }) => {
+    socket.once("room-joined", ({ roomInfo }) => {
       // Turn off error listener in case they joined successfully
       socket.off("room-join-error");
       // Navigate to game wait with the room code and players list
       navigate(`/game-wait/${code}`, {
-        state: { username: "Mayar", players, isHost: false }, // Temp username
+        state: { username: "Mayar", isHost: false, roomInfo }, // Temp username
       });
     });
 

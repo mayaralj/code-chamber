@@ -32,9 +32,9 @@ const CreateLobby = () => {
       difficulty,
     });
     // Listen for room created event
-    socket.once("room-created", ({ code, players }) => {
-      navigate(`/game-wait/${code}`, {
-        state: { username, players, isHost: true },
+    socket.once("room-created", ({ roomInfo }) => {
+      navigate(`/game-wait/${roomInfo.code}`, {
+        state: { username, roomInfo, isHost: true },
       });
     });
   };
