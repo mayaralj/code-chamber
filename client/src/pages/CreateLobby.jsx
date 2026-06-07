@@ -78,7 +78,7 @@ const CreateLobby = () => {
 
         {/* Selector if public or private lobby */}
         <select
-          value={isPublic}
+          value={isPublic ? "public" : "private"}
           onChange={(e) => setIsPublic(e.target.value === "public")}
           className="bg-gray-700 text-white border border-gray-600 px-3 py-2 rounded focus:outline-none focus:ring-1 focus:ring-orange-100"
         >

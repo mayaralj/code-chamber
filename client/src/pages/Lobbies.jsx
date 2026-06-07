@@ -9,10 +9,11 @@ const Lobbies = () => {
 
   // Fetch list of public lobbies
   useEffect(() => {
-    socket.emit("get-rooms");
     socket.on("rooms-list", (rooms) => {
       setLobbies(rooms);
     });
+
+    socket.emit("get-rooms");
 
     // Clean up socket listeners on unmount
     return () => {
@@ -26,6 +27,10 @@ const Lobbies = () => {
     if (code.trim() === "") {
       return;
     }
+
+    // CLear previous connections
+    socket.off("room-joined");
+    socket.off("room-join-error");
 
     // Emit join room to server
     socket.emit("join-room", { code: code.toUpperCase(), username: "Mayar" }); // Temp username
@@ -66,12 +71,17 @@ const Lobbies = () => {
         {lobbies.map((lobby) => (
           // Individual lobby container
           <div
-            key={lobby.id}
+            key={lobby.code}
             className="bg-gray-800 p-4 rounded-lg flex flex-col gap-2"
           >
             {/* Lobby Info */}
             <h2 className="text-xl font-bold">{lobby.lobbyName}</h2>
             <p>Host: {lobby.host.username}</p>
+            <p>
+              Difficulty:{" "}
+              {lobby.difficulty.charAt(0).toUpperCase() +
+                lobby.difficulty.slice(1)}
+            </p>
             <p>
               Players: {lobby.players.length}/{lobby.maxPlayers}
             </p>

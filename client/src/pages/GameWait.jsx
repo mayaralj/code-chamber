@@ -8,6 +8,9 @@ const GameWait = () => {
   const location = useLocation();
   const { username, roomInfo, isHost } = location.state || {};
 
+  // Game started state
+  const [gameStarted, setGameStarted] = useState(false);
+
   // Players state to track current players in this room
   const [players, setPlayers] = useState(roomInfo?.players || []);
 
@@ -25,20 +28,48 @@ const GameWait = () => {
       setPlayers(players);
     });
 
+    // Listen for player leave
+    socket.on("player-left", ({ players }) => {
+      setPlayers(players);
+    });
+
     // Listen for game started
     socket.on("game-started", ({ code }) => {
+      setGameStarted(true);
       navigate(`/game/${code}`, { state: { username, players } });
+    });
+
+    // Listen for host left
+    socket.on("host-left", () => {
+      navigate("/");
     });
 
     // Cleanup listeners on unmount
     return () => {
       socket.off("player-joined");
+      socket.off("player-left");
       socket.off("game-started");
+      socket.off("host-left");
+      if (!gameStarted) {
+        socket.emit("leave-room", { code: roomInfo.code });
+      }
     };
   }, [navigate]);
 
+  // Handle start game
   const handleStart = () => {
     socket.emit("start-game", { code: roomInfo.code });
+  };
+
+  // Handle leave room by emitting leave room event and navigating back to home
+  const handleLeave = () => {
+    socket.emit("leave-room", { code: roomInfo.code });
+    // Redirect host back to create lobby and other players back to lobbies page
+    if (isHost) {
+      navigate("/create");
+      return;
+    }
+    navigate("/lobbies");
   };
 
   return (
@@ -68,6 +99,7 @@ const GameWait = () => {
         ))}
       </div>
 
+      {/* If host show a start game button */}
       {isHost && (
         <button
           onClick={handleStart}
@@ -76,6 +108,13 @@ const GameWait = () => {
           Start Game
         </button>
       )}
+      {/* Show a leave room button */}
+      <button
+        onClick={handleLeave}
+        className="cursor-pointer bg-red-700 text-white font-bold px-12 py-3 rounded hover:bg-red-600"
+      >
+        Leave Room
+      </button>
     </div>
   );
 };
