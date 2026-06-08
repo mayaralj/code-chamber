@@ -129,7 +129,24 @@ const setUpRoomHandlers = (io, socket, { rooms, playersInRooms }) => {
       return;
     }
     room.isGameStarted = true;
-    io.to(code).emit("game-started", { code, players: room.players });
+    console.log("start-game received for code:", code);
+    io.to(code).emit("game-started", { code });
+
+    // Start a Countdown
+    let timeLeft = 5;
+    const timer = setInterval(() => {
+      timeLeft--;
+      console.log("Timer tick:", timeLeft);
+      io.to(code).emit("timer-tick", { timeLeft });
+      // End countdown
+      if (timeLeft <= 0) {
+        clearInterval(timer);
+        io.to(code).emit("timer-finished", {
+          code,
+        });
+      }
+    }, 1000);
+
     console.log(`Game started in room ${code}`);
   });
 
