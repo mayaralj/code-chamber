@@ -12,20 +12,20 @@ const Home = () => {
       </p>
       {/* 2 Button cards */}
       <div className="flex justify-center pt-22 gap-48">
-        {/* First Button to create lobby */}
+        {/* First Button to create room */}
         <button
           className="bg-orange-100 cursor-pointer hover:bg-orange-200 text-gray-800 text-3xl font-bold py-50 px-20 rounded"
           onClick={() => navigate("/create")}
         >
-          Create Lobby
+          Create Room
         </button>
 
-        {/* Second Button to Join lobby */}
+        {/* Second Button to Join room */}
         <button
           className="bg-gray-700 cursor-pointer hover:bg-gray-600 text-white text-3xl font-bold py-50 px-20 rounded"
           onClick={() => navigate("/join")}
         >
-          Join Lobby
+          Join Room
         </button>
       </div>
     </div>

@@ -2,7 +2,7 @@ import { useNavigate } from "react-router-dom";
 import { useState, useEffect } from "react";
 import socket from "../socket";
 
-const Lobbies = () => {
+const PublicRooms = () => {
   const navigate = useNavigate();
   const [lobbies, setLobbies] = useState([]);
   const [error, setError] = useState({ code: "", message: "" });
@@ -104,4 +104,4 @@ const Lobbies = () => {
   );
 };
 
-export default Lobbies;
+export default PublicRooms;

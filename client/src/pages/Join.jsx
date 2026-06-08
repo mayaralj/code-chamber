@@ -60,7 +60,7 @@ const Join = () => {
           className="cursor-pointer bg-orange-50 text-gray-900 font-bold w-64 px-12 py-5 rounded hover:bg-orange-100"
           onClick={() => navigate("/lobbies")}
         >
-          Browse Public Lobbies
+          Browse Public Rooms
         </button>
       </div>
 
@@ -69,7 +69,7 @@ const Join = () => {
         <div className="fixed inset-0 bg-black/80 flex items-center justify-center">
           <div className="bg-gray-800 p-8 rounded-lg flex flex-col gap-4 w-96">
             {/* Title */}
-            <h2 className="text-2xl font-bold">Enter Lobby Code</h2>
+            <h2 className="text-2xl font-bold">Enter Room Code</h2>
             {/* Input for lobby code */}
             <input
               type="text"

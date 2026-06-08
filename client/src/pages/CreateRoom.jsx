@@ -2,7 +2,7 @@ import { useNavigate } from "react-router-dom";
 import { useState } from "react";
 import socket from "../socket";
 
-const CreateLobby = () => {
+const CreateRoom = () => {
   // Username state
   const [username, setUsername] = useState("Mayar"); // Temp username
   // Lobby name state
@@ -42,15 +42,15 @@ const CreateLobby = () => {
     // Create lobby form
     <div className="relative min-h-screen bg-gray-950 text-white flex flex-col items-center justify-start pt-35 gap-6">
       {/* Title */}
-      <div className="text-4xl font-bold font-mono">Create Lobby</div>
+      <div className="text-4xl font-bold font-mono">Create Room</div>
       {/* Form Container */}
       <div className="bg-gray-800 pt-10 pb-10 pl-12 pr-12 rounded-xl flex flex-col gap-8">
-        {/* Input for lobby name */}
+        {/* Input for room name */}
         <input
           type="text"
           value={lobbyName}
           onChange={(e) => setLobbyName(e.target.value)}
-          placeholder="Lobby Name (4-20 characters)"
+          placeholder="Room Name (4-20 characters)"
           className="bg-gray-700 text-white placeholder:text-gray-500 border border-gray-600 px-3 py-2 rounded focus:outline-none focus:ring-1 focus:ring-orange-100 w-96"
         />
 
@@ -91,11 +91,11 @@ const CreateLobby = () => {
           className="bg-orange-100 cursor-pointer hover:bg-orange-200 text-gray-800 text-2xl font-bold py-1 px-4 rounded self-center"
           onClick={handleCreate}
         >
-          Create Lobby
+          Create Room
         </button>
       </div>
     </div>
   );
 };
 
-export default CreateLobby;
+export default CreateRoom;

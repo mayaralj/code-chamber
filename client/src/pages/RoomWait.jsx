@@ -2,7 +2,7 @@ import { useNavigate, useLocation } from "react-router-dom";
 import socket from "../socket";
 import { useState, useEffect } from "react";
 
-const GameWait = () => {
+const RoomWait = () => {
   const navigate = useNavigate();
   // Get Info passed from Join or CreateLobby
   const location = useLocation();
@@ -119,4 +119,4 @@ const GameWait = () => {
   );
 };
 
-export default GameWait;
+export default RoomWait;

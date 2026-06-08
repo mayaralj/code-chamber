@@ -13,15 +13,15 @@ const Navbar = () => {
   return (
     <nav className="fixed w-full z-50 bg-gray-950 text-white py-4 px-8 flex items-center justify-between">
       <div className="text-2xl font-bold font-mono">Code Chamber</div>
-      <div className="flex gap-6">
+      <div className="flex gap-8 px-8">
         <NavLink to="/" className={linkClass("/")}>
           Home
         </NavLink>
         <NavLink to="/create" className={linkClass("/create")}>
-          Create Lobby
+          Create
         </NavLink>
         <NavLink to="/join" className={linkClass("/join")}>
-          Join Lobby
+          Join
         </NavLink>
       </div>
     </nav>
