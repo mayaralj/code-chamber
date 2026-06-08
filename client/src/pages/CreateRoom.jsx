@@ -5,8 +5,8 @@ import socket from "../socket";
 const CreateRoom = () => {
   // Username state
   const [username, setUsername] = useState("Mayar"); // Temp username
-  // Lobby name state
-  const [lobbyName, setLobbyName] = useState("");
+  // Room name state
+  const [roomName, setRoomName] = useState("");
   // Difficulty state
   const [difficulty, setDifficulty] = useState("easy"); // default difficulty
   // MaxPlayer state
@@ -26,20 +26,20 @@ const CreateRoom = () => {
     // Emit create room to server
     socket.emit("create-room", {
       username,
-      lobbyName,
+      roomName,
       maxPlayers,
       isPublic,
       difficulty,
     });
     // Listen for room created event
     socket.once("room-created", ({ roomInfo }) => {
-      navigate(`/game-wait/${roomInfo.code}`, {
+      navigate(`/room-wait/${roomInfo.code}`, {
         state: { username, roomInfo, isHost: true },
       });
     });
   };
   return (
-    // Create lobby form
+    // Create room form
     <div className="relative min-h-screen bg-gray-950 text-white flex flex-col items-center justify-start pt-35 gap-6">
       {/* Title */}
       <div className="text-4xl font-bold font-mono">Create Room</div>
@@ -48,8 +48,8 @@ const CreateRoom = () => {
         {/* Input for room name */}
         <input
           type="text"
-          value={lobbyName}
-          onChange={(e) => setLobbyName(e.target.value)}
+          value={roomName}
+          onChange={(e) => setRoomName(e.target.value)}
           placeholder="Room Name (4-20 characters)"
           className="bg-gray-700 text-white placeholder:text-gray-500 border border-gray-600 px-3 py-2 rounded focus:outline-none focus:ring-1 focus:ring-orange-100 w-96"
         />
@@ -76,7 +76,7 @@ const CreateRoom = () => {
           <option value="6">6 Players</option>
         </select>
 
-        {/* Selector if public or private lobby */}
+        {/* Selector if public or private room */}
         <select
           value={isPublic ? "public" : "private"}
           onChange={(e) => setIsPublic(e.target.value === "public")}

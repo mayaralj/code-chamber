@@ -43,7 +43,7 @@ const broadcastRooms = () => {
   // while (publicRooms.length < 30) {
   //   publicRooms.push({
   //     code: `TEST${publicRooms.length + 1}`,
-  //     lobbyName: `Test Lobby ${publicRooms.length + 1}`,
+  //     roomName: `Test Room ${publicRooms.length + 1}`,
   //     host: { username: "TestHost" },
   //     players: [],
   //     maxPlayers: 5,
@@ -96,7 +96,7 @@ io.on("connection", (socket) => {
   // Listen for room creation
   socket.on(
     "create-room",
-    ({ username, lobbyName, maxPlayers, isPublic, difficulty }) => {
+    ({ username, roomName, maxPlayers, isPublic, difficulty }) => {
       // Create a random code
       const code = Math.random().toString(36).substring(2, 6).toUpperCase();
 
@@ -105,7 +105,7 @@ io.on("connection", (socket) => {
         host: { id: socket.id, username },
         code,
         players: [{ id: socket.id, username }],
-        lobbyName,
+        roomName,
         maxPlayers,
         isPublic,
         difficulty,
@@ -172,7 +172,7 @@ io.on("connection", (socket) => {
     console.log(`Game started in room ${code}`);
   });
 
-  // Listen for getting all rooms for lobby page
+  // Listen for getting all rooms for public rooms page
   socket.on("get-rooms", () => {
     broadcastRooms();
   });

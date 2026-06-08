@@ -4,7 +4,7 @@ import { useState, useEffect } from "react";
 
 const RoomWait = () => {
   const navigate = useNavigate();
-  // Get Info passed from Join or CreateLobby
+  // Get Info passed from Join or CreateRoom
   const location = useLocation();
   const { username, roomInfo, isHost } = location.state || {};
 
@@ -64,24 +64,24 @@ const RoomWait = () => {
   // Handle leave room by emitting leave room event and navigating back to home
   const handleLeave = () => {
     socket.emit("leave-room", { code: roomInfo.code });
-    // Redirect host back to create lobby and other players back to lobbies page
+    // Redirect host back to create room and other players back to rooms page
     if (isHost) {
       navigate("/create");
       return;
     }
-    navigate("/lobbies");
+    navigate("/rooms");
   };
 
   return (
     <div className="min-h-screen bg-gray-950 text-white flex flex-col items-center justify-center gap-8 p-8">
       <h1 className="text-4xl font-bold mb-3 -mt-16">Waiting for Game</h1>
-      {/* Display Lobby name */}
-      <p className="text-lg">Lobby Name: {roomInfo?.lobbyName}</p>
-      {/* Display Lobby Code */}
-      <p className="text-lg">Lobby Code: {roomInfo?.code}</p>
-      {/* Display Lobby difficulty */}
+      {/* Display Room name */}
+      <p className="text-lg">Room Name: {roomInfo?.roomName}</p>
+      {/* Display Room Code */}
+      <p className="text-lg">Room Code: {roomInfo?.code}</p>
+      {/* Display Game difficulty */}
       <p className="text-lg">
-        Lobby Difficulty:{" "}
+        Game Difficulty:{" "}
         {roomInfo?.difficulty.charAt(0).toUpperCase() + // Keep capitalized first letter
           roomInfo?.difficulty.slice(1)}
       </p>
@@ -90,7 +90,7 @@ const RoomWait = () => {
         Players: {players.length}/{roomInfo?.maxPlayers}
       </p>
 
-      {/* Display players in current lobby */}
+      {/* Display players in current room */}
       <div className="flex flex-col gap-4">
         {players.map((player) => (
           <div key={player.id} className="bg-gray-800 p-4 rounded-lg">

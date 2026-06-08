@@ -15,7 +15,7 @@ const Join = () => {
   const handleJoin = () => {
     // Check for valid code
     if (code.trim() === "") {
-      setError("Please enter a lobby code");
+      setError("Please enter a room code");
       return;
     }
 
@@ -27,7 +27,7 @@ const Join = () => {
       // Turn off error listener in case they joined successfully
       socket.off("room-join-error");
       // Navigate to game wait with the room code and players list
-      navigate(`/game-wait/${code}`, {
+      navigate(`/room-wait/${code}`, {
         state: { username: "Mayar", isHost: false, roomInfo }, // Temp username
       });
     });
@@ -41,7 +41,7 @@ const Join = () => {
     });
   };
 
-  // Join lobby by code or by going to the list of public lobbies
+  // Join room by code or by going to the list of public rooms
   return (
     <div className="relative min-h-screen bg-gray-950 text-white flex flex-col items-center justify-center gap-8">
       {/* Title */}
@@ -55,10 +55,10 @@ const Join = () => {
         >
           Join by Code
         </button>
-        {/* Browse Public Lobbies Button */}
+        {/* Browse Public Rooms Button */}
         <button
           className="cursor-pointer bg-orange-50 text-gray-900 font-bold w-64 px-12 py-5 rounded hover:bg-orange-100"
-          onClick={() => navigate("/lobbies")}
+          onClick={() => navigate("/rooms")}
         >
           Browse Public Rooms
         </button>
@@ -70,7 +70,7 @@ const Join = () => {
           <div className="bg-gray-800 p-8 rounded-lg flex flex-col gap-4 w-96">
             {/* Title */}
             <h2 className="text-2xl font-bold">Enter Room Code</h2>
-            {/* Input for lobby code */}
+            {/* Input for room code */}
             <input
               type="text"
               maxLength={6}
