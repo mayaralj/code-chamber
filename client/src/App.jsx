@@ -1,4 +1,4 @@
-import { Routes, Route } from "react-router-dom";
+import { createBrowserRouter, RouterProvider } from "react-router-dom";
 import Home from "./pages/Home";
 import CreateRoom from "./pages/CreateRoom";
 import PublicRooms from "./pages/PublicRooms";
@@ -7,19 +7,25 @@ import Join from "./pages/Join";
 import Game from "./pages/Game";
 import MainLayout from "./layouts/MainLayout";
 
+const router = createBrowserRouter([
+  {
+    path: "/",
+    element: <MainLayout />,
+    children: [
+      { index: true, element: <Home /> },
+      { path: "/create", element: <CreateRoom /> },
+      { path: "/join", element: <Join /> },
+      { path: "/rooms", element: <PublicRooms /> },
+    ],
+  },
+  { path: "/room-wait/:code", element: <RoomWait /> },
+  { path: "/game/:code", element: <Game /> },
+  // 404 Route
+  { path: "*", element: <Home /> }, // will be not found page later
+]);
+
 const App = () => {
-  return (
-    <Routes>
-      <Route path="/" element={<MainLayout />}>
-        <Route path="/" element={<Home />} />
-        <Route path="/create" element={<CreateRoom />} />
-        <Route path="/join" element={<Join />} />
-        <Route path="/rooms" element={<PublicRooms />} />
-        <Route path="/room-wait/:code" element={<RoomWait />} />
-        <Route path="/game/:code" element={<Game />} />
-      </Route>
-    </Routes>
-  );
+  return <RouterProvider router={router} />;
 };
 
 export default App;
