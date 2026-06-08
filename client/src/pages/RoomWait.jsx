@@ -1,6 +1,6 @@
 import { useNavigate, useLocation } from "react-router-dom";
 import socket from "../socket";
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 
 const RoomWait = () => {
   const navigate = useNavigate();
@@ -8,8 +8,8 @@ const RoomWait = () => {
   const location = useLocation();
   const { username, roomInfo, isHost } = location.state || {};
 
-  // Game started state
-  const [gameStarted, setGameStarted] = useState(false);
+  // Game started ref
+  const gameStartedRef = useRef(false);
 
   // Players state to track current players in this room
   const [players, setPlayers] = useState(roomInfo?.players || []);
@@ -35,7 +35,7 @@ const RoomWait = () => {
 
     // Listen for game started
     socket.on("game-started", ({ code }) => {
-      setGameStarted(true);
+      gameStartedRef.current = true;
       navigate(`/game/${code}`, { state: { username, players } });
     });
 
@@ -50,7 +50,7 @@ const RoomWait = () => {
       socket.off("player-left");
       socket.off("game-started");
       socket.off("host-left");
-      if (!gameStarted) {
+      if (!gameStartedRef.current) {
         socket.emit("leave-room", { code: roomInfo.code });
       }
     };
