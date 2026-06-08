@@ -39,6 +39,19 @@ const broadcastRooms = () => {
     (room) => room.isPublic && !room.isGameStarted,
   );
   console.log("Broadcasting rooms list:", publicRooms);
+  // Fill up public rooms for testing 30 rooms
+  // while (publicRooms.length < 30) {
+  //   publicRooms.push({
+  //     code: `TEST${publicRooms.length + 1}`,
+  //     lobbyName: `Test Lobby ${publicRooms.length + 1}`,
+  //     host: { username: "TestHost" },
+  //     players: [],
+  //     maxPlayers: 5,
+  //     isPublic: true,
+  //     difficulty: "medium",
+  //     isGameStarted: false,
+  //   });
+  // }
   io.emit("rooms-list", publicRooms);
 };
 

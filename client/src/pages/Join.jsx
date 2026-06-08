@@ -15,6 +15,7 @@ const Join = () => {
   const handleJoin = () => {
     // Check for valid code
     if (code.trim() === "") {
+      setError("Please enter a lobby code");
       return;
     }
 
@@ -42,7 +43,7 @@ const Join = () => {
 
   // Join lobby by code or by going to the list of public lobbies
   return (
-    <div className="min-h-screen bg-gray-950 text-white flex flex-col items-center justify-center gap-8">
+    <div className="relative min-h-screen bg-gray-950 text-white flex flex-col items-center justify-center gap-8">
       {/* Title */}
       <h1 className="text-4xl font-bold mb-3 -mt-16">Pick a Join Method</h1>
       {/* Container to pick join method */}

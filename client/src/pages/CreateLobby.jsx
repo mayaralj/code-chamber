@@ -40,7 +40,7 @@ const CreateLobby = () => {
   };
   return (
     // Create lobby form
-    <div className="min-h-screen bg-gray-950 text-white flex flex-col items-center justify-start pt-35 gap-6">
+    <div className="relative min-h-screen bg-gray-950 text-white flex flex-col items-center justify-start pt-35 gap-6">
       {/* Title */}
       <div className="text-4xl font-bold font-mono">Create Lobby</div>
       {/* Form Container */}

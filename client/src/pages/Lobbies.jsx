@@ -5,7 +5,7 @@ import socket from "../socket";
 const Lobbies = () => {
   const navigate = useNavigate();
   const [lobbies, setLobbies] = useState([]);
-  const [error, setError] = useState("");
+  const [error, setError] = useState({ code: "", message: "" });
 
   // Fetch list of public lobbies
   useEffect(() => {
@@ -39,6 +39,8 @@ const Lobbies = () => {
     socket.once("room-joined", ({ roomInfo }) => {
       // Turn off error listener in case they joined successfully
       socket.off("room-join-error");
+      // Clear error state
+      setError({ code: "", message: "" });
       // Navigate to game wait with the room code and players list
       navigate(`/game-wait/${code}`, {
         state: { username: "Mayar", isHost: false, roomInfo }, // Temp username
@@ -50,14 +52,14 @@ const Lobbies = () => {
       // Turn off other socket listener
       socket.off("room-joined");
       // Set error message
-      setError(message);
+      setError({ code, message });
     });
   };
 
   // Display list of public lobbies with option to click and join
   return (
     // Container for lobbies
-    <div className="min-h-screen bg-gray-950 text-white flex flex-col gap-8 p-32">
+    <div className="min-h-screen relative bg-gray-950 text-white flex flex-col gap-8 p-32">
       {/* Title */}
       <h1 className="text-4xl self-center font-bold mb-3 -mt-16">
         Public Lobbies
@@ -65,7 +67,7 @@ const Lobbies = () => {
       {/* Lobby List Container */}
       <div
         className="grid grid-cols-1 grid-cols-2 grid-cols-3 grid-cols-4 grid-cols-5
-        gap-6"
+        gap-6 items-start"
       >
         {/* Display each lobby from data */}
         {lobbies.map((lobby) => (
@@ -92,7 +94,9 @@ const Lobbies = () => {
               Join Lobby
             </button>
             {/* Display Error if exists */}
-            {error && <p className="text-red-500">{error}</p>}
+            {error && error.code === lobby.code && (
+              <p className="text-red-500">{error.message}</p>
+            )}
           </div>
         ))}
       </div>
