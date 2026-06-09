@@ -14,6 +14,19 @@ const RoomWait = () => {
   // Players state to track current players in this room
   const [players, setPlayers] = useState(roomInfo?.players || []);
 
+  // Check with server if user is supposed to be in this room
+  useEffect(() => {
+    if (!roomInfo) {
+      return;
+    }
+    socket.emit("check-room", { code: roomInfo.code });
+    socket.once("check-room-response", ({ valid }) => {
+      if (!valid) {
+        navigate("/", { replace: true });
+      }
+    });
+  }, []);
+
   // useEffect to listen for player updates and game start
   useEffect(() => {
     // Listen for player joined

@@ -160,6 +160,32 @@ const setUpRoomHandlers = (io, socket, { rooms, playersInRooms }) => {
     broadcastRooms();
   });
 
+  // Validity checks
+  socket.on("check-room", ({ code }) => {
+    // Check if room exists
+    const room = rooms[code];
+    if (!room) {
+      socket.emit("check-room-response", {
+        valid: false,
+        message: "Room not found",
+      });
+      return;
+    }
+
+    // Check if player is inside the room
+    const playerInRoom = room.players.some((player) => player.id === socket.id);
+    if (!playerInRoom) {
+      socket.emit("check-room-response", {
+        valid: false,
+        message: "You are not a member of this room",
+      });
+      return;
+    }
+
+    // Valid now
+    socket.emit("check-room-response", { valid: true });
+  });
+
   // Handle disconnection
   socket.on("disconnect", () => {
     leaveRoom(socket, playersInRooms[socket.id]);

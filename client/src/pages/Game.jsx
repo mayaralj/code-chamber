@@ -1,8 +1,10 @@
 import { useEffect, useState } from "react";
-import { useNavigate, useLocation } from "react-router-dom";
+import { useNavigate, useLocation, useParams } from "react-router-dom";
 import socket from "../socket";
 
 const Game = () => {
+  const { code } = useParams();
+  console.log("Game component rendered with code:", code);
   const location = useLocation();
   const { username, players } = location.state || {};
   const navigate = useNavigate();
@@ -11,6 +13,17 @@ const Game = () => {
   const [timeLeft, setTimeLeft] = useState(5); // Example game timer
   const [gameStarted, setGameStarted] = useState(false);
   console.log("Game component rendered with timeLeft:", timeLeft);
+
+  // Check with server if user is supposed to be here
+  useEffect(() => {
+    socket.emit("check-room", { code });
+    socket.once("check-room-response", ({ valid }) => {
+      if (!valid) {
+        console.log("User not valid for this room, redirecting to home");
+        navigate("/", { replace: true });
+      }
+    });
+  }, []);
 
   // Listen for timer ticks and game start
   useEffect(() => {
@@ -27,6 +40,7 @@ const Game = () => {
     return () => {
       socket.off("timer-tick");
       socket.off("timer-finished");
+      socket.emit("leave-room", { code });
     };
   }, []);
 
