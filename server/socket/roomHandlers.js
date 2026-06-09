@@ -135,6 +135,11 @@ const setUpRoomHandlers = (io, socket, { rooms, playersInRooms }) => {
     // Start a Countdown
     let timeLeft = 5;
     const timer = setInterval(() => {
+      // Check if room still exists
+      if (!rooms[code]) {
+        clearInterval(timer);
+        return;
+      }
       timeLeft--;
       console.log("Timer tick:", timeLeft);
       io.to(code).emit("timer-tick", { timeLeft });
