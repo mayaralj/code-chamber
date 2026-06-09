@@ -14,13 +14,6 @@ const RoomWait = () => {
   // Players state to track current players in this room
   const [players, setPlayers] = useState(roomInfo?.players || []);
 
-  // Ensure they arent trying to enter the room from url only
-  useEffect(() => {
-    if (!location.state) {
-      navigate("/");
-    }
-  }, []);
-
   // useEffect to listen for player updates and game start
   useEffect(() => {
     // Listen for player joined
@@ -36,12 +29,15 @@ const RoomWait = () => {
     // Listen for game started
     socket.on("game-started", ({ code }) => {
       gameStartedRef.current = true;
-      navigate(`/game/${code}`, { state: { username, players } });
+      navigate(`/game/${code}`, {
+        replace: true,
+        state: { username, players },
+      });
     });
 
     // Listen for host left
     socket.on("host-left", () => {
-      navigate("/");
+      navigate("/", { replace: true });
     });
 
     // Cleanup listeners on unmount
@@ -56,6 +52,14 @@ const RoomWait = () => {
     };
   }, [navigate]);
 
+  // Ensure they arent trying to enter the room from url only
+  useEffect(() => {
+    if (!location.state) {
+      navigate("/", { replace: true });
+    }
+  }, []);
+  if (!location.state) return null;
+
   // Handle start game
   const handleStart = () => {
     socket.emit("start-game", { code: roomInfo.code });
@@ -66,10 +70,10 @@ const RoomWait = () => {
     socket.emit("leave-room", { code: roomInfo.code });
     // Redirect host back to create room and other players back to rooms page
     if (isHost) {
-      navigate("/create");
+      navigate("/create", { replace: true });
       return;
     }
-    navigate("/rooms");
+    navigate("/rooms", { replace: true });
   };
 
   return (
