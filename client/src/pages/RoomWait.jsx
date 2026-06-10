@@ -25,7 +25,11 @@ const RoomWait = () => {
         navigate("/", { replace: true });
       }
     });
-  }, []);
+
+    return () => {
+      socket.off("check-room-response");
+    };
+  }, [roomInfo.code]);
 
   // useEffect to listen for player updates and game start
   useEffect(() => {
