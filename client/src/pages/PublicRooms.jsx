@@ -7,6 +7,14 @@ const PublicRooms = () => {
   const [rooms, setRooms] = useState([]);
   const [error, setError] = useState({ code: "", message: "" });
 
+  // Notify server that user is on public rooms page
+  useEffect(() => {
+    socket.emit("public-rooms", { onPage: true });
+    return () => {
+      socket.emit("public-rooms", { onPage: false });
+    };
+  }, []);
+
   // Fetch list of public rooms
   useEffect(() => {
     socket.on("rooms-list", (rooms) => {

@@ -18,7 +18,8 @@ const setUpRoomHandlers = (io, socket, { rooms, playersInRooms }) => {
     //     isGameStarted: false,
     //   });
     // }
-    io.emit("rooms-list", publicRooms);
+    // Broadcast only to clients in public rooms page
+    io.to("public-rooms").emit("rooms-list", publicRooms);
   };
 
   // Room leave helper
@@ -184,6 +185,15 @@ const setUpRoomHandlers = (io, socket, { rooms, playersInRooms }) => {
 
     // Valid now
     socket.emit("check-room-response", { valid: true });
+  });
+
+  // On public-rooms page
+  socket.on("public-rooms", ({ onPage }) => {
+    if (onPage) {
+      socket.join("public-rooms");
+      return;
+    }
+    socket.leave("public-rooms");
   });
 
   // Handle disconnection
