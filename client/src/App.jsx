@@ -5,6 +5,7 @@ import PublicRooms from "./pages/PublicRooms";
 import RoomWait from "./pages/RoomWait";
 import Join from "./pages/Join";
 import Game from "./pages/Game";
+// Layouts
 import MainLayout from "./layouts/MainLayout";
 
 const router = createBrowserRouter([

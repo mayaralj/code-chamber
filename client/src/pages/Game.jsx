@@ -2,8 +2,11 @@ import { useEffect, useState } from "react";
 import { useNavigate, useLocation, useParams } from "react-router-dom";
 import socket from "../socket";
 // Import from components
-import Question from "../components/Question";
-import CodeEditor from "../components/CodeEditor";
+import Question from "../components/GameComponents/Question";
+import CodeEditor from "../components/GameComponents/CodeEditor";
+import Timer from "../components/GameComponents/Timer";
+// Navbar
+import GameNavbar from "../components/GameComponents/GameNavbar";
 
 const Game = () => {
   const { code } = useParams();
@@ -57,16 +60,11 @@ const Game = () => {
 
   return (
     <>
-      {/* Show timer if timer isnt finished */}
-      {!timerFinished && (
-        <div className="min-h-screen bg-gray-950 text-white flex flex-col items-center justify-center">
-          {!timerFinished && <h1 className="text-6xl font-bold">{timeLeft}</h1>}
-        </div>
-      )}
-
+      {/* Display Navbar */}
+      {timerFinished && <GameNavbar />}
       {/* Split the screen into 2 sections left and right one for question and */}
       {/* one for code editor */}
-      {timerFinished && (
+      {timerFinished ? (
         <div className="min-h-screen flex flex-row w-full bg-gray-950">
           {/* Left Section for Question */}
           <Question />
@@ -75,6 +73,8 @@ const Game = () => {
           {/* Right Section for Code Editor */}
           <CodeEditor />
         </div>
+      ) : (
+        <Timer timeLeft={timeLeft} />
       )}
     </>
   );
