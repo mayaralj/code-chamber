@@ -47,9 +47,12 @@ const questionsRouter = (rooms) => {
       return res.status(404).json({ message: "Room not found" });
     }
 
-    // Return a random question
+    // Return a random question based on room difficulty
+    const filteredQuestions = questions.filter(
+      (q) => q.difficulty.toLowerCase() === room.difficulty.toLowerCase(),
+    );
     const randomQuestion =
-      questions[Math.floor(Math.random() * questions.length)];
+      filteredQuestions[Math.floor(Math.random() * filteredQuestions.length)];
     res.json(randomQuestion);
   });
 

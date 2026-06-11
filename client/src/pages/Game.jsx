@@ -58,10 +58,11 @@ const Game = () => {
 
   // Fetch Question from server
   useEffect(() => {
-    // Ensure timer is finished
-    if (!timerFinished) {
+    // Grab it before timer is actually finished so its ready when timer is finished
+    if (timerFinished) {
       return;
     }
+    console.log("Fetching question for code:", code);
 
     // Async function to fetch question data
     const fetchQuestion = async () => {
