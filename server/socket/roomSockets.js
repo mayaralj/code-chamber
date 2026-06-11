@@ -1,4 +1,4 @@
-const setUpRoomHandlers = (io, socket, { rooms, playersInRooms }) => {
+const setUpRoomSockets = (io, socket, { rooms, playersInRooms }) => {
   // BRoadcast rooms helper
   const broadcastRooms = () => {
     const publicRooms = Object.values(rooms).filter(
@@ -203,4 +203,4 @@ const setUpRoomHandlers = (io, socket, { rooms, playersInRooms }) => {
   });
 };
 
-export default setUpRoomHandlers;
+export default setUpRoomSockets;

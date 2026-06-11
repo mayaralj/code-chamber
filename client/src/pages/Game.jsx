@@ -56,27 +56,26 @@ const Game = () => {
     };
   }, []);
 
-  // Fetch Question from server
+  // Get the next Question from server
   useEffect(() => {
     // Grab it before timer is actually finished so its ready when timer is finished
     if (timerFinished) {
       return;
     }
-    console.log("Fetching question for code:", code);
 
-    // Async function to fetch question data
-    const fetchQuestion = async () => {
-      try {
-        const response = await fetch(`/api/questions/${code}`);
-        const data = await response.json();
-        console.log("Fetched question data:", data);
-        // Set question state
-        setQuestion(data);
-      } catch (error) {
-        console.error("Error fetching question:", error);
-      }
+    socket.emit("get-question", { code });
+    socket.once("send-question", ({ question }) => {
+      setQuestion(question);
+    });
+    socket.once("question-error", ({ message }) => {
+      console.error("Error getting question:", message);
+    });
+
+    // Cleanup
+    return () => {
+      socket.off("send-question");
+      socket.off("question-error");
     };
-    fetchQuestion();
   }, [timerFinished]);
 
   // State check
