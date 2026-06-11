@@ -26,15 +26,15 @@ const io = new Server(server, {
   },
 });
 
-// Use the routes
-app.use("/api/questions", questionsRouter);
-app.use("/api/users", usersRouter);
-
 // Store active rooms
 const rooms = {};
 
 // Store players in rooms
 const playersInRooms = {};
+
+// Use the routes
+app.use("/api/questions", questionsRouter(rooms));
+app.use("/api/users", usersRouter);
 
 // Socket initialization
 initSocket(io, { rooms, playersInRooms });
