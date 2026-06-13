@@ -32,7 +32,6 @@ const server = http.createServer(app);
 const io = new Server(server, {
   cors: {
     origin: "http://localhost:3000",
-    methods: ["GET", "POST"],
   },
 });
 
@@ -42,29 +41,43 @@ const rooms = {};
 // Store players in rooms
 const playersInRooms = {};
 
-// Grab questions from database
-db.query("SELECT * FROM questions", (err, res) => {
-  // Handle error
-  if (err) {
-    console.error("Failed to fetch questions from database:", err);
-
-    // Exit server
-    process.exit(1);
-  }
-
-  // Get the questions
-  const questions = res.rows;
-  console.log(`Fetched ${questions.length} questions from database}`);
-
-  // Socket initialization
-  initSocket(io, { rooms, playersInRooms, questions });
-});
-
 // Use the routes
 app.use("/api/questions", questionsRouter(rooms));
 app.use("/api/users", usersRouter);
 
-// Start the server
-server.listen(PORT, () => {
-  console.log(`SERVER STARTED ON PORT ${PORT}`);
-});
+// Queries
+const startup = async () => {
+  try {
+    // List out all of the queries
+    const queries = {
+      questions: "SELECT * FROM questions",
+    };
+
+    // Run all of the queries
+    const keys = Object.keys(queries);
+    const results = await Promise.all(
+      keys.map((key) => db.query(queries[key])),
+    );
+
+    // Store the results in a data object
+    const data = Object.fromEntries(
+      keys.map((key, index) => [key, results[index].rows]),
+    );
+
+    console.log("All queries executed successfully");
+
+    // Socket initialization
+    initSocket(io, { rooms, playersInRooms, ...data });
+
+    // Start the server
+    server.listen(PORT, () => {
+      console.log(`SERVER STARTED ON PORT ${PORT}`);
+    });
+  } catch (err) {
+    // Exit server on error
+    console.error("Failed to execute queries:", err);
+    process.exit(1);
+  }
+};
+
+startup();
