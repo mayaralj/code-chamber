@@ -26,6 +26,9 @@ const Game = () => {
   // Question
   const [question, setQuestion] = useState(null);
 
+  // Code
+  const [codeInput, setCodeInput] = useState("");
+
   // Check with server if user is supposed to be here
   // useEffect(() => {
   //   socket.emit("check-room", { code });
@@ -86,10 +89,18 @@ const Game = () => {
   }, []);
   if (!location.state) return null;
 
+  // Functions
+  // handleSubmit
+  const handleSubmit = () => {
+    // Emit code submission event to server
+    console.log("Submitting code:", codeInput);
+    socket.emit("submit-code", { code, codeInput });
+  };
+
   return (
     <>
       {/* Display Navbar */}
-      {timerFinished && <GameNavbar />}
+      {timerFinished && <GameNavbar onSubmit={handleSubmit} />}
       {/* Split the screen into 2 sections left and right one for question and */}
       {/* one for code editor */}
       {timerFinished ? (
@@ -99,7 +110,7 @@ const Game = () => {
           {/* Display a white line splitting them */}
           <div className="w-0.5 bg-white"></div>
           {/* Right Section for Code Editor */}
-          <CodeEditor />
+          <CodeEditor onChange={setCodeInput} />
         </div>
       ) : (
         <Timer timeLeft={timeLeft} />

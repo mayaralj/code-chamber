@@ -1,6 +1,6 @@
 import Editor from "@monaco-editor/react";
 
-const CodeEditor = () => {
+const CodeEditor = ({ onChange }) => {
   return (
     // Split the screen into 2 half, the second half is here
     <div className="flex-1 flex flex-col bg-gray-800 rounded-lg p-4 text-white">
@@ -12,6 +12,7 @@ const CodeEditor = () => {
           defaultLanguage="javascript"
           theme="vs-dark"
           defaultValue="// Write your code here"
+          onChange={onChange}
           options={{
             fontSize: 16,
             minimap: { enabled: false },
