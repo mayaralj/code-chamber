@@ -1,17 +1,82 @@
-import Editor from "@monaco-editor/react";
+import Editor, { useMonaco } from "@monaco-editor/react";
+import { useRef, useEffect, useState } from "react";
 
-const CodeEditor = ({ onChange, codeSubmitted }) => {
+// Languages supported
+const LANGUAGES = {
+  JavaScript: "javascript",
+  Python: "python",
+};
+
+const CodeEditor = ({
+  onChange,
+  codeSubmitted,
+  language,
+  onLanguageChange,
+}) => {
+  // Ref for editor
+  const editorRef = useRef(null);
+  const handleMount = (editor) => {
+    editorRef.current = editor;
+  };
+
+  // Monaco
+  const monaco = useMonaco();
+
+  // Saved code ref
+  const savedCode = useRef({
+    javascript: "",
+    python: "",
+  });
+
+  // Previous language ref
+  const previousLanguage = useRef(language);
+
+  // Update editor text when language changes
+  useEffect(() => {
+    if (!editorRef.current) {
+      return;
+    }
+
+    // Save current code before switching
+    const currentCode = editorRef.current.getValue();
+    savedCode.current[previousLanguage.current] = currentCode;
+
+    // Update editor with saved code for new language
+    editorRef.current.setValue(savedCode.current[language] || "");
+
+    // Update previous language
+    previousLanguage.current = language;
+  }, [language]);
+
   return (
     // Split the screen into 2 half, the second half is here
     <div className="flex-1 flex flex-col bg-gray-800 rounded-lg p-4 text-white overflow-y-auto">
       {/* Display Code Editor Title Centered */}
       <h2 className="text-4xl font-bold mb-4 text-center">Code Editor</h2>
+      {/* Selector to Change Language */}
+      <div className="mb-4 ">
+        <select
+          className="bg-gray-700 text-white border border-gray-500 rounded py-2 px-4 focus:outline-none focus:ring-2 focus:ring-blue-500"
+          value={language}
+          onChange={onLanguageChange}
+        >
+          {/* List out all the language options */}
+          {Object.entries(LANGUAGES).map(([key, value]) => (
+            <option key={value} value={value}>
+              {key}
+            </option>
+          ))}
+        </select>
+      </div>
+
+      {/* Code Editor */}
       <div className="flex-1">
         <Editor
           height="100%"
-          defaultLanguage="javascript"
+          language={language}
+          onMount={handleMount}
           theme="vs-dark"
-          defaultValue="// Write your code here"
+          defaultValue={language}
           onChange={onChange}
           options={{
             fontSize: 16,

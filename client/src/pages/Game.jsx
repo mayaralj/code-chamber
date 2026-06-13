@@ -30,6 +30,9 @@ const Game = () => {
   const [codeInput, setCodeInput] = useState("");
   const [codeSubmitted, setCodeSubmitted] = useState(false);
 
+  // Editor Language
+  const [language, setLanguage] = useState("javascript");
+
   // Check with server if user is supposed to be here
   // useEffect(() => {
   //   socket.emit("check-room", { code });
@@ -99,6 +102,11 @@ const Game = () => {
     setCodeSubmitted(true);
   };
 
+  // language change
+  const handleLanguageChange = (e) => {
+    setLanguage(e.target.value);
+  };
+
   return (
     <div className="flex flex-col h-screen">
       {timerFinished && <GameNavbar onSubmit={handleSubmit} />}
@@ -106,7 +114,12 @@ const Game = () => {
         <div className="flex flex-1 overflow-hidden bg-gray-950">
           <Question question={question} />
           <div className="w-0.5 bg-white"></div>
-          <CodeEditor onChange={setCodeInput} codeSubmitted={codeSubmitted} />
+          <CodeEditor
+            onChange={setCodeInput}
+            codeSubmitted={codeSubmitted}
+            language={language}
+            onLanguageChange={handleLanguageChange}
+          />
         </div>
       ) : (
         <Timer timeLeft={timeLeft} />
