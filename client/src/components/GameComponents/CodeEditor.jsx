@@ -1,9 +1,9 @@
 import Editor from "@monaco-editor/react";
 
-const CodeEditor = ({ onChange }) => {
+const CodeEditor = ({ onChange, codeSubmitted }) => {
   return (
     // Split the screen into 2 half, the second half is here
-    <div className="flex-1 flex flex-col bg-gray-800 rounded-lg p-4 text-white">
+    <div className="flex-1 flex flex-col bg-gray-800 rounded-lg p-4 text-white overflow-y-auto">
       {/* Display Code Editor Title Centered */}
       <h2 className="text-4xl font-bold mb-4 text-center">Code Editor</h2>
       <div className="flex-1">
@@ -21,8 +21,10 @@ const CodeEditor = ({ onChange }) => {
             quickSuggestions: false,
             parameterHints: { enabled: false },
             suggestOnTriggerCharacters: false,
+            overviewRulerLanes: 0,
             contextmenu: false,
-            readOnly: false,
+            readOnly: codeSubmitted,
+            readOnlyMessage: { value: null },
           }}
         />
       </div>

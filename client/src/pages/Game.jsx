@@ -28,6 +28,7 @@ const Game = () => {
 
   // Code
   const [codeInput, setCodeInput] = useState("");
+  const [codeSubmitted, setCodeSubmitted] = useState(false);
 
   // Check with server if user is supposed to be here
   // useEffect(() => {
@@ -95,27 +96,22 @@ const Game = () => {
     // Emit code submission event to server
     console.log("Submitting code:", codeInput);
     socket.emit("submit-code", { code, codeInput });
+    setCodeSubmitted(true);
   };
 
   return (
-    <>
-      {/* Display Navbar */}
+    <div className="flex flex-col h-screen">
       {timerFinished && <GameNavbar onSubmit={handleSubmit} />}
-      {/* Split the screen into 2 sections left and right one for question and */}
-      {/* one for code editor */}
       {timerFinished ? (
-        <div className="h-screen flex flex-row w-full bg-gray-950 overflow-hidden">
-          {/* Left Section for Question */}
+        <div className="flex flex-1 overflow-hidden bg-gray-950">
           <Question question={question} />
-          {/* Display a white line splitting them */}
           <div className="w-0.5 bg-white"></div>
-          {/* Right Section for Code Editor */}
-          <CodeEditor onChange={setCodeInput} />
+          <CodeEditor onChange={setCodeInput} codeSubmitted={codeSubmitted} />
         </div>
       ) : (
         <Timer timeLeft={timeLeft} />
       )}
-    </>
+    </div>
   );
 };
 
