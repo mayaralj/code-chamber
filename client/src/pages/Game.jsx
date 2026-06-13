@@ -93,7 +93,7 @@ const Game = () => {
       {/* Split the screen into 2 sections left and right one for question and */}
       {/* one for code editor */}
       {timerFinished ? (
-        <div className="min-h-screen flex flex-row w-full bg-gray-950">
+        <div className="h-screen flex flex-row w-full bg-gray-950 overflow-hidden">
           {/* Left Section for Question */}
           <Question question={question} />
           {/* Display a white line splitting them */}
