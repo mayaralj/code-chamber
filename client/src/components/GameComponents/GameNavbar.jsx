@@ -1,9 +1,11 @@
 import { useState } from "react";
 
-const GameNavbar = ({ onSubmit, playersList }) => {
+const GameNavbar = ({ isSubmitted, onSubmit, playersList }) => {
+  // Modal states
   const [showModal, setShowModal] = useState(false);
   const [modalPos, setModalPos] = useState({ x: 0, y: 0 });
 
+  // Handle open modal and set position based on button click
   const handleOpenModal = (e) => {
     const rect = e.target.getBoundingClientRect();
     setModalPos({ x: rect.left, y: rect.bottom + 10 });
@@ -13,10 +15,11 @@ const GameNavbar = ({ onSubmit, playersList }) => {
   return (
     <div className="w-full bg-gray-900 py-3 flex justify-center items-center relative">
       <button
-        className="bg-green-500 hover:bg-green-600 text-white font-semibold px-6 py-2 rounded-lg transition-colors cursor-pointer mx-auto"
+        className={`${isSubmitted ? "bg-green-500 cursor-not-allowed" : "bg-gray-500 hover:bg-red-800 cursor-pointer"} text-white font-semibold px-6 py-2 rounded-lg transition-colors mx-auto`}
         onClick={onSubmit}
+        disabled={isSubmitted}
       >
-        Submit
+        {isSubmitted ? "Submitted" : "Submit"}
       </button>
       {/* Button to display submitted players */}
       <button

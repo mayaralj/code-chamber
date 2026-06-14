@@ -131,7 +131,11 @@ const Game = () => {
   return (
     <div className="flex flex-col h-screen">
       {timerFinished && (
-        <GameNavbar onSubmit={handleSubmit} playersList={playersList} />
+        <GameNavbar
+          isSubmitted={codeSubmitted}
+          onSubmit={handleSubmit}
+          playersList={playersList}
+        />
       )}
       {timerFinished ? (
         <div className="flex flex-1 overflow-hidden bg-gray-950">
