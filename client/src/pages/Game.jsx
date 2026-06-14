@@ -33,6 +33,11 @@ const Game = () => {
   // Editor Language
   const [language, setLanguage] = useState("javascript");
 
+  // Players list, submitted or not state
+  const [playersList, setPlayersList] = useState(
+    players?.map((player) => ({ ...player, submitted: false })) || [],
+  );
+
   // Check with server if user is supposed to be here
   // useEffect(() => {
   //   socket.emit("check-room", { code });
@@ -98,7 +103,23 @@ const Game = () => {
   const handleSubmit = () => {
     // Emit code submission event to server
     console.log("Submitting code:", codeInput);
-    socket.emit("submit-code", { code, codeInput });
+    socket.emit("submit-code", { code, codeInput, language });
+    socket.once("code-submitted", ({ submittedPlayers }) => {
+      // Update players list with submitted status
+      setPlayersList((prev) =>
+        prev.map((player) => ({
+          ...player,
+          submitted: submittedPlayers.includes(player.username),
+        })),
+      );
+    });
+
+    // Handle error
+    socket.once("submit-code-error", ({ message }) => {
+      console.error("Error submitting code:", message);
+    });
+
+    // Set code submitted to true to disable editor and submit button
     setCodeSubmitted(true);
   };
 
@@ -109,7 +130,9 @@ const Game = () => {
 
   return (
     <div className="flex flex-col h-screen">
-      {timerFinished && <GameNavbar onSubmit={handleSubmit} />}
+      {timerFinished && (
+        <GameNavbar onSubmit={handleSubmit} playersList={playersList} />
+      )}
       {timerFinished ? (
         <div className="flex flex-1 overflow-hidden bg-gray-950">
           <Question question={question} />

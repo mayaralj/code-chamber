@@ -1,5 +1,6 @@
 import setUpRoomHandlers from "./roomSockets.js";
 import setUpQuestionSockets from "./questionSockets.js";
+import setUpGameSockets from "./gameSockets.js";
 
 const initSocket = (io, info) => {
   io.on("connection", (socket) => {
@@ -13,6 +14,12 @@ const initSocket = (io, info) => {
 
     // Question handlers
     setUpQuestionSockets(io, socket, {
+      rooms: info.rooms,
+      questions: info.questions,
+    });
+
+    // Game handlers
+    setUpGameSockets(io, socket, {
       rooms: info.rooms,
       questions: info.questions,
     });
