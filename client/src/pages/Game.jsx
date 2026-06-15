@@ -15,13 +15,17 @@ const Game = () => {
 
   // Get Info passed from RoomWait
   const location = useLocation();
-  const { username, players } = location.state || {};
+  const { username, players, endsAt } = location.state || {};
   const navigate = useNavigate();
 
-  // Timer
+  // Countdown Timer
   const [timeLeft, setTimeLeft] = useState(5);
   const [timerFinished, setTimerFinished] = useState(false);
   console.log("Game component rendered with timeLeft:", timeLeft);
+
+  // Game Timer
+  const [gameTimeLeft, setGameTimeLeft] = useState(30);
+  const [gameTimerFinished, setGameTimerFinished] = useState(false);
 
   // Question
   const [question, setQuestion] = useState(null);
@@ -49,12 +53,24 @@ const Game = () => {
   //   });
   // }, []);
 
-  // Listen for timer ticks and game start
+  // Listen for timer ticks
   useEffect(() => {
-    socket.on("timer-tick", ({ timeLeft }) => {
-      console.log("Timer tick:", timeLeft);
+    // Ensure an end time was provided
+    if (!endsAt) {
+      console.error("No endsAt provided in location state");
+      return;
+    }
+
+    // Countdown timer tick
+    const interval = setInterval(() => {
+      const now = Date.now();
+      const timeLeft = Math.max(0, Math.round((endsAt - now) / 1000));
+      if (timeLeft <= 0) {
+        clearInterval(interval);
+        return;
+      }
       setTimeLeft(timeLeft);
-    });
+    }, 100);
 
     socket.on("timer-finished", () => {
       setTimerFinished(true);
@@ -64,7 +80,9 @@ const Game = () => {
     return () => {
       socket.off("timer-tick");
       socket.off("timer-finished");
+      socket.off("game-tick");
       socket.emit("leave-room", { code });
+      clearInterval(interval);
     };
   }, []);
 
@@ -139,6 +157,7 @@ const Game = () => {
           isSubmitted={codeSubmitted}
           onSubmit={handleSubmit}
           playersList={playersList}
+          gameTimeLeft={gameTimeLeft}
         />
       )}
       {timerFinished ? (

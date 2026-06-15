@@ -1,4 +1,29 @@
 const setUpGameSockets = (io, socket, { rooms, questions }) => {
+  // Start game event
+  socket.on("start-game", ({ code }) => {
+    const room = rooms[code];
+    if (!room) {
+      return;
+    }
+    room.isGameStarted = true;
+    console.log("start-game received for code:", code);
+
+    const countdownTimer = 5;
+    const endsAt = Date.now() + 1000 * countdownTimer;
+    io.to(code).emit("game-started", { code, endsAt });
+
+    // Start a Countdown
+    setTimeout(() => {
+      // Check if room still exists before emitting timer finished
+      if (!rooms[code]) {
+        return;
+      }
+      io.to(code).emit("timer-finished");
+    }, countdownTimer * 1000);
+
+    console.log(`Game started in room ${code}`);
+  });
+
   // Listen for code submission
   socket.on("submit-code", ({ code, codeInput, language }) => {
     // Check if room is valid
