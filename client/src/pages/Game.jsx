@@ -125,6 +125,10 @@ const Game = () => {
 
   // language change
   const handleLanguageChange = (e) => {
+    // Check if submitted, if so do not allow language change
+    if (codeSubmitted) {
+      return;
+    }
     setLanguage(e.target.value);
   };
 

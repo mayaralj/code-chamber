@@ -7,6 +7,10 @@ const GameNavbar = ({ isSubmitted, onSubmit, playersList }) => {
 
   // Handle open modal and set position based on button click
   const handleOpenModal = (e) => {
+    if (showModal) {
+      setShowModal(false);
+      return;
+    }
     const rect = e.target.getBoundingClientRect();
     setModalPos({ x: rect.left, y: rect.bottom + 10 });
     setShowModal(true);
