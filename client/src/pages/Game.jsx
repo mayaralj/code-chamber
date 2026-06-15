@@ -15,7 +15,7 @@ const Game = () => {
 
   // Get Info passed from RoomWait
   const location = useLocation();
-  const { username, players, endsAt } = location.state || {};
+  const { username, players, endsAt: initEndsAt } = location.state || {};
   const navigate = useNavigate();
 
   // Countdown Timer
@@ -53,14 +53,7 @@ const Game = () => {
   //   });
   // }, []);
 
-  // Listen for timer ticks
-  useEffect(() => {
-    // Ensure an end time was provided
-    if (!endsAt) {
-      console.error("No endsAt provided in location state");
-      return;
-    }
-
+  const playTimer = ({ endsAt }) => {
     // Countdown timer tick
     const interval = setInterval(() => {
       const now = Date.now();
@@ -71,7 +64,23 @@ const Game = () => {
       }
       setTimeLeft(timeLeft);
     }, 100);
+  };
 
+  // Listen for timer ticks
+  useEffect(() => {
+    // Ensure an end time was provided
+    if (!initEndsAt) {
+      console.error("No initEndsAt provided in location state");
+      return;
+    }
+
+    // Play timer
+    playTimer({ endsAt: initEndsAt });
+    socket.on("timer-tick", ({ newEndsAt }) => {
+      playTimer({ endsAt: newEndsAt });
+    });
+
+    // On timer finished
     socket.on("timer-finished", () => {
       setTimerFinished(true);
     });
@@ -80,9 +89,7 @@ const Game = () => {
     return () => {
       socket.off("timer-tick");
       socket.off("timer-finished");
-      socket.off("game-tick");
       socket.emit("leave-room", { code });
-      clearInterval(interval);
     };
   }, []);
 

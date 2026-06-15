@@ -60,7 +60,11 @@ const setUpRoomSockets = (io, socket, { rooms, playersInRooms }) => {
     "create-room",
     ({ username, roomName, maxPlayers, isPublic, difficulty }) => {
       // Create a random code
-      const code = Math.random().toString(36).substring(2, 6).toUpperCase();
+      let code = Math.random().toString(36).substring(2, 6).toUpperCase();
+      // Ensure code is unique
+      while (rooms[code]) {
+        code = Math.random().toString(36).substring(2, 6).toUpperCase();
+      }
 
       // Store new room in active rooms
       rooms[code] = {
@@ -69,6 +73,7 @@ const setUpRoomSockets = (io, socket, { rooms, playersInRooms }) => {
         players: [{ id: socket.id, username, submitted: false }],
         roomName,
         maxPlayers,
+        currentRound: 0,
         isPublic,
         difficulty,
         isGameStarted: false,
@@ -121,39 +126,6 @@ const setUpRoomSockets = (io, socket, { rooms, playersInRooms }) => {
   // Leave room event
   socket.on("leave-room", ({ code }) => {
     leaveRoom(socket, code);
-  });
-
-  // Start game event
-  socket.on("start-game", ({ code }) => {
-    const room = rooms[code];
-    if (!room) {
-      return;
-    }
-    room.isGameStarted = true;
-    console.log("start-game received for code:", code);
-    io.to(code).emit("game-started", { code });
-
-    // Start a Countdown
-    let timeLeft = 5;
-    const timer = setInterval(() => {
-      // Check if room still exists
-      if (!rooms[code]) {
-        clearInterval(timer);
-        return;
-      }
-      timeLeft--;
-      console.log("Timer tick:", timeLeft);
-      io.to(code).emit("timer-tick", { timeLeft });
-      // End countdown
-      if (timeLeft <= 0) {
-        clearInterval(timer);
-        io.to(code).emit("timer-finished", {
-          code,
-        });
-      }
-    }, 1000);
-
-    console.log(`Game started in room ${code}`);
   });
 
   // Listen for getting all rooms for public rooms page

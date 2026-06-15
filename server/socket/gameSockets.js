@@ -1,27 +1,59 @@
+// Config
+const COUNTDOWN_TIMER = 5;
+const GAME_TIMER = 30;
+
+// Sleep helper
+const sleep = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
+
 const setUpGameSockets = (io, socket, { rooms, questions }) => {
   // Start game event
+  const startRound = async (code) => {
+    // Check if room exists
+    if (!rooms[code]) {
+      return;
+    }
+
+    // Begin initial countdown
+    const endsAt = Date.now() + 1000 * COUNTDOWN_TIMER;
+
+    // If its the first round emit game started, otherwise just emit timer tick
+    if (rooms[code].currentRound === 0) {
+      io.to(code).emit("game-started", { code, endsAt });
+    } else {
+      io.to(code).emit("timer-tick", { endsAt });
+    }
+
+    // Wait for countdown to finish before sending question
+    await sleep(COUNTDOWN_TIMER * 1000);
+    if (!rooms[code]) {
+      return;
+    }
+
+    // Emit that timer is finished
+    io.to(code).emit("timer-finished");
+
+    // Start game timer
+    const gameTimerEndsAt = Date.now() + 1000 * GAME_TIMER;
+    io.to(code).emit("game-tick", { gameTimerEndsAt });
+    await sleep(GAME_TIMER * 1000);
+    if (!rooms[code]) {
+      return;
+    }
+
+    // TODO
+  };
   socket.on("start-game", ({ code }) => {
+    // Check if room is valid
     const room = rooms[code];
     if (!room) {
       return;
     }
+
+    // Mark room as game started
     room.isGameStarted = true;
-    console.log("start-game received for code:", code);
-
-    const countdownTimer = 5;
-    const endsAt = Date.now() + 1000 * countdownTimer;
-    io.to(code).emit("game-started", { code, endsAt });
-
-    // Start a Countdown
-    setTimeout(() => {
-      // Check if room still exists before emitting timer finished
-      if (!rooms[code]) {
-        return;
-      }
-      io.to(code).emit("timer-finished");
-    }, countdownTimer * 1000);
-
     console.log(`Game started in room ${code}`);
+
+    startRound(code);
   });
 
   // Listen for code submission
