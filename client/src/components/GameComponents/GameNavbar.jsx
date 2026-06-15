@@ -1,6 +1,6 @@
 import { useState } from "react";
 
-const GameNavbar = ({ isSubmitted, onSubmit, playersList }) => {
+const GameNavbar = ({ isSubmitted, onSubmit, playersList, gameTimeLeft }) => {
   // Modal states
   const [showModal, setShowModal] = useState(false);
   const [modalPos, setModalPos] = useState({ x: 0, y: 0 });
@@ -18,6 +18,7 @@ const GameNavbar = ({ isSubmitted, onSubmit, playersList }) => {
 
   return (
     <div className="w-full bg-gray-900 py-3 flex justify-center items-center relative">
+      {/* Submit Button */}
       <button
         className={`${isSubmitted ? "bg-green-500 cursor-not-allowed" : "bg-gray-500 hover:bg-red-800 cursor-pointer"} text-white font-semibold px-6 py-2 rounded-lg transition-colors mx-auto`}
         onClick={onSubmit}
@@ -25,9 +26,13 @@ const GameNavbar = ({ isSubmitted, onSubmit, playersList }) => {
       >
         {isSubmitted ? "Submitted" : "Submit"}
       </button>
+      {/* Timer On the very left side */}
+      <div className="absolute left-8 text-2xl text-orange-100 font-semibold select-none pointer-events-none">
+        {gameTimeLeft}
+      </div>
       {/* Button to display submitted players */}
       <button
-        className="bg-gray-500/20 hover:bg-blue-600 text-white font-semibold px-6 py-2 rounded-lg transition-colors cursor-pointer absolute left-4"
+        className="bg-gray-500/20 hover:bg-blue-600 text-white font-semibold px-6 py-2 rounded-lg transition-colors cursor-pointer absolute left-24"
         onClick={handleOpenModal}
       >
         Player List
@@ -38,8 +43,8 @@ const GameNavbar = ({ isSubmitted, onSubmit, playersList }) => {
           className="fixed z-50"
           style={{ top: modalPos.y, left: modalPos.x }}
         >
-          <div className="bg-gray-950/50 backdrop-blur-sm p-8 rounded-lg flex flex-col gap-4 w-96">
-            <h2 className="text-2xl text-white font-bold mb-4">Players</h2>
+          <div className="bg-gray-950/50 backdrop-blur-sm p-4 rounded-lg flex flex-col gap-4 w-96">
+            <h2 className="text-2xl text-white font-bold mb-2">Players</h2>
             {/* List out players, put an icon next to them for submtited or not submitted */}
             {playersList.map((player) => (
               <div

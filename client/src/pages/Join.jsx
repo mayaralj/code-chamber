@@ -19,6 +19,12 @@ const Join = () => {
       return;
     }
 
+    // If length is less than 4, show error
+    if (code.trim().length < 4) {
+      setError("Room code must be 4 characters");
+      return;
+    }
+
     // Emit join room to server
     socket.emit("join-room", { code: code.toUpperCase(), username: "Mayar" }); // Temp username
 
@@ -66,21 +72,21 @@ const Join = () => {
 
       {/* Modal for joining by code */}
       {showModal && (
-        <div className="fixed inset-0 bg-black/80 flex items-center justify-center">
+        <div className="fixed inset-0 bg-black/80 flex items-center justify-center backdrop-blur-sm z-50">
           <div className="bg-gray-800 p-8 rounded-lg flex flex-col gap-4 w-96">
             {/* Title */}
             <h2 className="text-2xl font-bold">Enter Room Code</h2>
             {/* Input for room code */}
             <input
               type="text"
-              maxLength={6}
+              maxLength={4}
               placeholder="Enter code..."
               className={`bg-gray-700 uppercase placeholder:normal-case text-white px-3 py-2 rounded border border-gray-600 focus:outline-none focus:ring-1 ${error ? "border-red-500" : "focus:ring-orange-100"}`}
               value={code}
               onChange={(e) => setCode(e.target.value)}
             />
             {/* Error Message */}
-            {error && <p className="text-red-500">{error}</p>}
+            {error && <p className="text-red-500 -mt-2">{error}</p>}
             {/* Container for buttons */}
             <div className="flex gap-4">
               {/* Join Button */}
