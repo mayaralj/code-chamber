@@ -61,9 +61,24 @@ const Game = () => {
       const timeLeft = Math.max(0, Math.round((endsAt - now) / 1000));
       if (timeLeft <= 0) {
         clearInterval(interval);
+        setTimeLeft(0);
         return;
       }
       setTimeLeft(timeLeft);
+    }, 100);
+  };
+
+  // Helper to play game timer
+  const playGameTimer = ({ gameTimerEndsAt }) => {
+    const interval = setInterval(() => {
+      const now = Date.now();
+      const timeLeft = Math.max(0, Math.round((gameTimerEndsAt - now) / 1000));
+      if (timeLeft <= 0) {
+        clearInterval(interval);
+        setGameTimeLeft(0);
+        return;
+      }
+      setGameTimeLeft(timeLeft);
     }, 100);
   };
 
@@ -94,6 +109,19 @@ const Game = () => {
       socket.off("timer-finished");
       socket.emit("leave-room", { code });
     };
+  }, []);
+
+  // Game Timer
+  useEffect(() => {
+    socket.on("game-tick", ({ gameTimerEndsAt }) => {
+      // Game timer tick
+      setGameTimerFinished(false);
+      playGameTimer({ gameTimerEndsAt });
+    });
+
+    socket.on("game-timer-finished", () => {
+      setGameTimerFinished(true);
+    });
   }, []);
 
   // Get the next Question from server

@@ -40,6 +40,9 @@ const setUpGameSockets = (io, socket, { rooms, questions }) => {
       return;
     }
 
+    // Emit that game timer is finished
+    io.to(code).emit("game-timer-finished");
+
     // TODO
   };
   socket.on("start-game", ({ code }) => {
