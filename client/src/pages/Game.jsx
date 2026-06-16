@@ -56,16 +56,22 @@ const Game = () => {
 
   // Helper function to play timer with given end time
   const playAnyTimer = ({ endsAt, functionSetter }) => {
+    let lastSecond = -1;
     // Countdown timer tick
     const interval = setInterval(() => {
       const now = Date.now();
       const timeLeft = Math.max(0, Math.round((endsAt - now) / 1000));
+
+      if (timeLeft !== lastSecond) {
+        console.log("Timer tick:", timeLeft);
+        lastSecond = timeLeft;
+        functionSetter(timeLeft);
+      }
+
       if (timeLeft <= 0) {
         clearInterval(interval);
-        functionSetter(0);
         return;
       }
-      functionSetter(timeLeft);
     }, 100);
   };
 
