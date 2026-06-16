@@ -79,8 +79,11 @@ const setUpGameSockets = (io, socket, { rooms, questions }) => {
       .filter((p) => p.submitted)
       .map((p) => p.username);
 
+    // Notify player that code has been submitted
+    socket.emit("code-submitted");
+
     // Emit to all players with list of submitted players
-    io.to(code).emit("code-submitted", {
+    io.to(code).emit("submitted-players", {
       submittedPlayers,
     });
   });

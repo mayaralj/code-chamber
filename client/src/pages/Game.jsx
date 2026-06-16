@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, useRef } from "react";
 import { useNavigate, useLocation, useParams } from "react-router-dom";
 import socket from "../socket";
 // Import from components
@@ -33,6 +33,7 @@ const Game = () => {
   // Code
   const [codeInput, setCodeInput] = useState("");
   const [codeSubmitted, setCodeSubmitted] = useState(false);
+  const hasSubmitted = useRef(false);
 
   // Editor Language
   const [language, setLanguage] = useState("javascript");
@@ -54,32 +55,39 @@ const Game = () => {
   // }, []);
 
   // Helper function to play timer with given end time
-  const playTimer = ({ endsAt }) => {
+  const playAnyTimer = ({ endsAt, functionSetter }) => {
     // Countdown timer tick
     const interval = setInterval(() => {
       const now = Date.now();
       const timeLeft = Math.max(0, Math.round((endsAt - now) / 1000));
       if (timeLeft <= 0) {
         clearInterval(interval);
-        setTimeLeft(0);
+        functionSetter(0);
         return;
       }
-      setTimeLeft(timeLeft);
+      functionSetter(timeLeft);
     }, 100);
   };
 
-  // Helper to play game timer
-  const playGameTimer = ({ gameTimerEndsAt }) => {
-    const interval = setInterval(() => {
-      const now = Date.now();
-      const timeLeft = Math.max(0, Math.round((gameTimerEndsAt - now) / 1000));
-      if (timeLeft <= 0) {
-        clearInterval(interval);
-        setGameTimeLeft(0);
-        return;
-      }
-      setGameTimeLeft(timeLeft);
-    }, 100);
+  // handleSubmit
+  const handleSubmit = () => {
+    if (hasSubmitted.current) {
+      return;
+    }
+    hasSubmitted.current = true;
+
+    // Emit code submission event to server
+    console.log("Submitting code:", codeInput);
+    socket.emit("submit-code", { code, codeInput, language });
+  };
+
+  // language change
+  const handleLanguageChange = (e) => {
+    // Check if submitted, if so do not allow language change
+    if (hasSubmitted.current) {
+      return;
+    }
+    setLanguage(e.target.value);
   };
 
   // Listen for timer ticks
@@ -91,11 +99,11 @@ const Game = () => {
     }
 
     // Play initial timer (round 1)
-    playTimer({ endsAt: initEndsAt });
+    playAnyTimer({ endsAt: initEndsAt, functionSetter: setTimeLeft });
     // Play timer for future rounds
     socket.on("timer-tick", ({ newEndsAt }) => {
       setTimerFinished(false);
-      playTimer({ endsAt: newEndsAt });
+      playAnyTimer({ endsAt: newEndsAt, functionSetter: setTimeLeft });
     });
 
     // On timer finished
@@ -116,12 +124,46 @@ const Game = () => {
     socket.on("game-tick", ({ gameTimerEndsAt }) => {
       // Game timer tick
       setGameTimerFinished(false);
-      playGameTimer({ gameTimerEndsAt });
+      playAnyTimer({
+        endsAt: gameTimerEndsAt,
+        functionSetter: setGameTimeLeft,
+      });
     });
 
     socket.on("game-timer-finished", () => {
       setGameTimerFinished(true);
     });
+  }, []);
+
+  // Code Submission
+  useEffect(() => {
+    // Submitted Players
+    socket.on("submitted-players", ({ submittedPlayers }) => {
+      // Update players list with submitted status
+      setPlayersList((prev) =>
+        prev.map((player) => ({
+          ...player,
+          submitted: submittedPlayers.includes(player.username),
+        })),
+      );
+    });
+
+    // Code Submit
+    socket.on("code-submitted", () => {
+      setCodeSubmitted(true);
+      hasSubmitted.current = true;
+    });
+
+    // Code Submit Handle error
+    socket.once("submit-code-error", ({ message }) => {
+      console.error("Error submitting code:", message);
+    });
+    // Cleanup
+    return () => {
+      socket.off("submitted-players");
+      socket.off("code-submitted");
+      socket.off("submit-code-error");
+    };
   }, []);
 
   // Get the next Question from server
@@ -153,40 +195,6 @@ const Game = () => {
     }
   }, []);
   if (!location.state) return null;
-
-  // Functions
-  // handleSubmit
-  const handleSubmit = () => {
-    // Emit code submission event to server
-    console.log("Submitting code:", codeInput);
-    socket.emit("submit-code", { code, codeInput, language });
-    socket.once("code-submitted", ({ submittedPlayers }) => {
-      // Update players list with submitted status
-      setPlayersList((prev) =>
-        prev.map((player) => ({
-          ...player,
-          submitted: submittedPlayers.includes(player.username),
-        })),
-      );
-    });
-
-    // Handle error
-    socket.once("submit-code-error", ({ message }) => {
-      console.error("Error submitting code:", message);
-    });
-
-    // Set code submitted to true to disable editor and submit button
-    setCodeSubmitted(true);
-  };
-
-  // language change
-  const handleLanguageChange = (e) => {
-    // Check if submitted, if so do not allow language change
-    if (codeSubmitted) {
-      return;
-    }
-    setLanguage(e.target.value);
-  };
 
   return (
     <div className="flex flex-col h-screen">
