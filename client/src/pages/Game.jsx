@@ -53,6 +53,7 @@ const Game = () => {
   //   });
   // }, []);
 
+  // Helper function to play timer with given end time
   const playTimer = ({ endsAt }) => {
     // Countdown timer tick
     const interval = setInterval(() => {
@@ -74,9 +75,11 @@ const Game = () => {
       return;
     }
 
-    // Play timer
+    // Play initial timer (round 1)
     playTimer({ endsAt: initEndsAt });
+    // Play timer for future rounds
     socket.on("timer-tick", ({ newEndsAt }) => {
+      setTimerFinished(false);
       playTimer({ endsAt: newEndsAt });
     });
 
