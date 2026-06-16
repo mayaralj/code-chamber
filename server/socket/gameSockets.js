@@ -6,6 +6,21 @@ const GAME_TIMER = 30;
 const sleep = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
 
 const setUpGameSockets = (io, socket, { rooms, questions }) => {
+  const notifySubmission = (room, code) => {
+    // Build a list of all submitted players
+    const submittedPlayers = room.players
+      .filter((p) => p.submitted)
+      .map((p) => p.username);
+
+    // Notify player that code has been submitted
+    socket.emit("code-submitted");
+
+    // Emit to all players with list of submitted players
+    io.to(code).emit("submitted-players", {
+      submittedPlayers,
+    });
+  };
+
   // Start game event
   const startRound = async (code) => {
     // Check if room exists
@@ -43,6 +58,16 @@ const setUpGameSockets = (io, socket, { rooms, questions }) => {
     // Emit that game timer is finished
     io.to(code).emit("game-timer-finished");
 
+    // Force Submit all players who havent submitted
+    rooms[code].players.forEach((p) => {
+      if (!p.submitted) {
+        p.submitted = true;
+      }
+    });
+
+    // Notify players of submission
+    notifySubmission(rooms[code], code);
+
     // TODO
   };
   socket.on("start-game", ({ code }) => {
@@ -74,18 +99,8 @@ const setUpGameSockets = (io, socket, { rooms, questions }) => {
       player.submitted = true;
     }
 
-    // Build a list of all submitted players
-    const submittedPlayers = room.players
-      .filter((p) => p.submitted)
-      .map((p) => p.username);
-
-    // Notify player that code has been submitted
-    socket.emit("code-submitted");
-
-    // Emit to all players with list of submitted players
-    io.to(code).emit("submitted-players", {
-      submittedPlayers,
-    });
+    // Notify players that code has been submitted
+    notifySubmission(room, code);
   });
 };
 
