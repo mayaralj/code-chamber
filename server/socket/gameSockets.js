@@ -86,6 +86,11 @@ const setUpGameSockets = (io, socket, { rooms, questions }) => {
       return;
     }
 
+    // Check if its the host
+    if (room.host.id !== socket.id) {
+      return;
+    }
+
     // Mark room as game started
     room.isGameStarted = true;
     console.log(`Game started in room ${code}`);
