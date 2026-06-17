@@ -1,6 +1,6 @@
 import { useState } from "react";
 
-const GameNavbar = ({ isSubmitted, onSubmit, playersList, gameTimeLeft }) => {
+const GameNavbar = ({ isSubmitted, onSubmit, playersList, roundTimeLeft }) => {
   // Modal states
   const [showModal, setShowModal] = useState(false);
   const [modalPos, setModalPos] = useState({ x: 0, y: 0 });
@@ -28,7 +28,7 @@ const GameNavbar = ({ isSubmitted, onSubmit, playersList, gameTimeLeft }) => {
       </button>
       {/* Timer On the very left side */}
       <div className="absolute left-8 text-2xl text-orange-100 font-semibold select-none pointer-events-none">
-        {gameTimeLeft}
+        {roundTimeLeft}
       </div>
       {/* Button to display submitted players */}
       <button

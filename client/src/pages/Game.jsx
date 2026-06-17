@@ -5,6 +5,7 @@ import socket from "../socket";
 import Question from "../components/GameComponents/Question";
 import CodeEditor from "../components/GameComponents/CodeEditor";
 import Timer from "../components/GameComponents/Timer";
+import Results from "../components/GameComponents/Results";
 // Navbar
 import GameNavbar from "../components/GameComponents/GameNavbar";
 
@@ -29,8 +30,9 @@ const Game = () => {
   console.log("Game component rendered with timeLeft:", timeLeft);
 
   // Game Timer
-  const [gameTimeLeft, setGameTimeLeft] = useState(30);
-  const [gameTimerFinished, setGameTimerFinished] = useState(false);
+  const [roundTimeLeft, setRoundTimeLeft] = useState(30);
+  const [roundTimerFinished, setRoundTimerFinished] = useState(false);
+  const roundTimerCleanupRef = useRef(null);
 
   // Question
   const [question, setQuestion] = useState(initQuestion || null);
@@ -45,6 +47,11 @@ const Game = () => {
 
   // Editor Language
   const [language, setLanguage] = useState("javascript");
+
+  // Results
+  const [results, setResults] = useState(null);
+  const [resultsTimer, setResultsTimer] = useState(null);
+  const [resultsReady, setResultsReady] = useState(false);
 
   // Players list, submitted or not state
   const [playersList, setPlayersList] = useState(
@@ -81,6 +88,9 @@ const Game = () => {
         return;
       }
     }, 100);
+
+    // Cleanup function to clear interval if component unmounts or timer is stopped
+    return () => clearInterval(interval);
   };
 
   // handleSubmit
@@ -90,9 +100,12 @@ const Game = () => {
     }
     hasSubmitted.current = true;
 
+    // Time submitted
+    const timeSubmitted = Date.now();
+
     // Emit code submission event to server
     console.log("Submitting code:", codeInput);
-    socket.emit("submit-code", { code, codeInput, language });
+    socket.emit("submit-code", { code, codeInput, language, timeSubmitted });
   };
 
   // language change
@@ -135,17 +148,22 @@ const Game = () => {
 
   // Game Timer
   useEffect(() => {
-    socket.on("game-tick", ({ gameTimerEndsAt }) => {
+    socket.on("round-tick", ({ roundTimerEndsAt }) => {
       // Game timer tick
-      setGameTimerFinished(false);
-      playAnyTimer({
-        endsAt: gameTimerEndsAt,
-        functionSetter: setGameTimeLeft,
+      setRoundTimerFinished(false);
+      roundTimerCleanupRef.current = playAnyTimer({
+        endsAt: roundTimerEndsAt,
+        functionSetter: setRoundTimeLeft,
       });
     });
 
-    socket.on("game-timer-finished", () => {
-      setGameTimerFinished(true);
+    // Game timer finished
+    socket.on("round-timer-finished", () => {
+      setRoundTimerFinished(true);
+      if (roundTimerCleanupRef.current) {
+        roundTimerCleanupRef.current();
+        roundTimerCleanupRef.current = null;
+      }
     });
   }, []);
 
@@ -192,6 +210,31 @@ const Game = () => {
     };
   }, []);
 
+  // Results
+  useEffect(() => {
+    socket.on("send-results", ({ results, resultsEndsAt }) => {
+      console.log("Received results");
+      setResults(results);
+      setResultsReady(true);
+      playAnyTimer({
+        endsAt: resultsEndsAt,
+        functionSetter: setResultsTimer,
+      });
+    });
+
+    // Results timer finished
+    socket.on("results-timer-finished", () => {
+      console.log("Results timer finished");
+      setResultsReady(false);
+    });
+
+    // Cleanup
+    return () => {
+      socket.off("send-results");
+      socket.off("results-timer-finished");
+    };
+  }, []);
+
   // State check
   useEffect(() => {
     if (!location.state) {
@@ -205,14 +248,16 @@ const Game = () => {
       {/* Always render editor, just hide it */}
       <div
         className={
-          timerFinished && editorReady ? "flex flex-col h-screen" : "hidden"
+          timerFinished && editorReady
+            ? "flex flex-col h-screen relative"
+            : "hidden"
         }
       >
         <GameNavbar
           isSubmitted={codeSubmitted}
           onSubmit={handleSubmit}
           playersList={playersList}
-          gameTimeLeft={gameTimeLeft}
+          roundTimeLeft={roundTimeLeft}
         />
         <div className="flex flex-1 overflow-hidden bg-gray-950">
           <Question question={question} />
@@ -225,6 +270,9 @@ const Game = () => {
             onMount={() => setEditorReady(true)}
           />
         </div>
+
+        {/* Show Results if ready */}
+        {resultsReady && <Results results={results} />}
       </div>
 
       {/* Show timer until ready */}
