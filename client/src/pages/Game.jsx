@@ -40,6 +40,9 @@ const Game = () => {
   const [codeSubmitted, setCodeSubmitted] = useState(false);
   const hasSubmitted = useRef(false);
 
+  // Editor Ready
+  const [editorReady, setEditorReady] = useState(false);
+
   // Editor Language
   const [language, setLanguage] = useState("javascript");
 
@@ -198,16 +201,19 @@ const Game = () => {
   if (!location.state) return null;
 
   return (
-    <div className="flex flex-col h-screen">
-      {timerFinished && (
+    <>
+      {/* Always render editor, just hide it */}
+      <div
+        className={
+          timerFinished && editorReady ? "flex flex-col h-screen" : "hidden"
+        }
+      >
         <GameNavbar
           isSubmitted={codeSubmitted}
           onSubmit={handleSubmit}
           playersList={playersList}
           gameTimeLeft={gameTimeLeft}
         />
-      )}
-      {timerFinished ? (
         <div className="flex flex-1 overflow-hidden bg-gray-950">
           <Question question={question} />
           <div className="w-0.5 bg-white"></div>
@@ -216,12 +222,14 @@ const Game = () => {
             codeSubmitted={codeSubmitted}
             language={language}
             onLanguageChange={handleLanguageChange}
+            onMount={() => setEditorReady(true)}
           />
         </div>
-      ) : (
-        <Timer timeLeft={timeLeft} />
-      )}
-    </div>
+      </div>
+
+      {/* Show timer until ready */}
+      {(!timerFinished || !editorReady) && <Timer timeLeft={timeLeft} />}
+    </>
   );
 };
 

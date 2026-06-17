@@ -1,10 +1,9 @@
 import Editor, { useMonaco } from "@monaco-editor/react";
 import { useRef, useEffect, useState } from "react";
 
-// Languages supported
+// Languages supported (No language support besides javascript for now)
 const LANGUAGES = {
   JavaScript: "javascript",
-  Python: "python",
 };
 
 const CodeEditor = ({
@@ -12,11 +11,13 @@ const CodeEditor = ({
   codeSubmitted,
   language,
   onLanguageChange,
+  onMount,
 }) => {
   // Ref for editor
   const editorRef = useRef(null);
   const handleMount = (editor) => {
     editorRef.current = editor;
+    onMount?.();
   };
 
   // Monaco
