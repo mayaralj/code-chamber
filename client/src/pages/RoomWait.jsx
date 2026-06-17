@@ -44,11 +44,11 @@ const RoomWait = () => {
     });
 
     // Listen for game started
-    socket.on("game-started", ({ code, endsAt }) => {
+    socket.on("game-started", ({ code, endsAt, question }) => {
       gameStartedRef.current = true;
       navigate(`/game/${code}`, {
         replace: true,
-        state: { username, players, endsAt },
+        state: { username, players, endsAt, question },
       });
     });
 

@@ -1,3 +1,6 @@
+// Imports
+import getQuestion from "./questionSockets.js";
+
 // Config
 const COUNTDOWN_TIMER = 5;
 const GAME_TIMER = 30;
@@ -32,10 +35,16 @@ const setUpGameSockets = (io, socket, { rooms, questions }) => {
     const endsAt = Date.now() + 1000 * COUNTDOWN_TIMER;
 
     // If its the first round emit game started, otherwise just emit timer tick
+    const randomQuestion = getQuestion(io, code, rooms[code], questions);
     if (rooms[code].currentRound === 0) {
-      io.to(code).emit("game-started", { code, endsAt });
+      io.to(code).emit("game-started", {
+        code,
+        endsAt,
+        question: randomQuestion,
+      });
     } else {
       io.to(code).emit("timer-tick", { endsAt });
+      io.to(code).emit("send-question", { question: randomQuestion });
     }
 
     // Wait for countdown to finish before sending question

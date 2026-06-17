@@ -15,7 +15,12 @@ const Game = () => {
 
   // Get Info passed from RoomWait
   const location = useLocation();
-  const { username, players, endsAt: initEndsAt } = location.state || {};
+  const {
+    username,
+    players,
+    endsAt: initEndsAt,
+    question: initQuestion,
+  } = location.state || {};
   const navigate = useNavigate();
 
   // Countdown Timer
@@ -28,7 +33,7 @@ const Game = () => {
   const [gameTimerFinished, setGameTimerFinished] = useState(false);
 
   // Question
-  const [question, setQuestion] = useState(null);
+  const [question, setQuestion] = useState(initQuestion || null);
 
   // Code
   const [codeInput, setCodeInput] = useState("");
@@ -172,27 +177,17 @@ const Game = () => {
     };
   }, []);
 
-  // Get the next Question from server
+  // Get the Question from server
   useEffect(() => {
-    // Grab it before timer is actually finished so its ready when timer is finished
-    if (timerFinished) {
-      return;
-    }
-
-    socket.emit("get-question", { code });
-    socket.once("send-question", ({ question }) => {
+    socket.on("send-question", ({ question }) => {
       setQuestion(question);
-    });
-    socket.once("question-error", ({ message }) => {
-      console.error("Error getting question:", message);
     });
 
     // Cleanup
     return () => {
       socket.off("send-question");
-      socket.off("question-error");
     };
-  }, [timerFinished]);
+  }, []);
 
   // State check
   useEffect(() => {
