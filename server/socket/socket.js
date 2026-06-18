@@ -14,6 +14,7 @@ const initSocket = (io, info) => {
     // Game handlers
     setUpGameSockets(io, socket, {
       rooms: info.rooms,
+      playersInRooms: info.playersInRooms,
       questions: info.questions,
     });
   });

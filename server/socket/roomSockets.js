@@ -28,6 +28,12 @@ const setUpRoomSockets = (io, socket, { rooms, playersInRooms }) => {
     if (!room) {
       return;
     }
+
+    // If game started, let gameSockets handle it
+    if (room.isGameStarted) {
+      return;
+    }
+
     // Remove player from room
     room.players = room.players.filter((player) => player.id !== socket.id);
 

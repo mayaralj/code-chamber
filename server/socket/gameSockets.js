@@ -32,7 +32,47 @@ const cancellableSleep = (ms) => {
   return { promise, cancel };
 };
 
-const setUpGameSockets = (io, socket, { rooms, questions }) => {
+const setUpGameSockets = (io, socket, { rooms, playersInRooms, questions }) => {
+  // Game leave
+  const gameLeave = (code) => {
+    // Check if room is valid
+    const room = rooms[code];
+    if (!room) {
+      console.log(
+        `Socket ${socket.id} attempted to leave room in game: ${code} but it was not found`,
+      );
+      return;
+    }
+
+    // If not game started, let roomSockets handle it
+    if (!room.isGameStarted) {
+      return;
+    }
+
+    // Remove player from room
+    room.players = room.players.filter((p) => p.id !== socket.id);
+
+    // Leave from socket room
+    socket.leave(code);
+
+    // Remove from fast lookup
+    delete playersInRooms[socket.id];
+
+    // Check if no players remaining
+    if (room.players.length === 0) {
+      delete rooms[code];
+      console.log(`Room ${code} deleted as last player left`);
+      return;
+    }
+
+    // Check if all players have submitted after someone leaves
+    if (room.players.every((p) => p.submitted)) {
+      if (room.cancelRoundTimer) {
+        room.cancelRoundTimer();
+      }
+    }
+  };
+
   // Helper to notify players of code submission
   const notifySubmission = (room, code) => {
     // Build a list of all submitted players
@@ -202,6 +242,16 @@ const setUpGameSockets = (io, socket, { rooms, questions }) => {
         room.cancelRoundTimer();
       }
     }
+  });
+
+  // on game leave room
+  socket.on("game-leave-room", ({ code }) => {
+    gameLeave(code);
+  });
+
+  // Handle disconnection
+  socket.on("disconnect", () => {
+    gameLeave(playersInRooms[socket.id]);
   });
 };
 

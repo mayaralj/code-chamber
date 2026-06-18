@@ -235,6 +235,14 @@ const Game = () => {
     };
   }, []);
 
+  // Disconnection
+  useEffect(() => {
+    return () => {
+      console.log("Game component unmounting, leaving room");
+      socket.emit("game-leave-room", { code });
+    };
+  }, []);
+
   // State check
   useEffect(() => {
     if (!location.state) {
