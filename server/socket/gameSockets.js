@@ -1,5 +1,7 @@
 // Imports
 import getQuestion from "./questionSockets.js";
+import db from "../db.js";
+import runCode from "../executor.js";
 
 // Config
 const COUNTDOWN_TIMER = 5;
@@ -192,7 +194,7 @@ const setUpGameSockets = (io, socket, { rooms, playersInRooms, questions }) => {
     }
 
     // Check if more than 1 player
-    if (room.players.length < 2) {
+    if (room.players.length < 1) {
       return;
     }
 
@@ -204,50 +206,70 @@ const setUpGameSockets = (io, socket, { rooms, playersInRooms, questions }) => {
   });
 
   // Listen for code submission
-  socket.on("submit-code", ({ code, codeInput, language, timeSubmitted }) => {
-    // Check if room is valid
-    const room = rooms[code];
-    if (!room) {
-      socket.emit("submit-code-error", { message: "Room not found" });
-      return;
-    }
+  socket.on(
+    "submit-code",
+    async ({ code, codeInput, language, timeSubmitted }) => {
+      // Check if room is valid
+      const room = rooms[code];
+      if (!room) {
+        socket.emit("submit-code-error", { message: "Room not found" });
+        return;
+      }
 
-    // Validate time submitted
-    if (typeof timeSubmitted !== "number" || isNaN(timeSubmitted)) {
-      socket.emit("submit-code-error", { message: "Invalid time submitted" });
-      return;
-    }
+      // Validate time submitted
+      if (typeof timeSubmitted !== "number" || isNaN(timeSubmitted)) {
+        socket.emit("submit-code-error", { message: "Invalid time submitted" });
+        return;
+      }
 
-    // Check if time submitted is way to off current time
-    const currentTime = Date.now();
-    if (Math.abs(timeSubmitted - currentTime) > 5000) {
-      // 5 second window
-      socket.emit("submit-code-error", {
-        message: "Time submitted is out of bounds",
-      });
-      return;
-    }
+      // Check if time submitted is way to off current time
+      const currentTime = Date.now();
+      if (Math.abs(timeSubmitted - currentTime) > 5000) {
+        // 5 second window
+        socket.emit("submit-code-error", {
+          message: "Time submitted is out of bounds",
+        });
+        return;
+      }
 
-    // Update player's submitted status
-    const player = room.players.find((p) => p.id === socket.id);
-    if (player) {
+      // Update player's submitted status
+      const player = room.players.find((p) => p.id === socket.id);
+      if (!player || player.submitted) {
+        return;
+      }
       player.submitted = true;
+
+      // Fetch test cases for the current question
+      const { rows: testCases } = await db.query(
+        "SELECT input, expected FROM test_cases WHERE question_id = $1",
+        [room.currentQuestion.id],
+      );
+
+      // Run the code against the test cases
+      const { passed, results } = runCode(codeInput, testCases);
+      console.log("Code submission results for player", player.username, {
+        passed,
+        results,
+      });
+
+      // Send results back to the player
+      socket.emit("code-result", { passed, results });
 
       // Calculate time submitted
       const roundStartTime = room.roundStartTime || Date.now();
       player.submitTime = (timeSubmitted - roundStartTime) / 1000;
-    }
 
-    // Notify players that code has been submitted
-    notifySubmission(room, code);
+      // Notify players that code has been submitted
+      notifySubmission(room, code);
 
-    // If all players have submitted, stop game timer to send all results
-    if (room.players.every((p) => p.submitted)) {
-      if (room.cancelRoundTimer) {
-        room.cancelRoundTimer();
+      // If all players have submitted, stop game timer to send all results
+      if (room.players.every((p) => p.submitted)) {
+        if (room.cancelRoundTimer) {
+          room.cancelRoundTimer();
+        }
       }
-    }
-  });
+    },
+  );
 
   // on game leave room
   socket.on("game-leave-room", ({ code }) => {

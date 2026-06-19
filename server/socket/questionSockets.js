@@ -6,6 +6,10 @@ const getQuestion = (io, code, room, questions) => {
   );
   const randomQuestion =
     filteredQuestions[Math.floor(Math.random() * filteredQuestions.length)];
+
+  // Store the current question in the room state
+  room.currentQuestion = randomQuestion;
+
   return randomQuestion;
 };
 
