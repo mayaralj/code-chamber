@@ -121,7 +121,7 @@ const RoomWait = () => {
       </div>
 
       {/* If host show a start game button */}
-      {isHost && (
+      {isHost && players.length > 1 && (
         <button
           onClick={handleStart}
           className="cursor-pointer bg-orange-50 text-gray-900 font-bold px-12 py-3 rounded hover:bg-orange-100"

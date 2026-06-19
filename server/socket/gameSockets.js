@@ -191,6 +191,11 @@ const setUpGameSockets = (io, socket, { rooms, playersInRooms, questions }) => {
       return;
     }
 
+    // Check if more than 1 player
+    if (room.players.length < 2) {
+      return;
+    }
+
     // Mark room as game started
     room.isGameStarted = true;
     console.log(`Game started in room ${code}`);
