@@ -118,6 +118,14 @@ const setUpGameSockets = (io, socket, { rooms, playersInRooms, questions }) => {
 
     // If its the first round emit game started, otherwise just emit timer tick
     const randomQuestion = getQuestion(io, code, rooms[code], questions);
+
+    // Get the starter code for the question
+    const { rows } = await db.query(
+      "SELECT language, code FROM starter_code WHERE question_id = $1",
+      [randomQuestion.id],
+    );
+    randomQuestion.starterCode = rows;
+
     if (rooms[code].currentRound === 0) {
       io.to(code).emit("game-started", {
         code,
@@ -248,8 +256,16 @@ const setUpGameSockets = (io, socket, { rooms, playersInRooms, questions }) => {
         [room.currentQuestion.id],
       );
 
+      // Fetch the function name from starter_code table
+      const { rows } = await db.query(
+        "SELECT function_name FROM starter_code WHERE question_id = $1 AND language = $2",
+        [room.currentQuestion.id, language],
+      );
+      const functionName = rows[0].function_name;
+      console.log("Function name for question:", functionName);
+
       // Run the code against the test cases
-      const results = runCode(codeInput, testCases);
+      const results = runCode(codeInput, functionName, testCases);
       console.log("Code submission results for player", player.username, {
         testResults: results.testResults,
       });

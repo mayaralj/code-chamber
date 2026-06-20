@@ -1,6 +1,6 @@
 import vm from "vm";
 
-const runCode = (userCode, testCases) => {
+const runCode = (userCode, functionName, testCases) => {
   let testCasesPassed = 0;
   const startTime = Date.now();
   const testResults = testCases.map(({ input, expected }) => {
@@ -13,7 +13,7 @@ const runCode = (userCode, testCases) => {
       vm.runInContext(userCode, sandbox, { timeout: 3000 });
 
       // Call the function with the test case input
-      const received = vm.runInContext(`solution(${input})`, sandbox, {
+      const received = vm.runInContext(`${functionName}(${input})`, sandbox, {
         timeout: 3000,
       });
 

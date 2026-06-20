@@ -37,6 +37,9 @@ const Game = () => {
   // Question
   const [question, setQuestion] = useState(initQuestion || null);
 
+  // Starter code
+  const [starterCode, setStarterCode] = useState(question?.starterCode || "");
+
   // Code
   const [codeInput, setCodeInput] = useState("");
   const [codeSubmitted, setCodeSubmitted] = useState(false);
@@ -202,6 +205,7 @@ const Game = () => {
   useEffect(() => {
     socket.on("send-question", ({ question }) => {
       setQuestion(question);
+      setStarterCode(question.starterCode);
     });
 
     // Cleanup
@@ -276,6 +280,7 @@ const Game = () => {
             language={language}
             onLanguageChange={handleLanguageChange}
             onMount={() => setEditorReady(true)}
+            starterCode={starterCode}
           />
         </div>
 

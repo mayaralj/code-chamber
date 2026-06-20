@@ -4,6 +4,32 @@ import { useRef, useEffect, useState } from "react";
 // Languages supported (No language support besides javascript for now)
 const LANGUAGES = {
   JavaScript: "javascript",
+  Python: "python",
+};
+
+// Update starter code helper
+const updateStarterCode = (editorRef, language, starterCode, savedCode) => {
+  // Check if editor and starter code are available
+  if (!editorRef.current || !starterCode) {
+    return;
+  }
+
+  // Check if the code has not been altered before
+  if (savedCode && savedCode[language]) {
+    return;
+  }
+
+  const codeForLanguage = starterCode.find(
+    (code) => code.language === language,
+  );
+  console.log(
+    "Setting starter code for language:",
+    language,
+    codeForLanguage?.code,
+  );
+  if (codeForLanguage) {
+    editorRef.current.setValue(codeForLanguage.code);
+  }
 };
 
 const CodeEditor = ({
@@ -12,11 +38,14 @@ const CodeEditor = ({
   language,
   onLanguageChange,
   onMount,
+  starterCode,
 }) => {
   // Ref for editor
   const editorRef = useRef(null);
   const handleMount = (editor) => {
     editorRef.current = editor;
+    // Set initial starter code
+    updateStarterCode(editorRef, language, starterCode);
     onMount?.();
   };
 
@@ -49,6 +78,11 @@ const CodeEditor = ({
     previousLanguage.current = language;
   }, [language]);
 
+  // Build starter_code for respective languages
+  useEffect(() => {
+    updateStarterCode(editorRef, language, starterCode, savedCode.current);
+  }, [language, starterCode]);
+
   return (
     // Split the screen into 2 half, the second half is here
     <div className="flex-1 flex flex-col bg-gray-800 rounded-lg p-4 text-white overflow-y-auto">
@@ -77,7 +111,6 @@ const CodeEditor = ({
           language={language}
           onMount={handleMount}
           theme="vs-dark"
-          defaultValue={language}
           onChange={onChange}
           options={{
             fontSize: 16,
