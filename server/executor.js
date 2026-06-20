@@ -1,6 +1,8 @@
 import vm from "vm";
 
 const runCode = (userCode, testCases) => {
+  let testCasesPassed = 0;
+  const startTime = Date.now();
   const results = testCases.map(({ input, expected }) => {
     try {
       // Create blank sandbox
@@ -17,14 +19,27 @@ const runCode = (userCode, testCases) => {
 
       // Compare received output with expected output
       const passed = JSON.stringify(received) === JSON.stringify(expected);
+      if (passed) testCasesPassed++;
+
       return { input, expected, received, passed };
     } catch (err) {
-      return { input, expected, received: err.message, passed: false };
+      return {
+        input,
+        expected,
+        received: err.message,
+        passed: false,
+      };
     }
   });
 
+  // End time
+  const endTime = Date.now();
+  const timeTaken = endTime - startTime;
+
   return {
     passed: results.every((r) => r.passed),
+    testCasesPassed,
+    timeTaken,
     results,
   };
 };
