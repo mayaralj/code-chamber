@@ -34,7 +34,7 @@ const runCode = (userCode, testCases) => {
 
   // End time
   const endTime = Date.now();
-  const executionTime = endTime - startTime;
+  const executionTime = (endTime - startTime) / 1000;
 
   return {
     passed: testResults.every((r) => r.passed),

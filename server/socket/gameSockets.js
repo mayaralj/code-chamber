@@ -93,13 +93,11 @@ const setUpGameSockets = (io, socket, { rooms, playersInRooms, questions }) => {
 
   // Send results
   const sendResults = async (room, code) => {
-    // Build results object
-    const results = room.players.map((p) => ({
-      username: p.username,
-      submitTime: p.submitTime,
-    }));
     const resultsEndsAt = Date.now() + 1000 * RESULTS_TIMER;
-    io.to(code).emit("send-results", { results, resultsEndsAt });
+    io.to(code).emit("send-results", {
+      results: room.roundResults,
+      resultsEndsAt,
+    });
 
     // Sleep for results timer duration
     await sleep(RESULTS_TIMER * 1000);
