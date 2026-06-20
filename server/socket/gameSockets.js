@@ -147,6 +147,9 @@ const setUpGameSockets = (io, socket, { rooms, playersInRooms, questions }) => {
     // Save start round time
     rooms[code].roundStartTime = Date.now();
 
+    // Store current round results
+    rooms[code].roundResults = [];
+
     // Create a new promise and cancel function for the round timer
     const { promise: roundTimerPromise, cancel: cancelRoundTimer } =
       cancellableSleep(ROUND_TIMER * 1000);
@@ -238,6 +241,8 @@ const setUpGameSockets = (io, socket, { rooms, playersInRooms, questions }) => {
         return;
       }
       player.submitted = true;
+      // Notify players that code has been submitted (visual reasons only)
+      notifySubmission(room, code);
 
       // Fetch test cases for the current question
       const { rows: testCases } = await db.query(
@@ -246,21 +251,22 @@ const setUpGameSockets = (io, socket, { rooms, playersInRooms, questions }) => {
       );
 
       // Run the code against the test cases
-      const { passed, results } = runCode(codeInput, testCases);
+      const results = runCode(codeInput, testCases);
       console.log("Code submission results for player", player.username, {
-        passed,
-        results,
+        testResults: results.testResults,
       });
 
-      // Send results back to the player
-      socket.emit("code-result", { passed, results });
-
-      // Calculate time submitted
+      // Calculate time submitted (From when client actually pressed submit button)
       const roundStartTime = room.roundStartTime || Date.now();
       player.submitTime = (timeSubmitted - roundStartTime) / 1000;
+      // Add time taken to results (not execution time just the time client hit submit)
+      results.submitTime = player.submitTime;
 
-      // Notify players that code has been submitted
-      notifySubmission(room, code);
+      // Store results in current round results
+      room.roundResults.push({
+        username: player.username,
+        results,
+      });
 
       // If all players have submitted, stop game timer to send all results
       if (room.players.every((p) => p.submitted)) {
