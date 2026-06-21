@@ -42,6 +42,10 @@ const Game = () => {
 
   // Code
   const [codeInput, setCodeInput] = useState("");
+  const codeInputRef = useRef("");
+  useEffect(() => {
+    codeInputRef.current = codeInput;
+  }, [codeInput]);
   const [codeSubmitted, setCodeSubmitted] = useState(false);
   const hasSubmitted = useRef(false);
 
@@ -50,6 +54,10 @@ const Game = () => {
 
   // Editor Language
   const [language, setLanguage] = useState("javascript");
+  const languageRef = useRef("javascript");
+  useEffect(() => {
+    languageRef.current = language;
+  }, [language]);
 
   // Results
   const [results, setResults] = useState(null);
@@ -189,6 +197,15 @@ const Game = () => {
       hasSubmitted.current = true;
     });
 
+    // Force Submit (timer finished but player didnt submit)
+    socket.on("request-current-code", () => {
+      console.log("Server requested current code and language for player");
+      socket.emit(`current-code`, {
+        codeInput: codeInputRef.current,
+        language: languageRef.current,
+      });
+    });
+
     // Code Submit Handle error
     socket.once("submit-code-error", ({ message }) => {
       console.error("Error submitting code:", message);
@@ -198,6 +215,7 @@ const Game = () => {
       socket.off("submitted-players");
       socket.off("code-submitted");
       socket.off("submit-code-error");
+      socket.off("request-current-code");
     };
   }, []);
 

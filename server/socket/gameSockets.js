@@ -34,7 +34,52 @@ const cancellableSleep = (ms) => {
   return { promise, cancel };
 };
 
-const setUpGameSockets = (io, socket, { rooms, playersInRooms, questions }) => {
+// Helper to process player submission
+const processSubmission = async (
+  room,
+  code,
+  player,
+  codeInput,
+  language,
+  submitTime,
+) => {
+  player.submitted = true;
+  player.submitTime = submitTime;
+
+  // Fetch test cases for the current question
+  const { rows: testCases } = await db.query(
+    "SELECT input, expected FROM test_cases WHERE question_id = $1",
+    [room.currentQuestion.id],
+  );
+
+  // Fetch the function name from starter_code table
+  const { rows } = await db.query(
+    "SELECT function_name FROM starter_code WHERE question_id = $1 AND language = $2",
+    [room.currentQuestion.id, language],
+  );
+  const functionName = rows[0]?.function_name;
+
+  // Run the code against the test cases (handle missing code gracefully)
+  const results = codeInput
+    ? runCode(codeInput, functionName, testCases)
+    : { testResults: [], passed: false };
+
+  results.submitTime = submitTime;
+
+  // Store results in current round results
+  room.roundResults.push({
+    username: player.username,
+    results,
+  });
+
+  return results;
+};
+
+const setUpGameSockets = (
+  io,
+  socket,
+  { rooms, playersInRooms, pendingCodeRequests, questions },
+) => {
   // Game leave
   const gameLeave = (code) => {
     // Check if room is valid
@@ -174,13 +219,58 @@ const setUpGameSockets = (io, socket, { rooms, playersInRooms, questions }) => {
     // Emit that game timer is finished
     io.to(code).emit("round-timer-finished");
 
-    // Force Submit all players who havent submitted
-    rooms[code].players.forEach((p) => {
-      if (!p.submitted) {
-        p.submitted = true;
-        p.submitTime = ROUND_TIMER;
-      }
-    });
+    // List all unsubmitted players
+    const unsubmittedPlayers = rooms[code].players.filter((p) => !p.submitted);
+    // Force submit all players who didnt submit in time
+    const forceSubmitPlayer = (player) => {
+      return new Promise((resolve) => {
+        let resolved = false;
+
+        const finish = (data = {}) => {
+          if (resolved) {
+            return;
+          }
+          resolved = true;
+          clearTimeout(timeout);
+          resolve({
+            player,
+            codeInput: data.codeInput,
+            language: data.language,
+          });
+        };
+
+        // Timout to force submit after 5 seconds of timer finishing
+        const timeout = setTimeout(() => {
+          console.log("Timed Out");
+          finish();
+        }, 5000);
+
+        // Listen for current code
+        pendingCodeRequests.set(player.id, finish);
+
+        // Emit to player to send their current code
+        io.to(player.id).emit("request-current-code");
+      });
+    };
+
+    // Force submit all players
+    const forceSubmitAll = await Promise.all(
+      unsubmittedPlayers.map(forceSubmitPlayer),
+    );
+
+    // Process all force submissions
+    await Promise.all(
+      forceSubmitAll.map(({ player, codeInput, language }) =>
+        processSubmission(
+          rooms[code],
+          code,
+          player,
+          codeInput,
+          language,
+          ROUND_TIMER,
+        ),
+      ),
+    );
 
     // Notify players of submission
     notifySubmission(rooms[code], code);
@@ -250,37 +340,19 @@ const setUpGameSockets = (io, socket, { rooms, playersInRooms, questions }) => {
       // Notify players that code has been submitted (visual reasons only)
       notifySubmission(room, code);
 
-      // Fetch test cases for the current question
-      const { rows: testCases } = await db.query(
-        "SELECT input, expected FROM test_cases WHERE question_id = $1",
-        [room.currentQuestion.id],
-      );
-
-      // Fetch the function name from starter_code table
-      const { rows } = await db.query(
-        "SELECT function_name FROM starter_code WHERE question_id = $1 AND language = $2",
-        [room.currentQuestion.id, language],
-      );
-      const functionName = rows[0].function_name;
-      console.log("Function name for question:", functionName);
-
-      // Run the code against the test cases
-      const results = runCode(codeInput, functionName, testCases);
-      console.log("Code submission results for player", player.username, {
-        testResults: results.testResults,
-      });
-
-      // Calculate time submitted (From when client actually pressed submit button)
+      // Get the submit time
       const roundStartTime = room.roundStartTime || Date.now();
-      player.submitTime = (timeSubmitted - roundStartTime) / 1000;
-      // Add time taken to results (not execution time just the time client hit submit)
-      results.submitTime = player.submitTime;
+      const submitTime = (timeSubmitted - roundStartTime) / 1000;
 
-      // Store results in current round results
-      room.roundResults.push({
-        username: player.username,
-        results,
-      });
+      // Process submission
+      await processSubmission(
+        room,
+        code,
+        player,
+        codeInput,
+        language,
+        submitTime,
+      );
 
       // If all players have submitted, stop game timer to send all results
       if (room.players.every((p) => p.submitted)) {
@@ -290,6 +362,15 @@ const setUpGameSockets = (io, socket, { rooms, playersInRooms, questions }) => {
       }
     },
   );
+
+  // Code request listener
+  socket.on(`current-code`, ({ codeInput, language }) => {
+    const resolver = pendingCodeRequests.get(socket.id);
+    if (resolver) {
+      resolver({ codeInput, language });
+      pendingCodeRequests.delete(socket.id);
+    }
+  });
 
   // on game leave room
   socket.on("game-leave-room", ({ code }) => {
