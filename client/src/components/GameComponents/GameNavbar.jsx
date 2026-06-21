@@ -1,6 +1,12 @@
 import { useState } from "react";
 
-const GameNavbar = ({ isSubmitted, onSubmit, playersList, roundTimeLeft }) => {
+const GameNavbar = ({
+  isSubmitted,
+  isJudging,
+  onSubmit,
+  playersList,
+  roundTimeLeft,
+}) => {
   // Modal states
   const [showModal, setShowModal] = useState(false);
   const [modalPos, setModalPos] = useState({ x: 0, y: 0 });
@@ -18,13 +24,13 @@ const GameNavbar = ({ isSubmitted, onSubmit, playersList, roundTimeLeft }) => {
 
   return (
     <div className="w-full bg-gray-900 py-3 flex justify-center items-center relative">
-      {/* Submit Button */}
+      {/* Submit Button (Green submitted, yellow judging, red not submitted) */}
       <button
-        className={`${isSubmitted ? "bg-green-500 cursor-not-allowed" : "bg-gray-500 hover:bg-red-800 cursor-pointer"} text-white font-semibold px-6 py-2 rounded-lg transition-colors mx-auto`}
+        className={`${isSubmitted ? "bg-green-500 cursor-not-allowed" : isJudging ? "bg-yellow-500 hover:bg-yellow-600 cursor-pointer" : "bg-gray-500 hover:bg-red-800 cursor-pointer"} text-white font-semibold px-6 py-2 rounded-lg transition-colors mx-auto`}
         onClick={onSubmit}
         disabled={isSubmitted}
       >
-        {isSubmitted ? "Submitted" : "Submit"}
+        {isSubmitted ? "Submitted" : isJudging ? "Judging..." : "Submit"}
       </button>
       {/* Timer On the very left side */}
       <div className="absolute left-8 text-2xl text-orange-100 font-semibold select-none pointer-events-none">

@@ -40,6 +40,7 @@ const Game = () => {
   const {
     setCodeInput,
     codeSubmitted,
+    isJudging,
     language,
     handleSubmit,
     handleLanguageChange,
@@ -89,6 +90,7 @@ const Game = () => {
       >
         <GameNavbar
           isSubmitted={codeSubmitted}
+          isJudging={isJudging}
           onSubmit={handleSubmit}
           playersList={playersList}
           roundTimeLeft={roundTimeLeft}
@@ -98,7 +100,7 @@ const Game = () => {
           <div className="w-0.5 bg-white"></div>
           <CodeEditor
             onChange={setCodeInput}
-            codeSubmitted={codeSubmitted}
+            isJudging={isJudging}
             language={language}
             onLanguageChange={handleLanguageChange}
             onMount={() => setEditorReady(true)}

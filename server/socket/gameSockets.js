@@ -5,10 +5,10 @@ import db from "../db.js";
 import getQuestion from "./questionSockets.js";
 
 // Import submission processor
-import { processSubmission } from "../game/submission.js";
+import { notifySubmission, processSubmission } from "../game/submission.js";
 
 // Import round manager
-import { notifySubmission, startRound } from "../game/round.js";
+import { startRound } from "../game/round.js";
 
 const setUpGameSockets = (
   io,
@@ -90,6 +90,12 @@ const setUpGameSockets = (
         return;
       }
 
+      // Check if player is valid and not already submitted or judging
+      const player = room.players.find((p) => p.id === socket.id);
+      if (!player || player.submitted || player.judging) {
+        return;
+      }
+
       // Validate time submitted
       if (typeof timeSubmitted !== "number" || isNaN(timeSubmitted)) {
         socket.emit("submit-code-error", { message: "Invalid time submitted" });
@@ -106,21 +112,13 @@ const setUpGameSockets = (
         return;
       }
 
-      // Update player's submitted status
-      const player = room.players.find((p) => p.id === socket.id);
-      if (!player || player.submitted) {
-        return;
-      }
-      player.submitted = true;
-      // Notify players that code has been submitted (visual reasons only)
-      notifySubmission(io, socket, room, code);
-
       // Get the submit time
       const roundStartTime = room.roundStartTime || Date.now();
       const submitTime = (timeSubmitted - roundStartTime) / 1000;
 
       // Process submission
       await processSubmission(
+        io,
         room,
         code,
         player,

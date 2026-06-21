@@ -1,7 +1,11 @@
 import getQuestion from "../socket/questionSockets.js";
 import db from "../db.js";
 import { sleep, cancellableSleep } from "../utils/timers.js";
-import { processSubmission, forceSubmitPlayer } from "./submission.js";
+import {
+  notifySubmission,
+  processSubmission,
+  forceSubmitPlayer,
+} from "./submission.js";
 
 // Config
 // Timers (s)
@@ -10,24 +14,6 @@ const ROUND_TIMER = 30;
 const RESULTS_TIMER = 15;
 // Timeouts (ms)
 const FORCE_SUBMIT_TIMEOUT = 5000;
-
-// Helper to notify players of code submission
-export const notifySubmission = (io, socket, room, code) => {
-  // Build a list of all submitted players
-  const submittedPlayers = room.players
-    .filter((p) => p.submitted)
-    .map((p) => p.username);
-
-  // Notify player that code has been submitted
-  if (socket) {
-    socket.emit("code-submitted");
-  }
-
-  // Emit to all players with list of submitted players
-  io.to(code).emit("submitted-players", {
-    submittedPlayers,
-  });
-};
 
 // Send results
 const sendResults = async (io, room, code) => {
@@ -122,9 +108,6 @@ export const startRound = async (
   // List all unsubmitted players
   const unsubmittedPlayers = rooms[code].players.filter((p) => !p.submitted);
 
-  // Check if the current socket is from an unsubmitted player (to notify them specifically)
-  const socketUnsubmitted = unsubmittedPlayers.some((p) => p.id === socket.id);
-
   // Force submit all players
   const forceSubmitAll = await Promise.all(
     unsubmittedPlayers.map((player) =>
@@ -141,6 +124,7 @@ export const startRound = async (
   await Promise.all(
     forceSubmitAll.map(({ player, codeInput, language }) =>
       processSubmission(
+        io,
         rooms[code],
         code,
         player,
@@ -155,9 +139,6 @@ export const startRound = async (
   if (!rooms[code]) {
     return;
   }
-
-  // Notify players of submission
-  notifySubmission(io, socketUnsubmitted ? socket : null, rooms[code], code);
 
   // Send results
   await sendResults(io, rooms[code], code);

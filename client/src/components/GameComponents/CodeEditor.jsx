@@ -42,7 +42,7 @@ const updateStarterCode = (
 
 const CodeEditor = ({
   onChange,
-  codeSubmitted,
+  isJudging,
   language,
   onLanguageChange,
   onMount,
@@ -142,7 +142,7 @@ const CodeEditor = ({
             suggestOnTriggerCharacters: false,
             overviewRulerLanes: 0,
             contextmenu: false,
-            readOnly: codeSubmitted,
+            readOnly: isJudging,
             readOnlyMessage: { value: null },
           }}
         />
