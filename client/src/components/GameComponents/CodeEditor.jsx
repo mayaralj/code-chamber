@@ -8,7 +8,13 @@ const LANGUAGES = {
 };
 
 // Update starter code helper
-const updateStarterCode = (editorRef, language, starterCode, savedCode) => {
+const updateStarterCode = (
+  editorRef,
+  language,
+  starterCode,
+  savedCode,
+  onChange,
+) => {
   // Check if editor and starter code are available
   if (!editorRef.current || !starterCode) {
     return;
@@ -29,6 +35,8 @@ const updateStarterCode = (editorRef, language, starterCode, savedCode) => {
   );
   if (codeForLanguage) {
     editorRef.current.setValue(codeForLanguage.code);
+    // Manually trigger onChange
+    onChange?.(codeForLanguage.code);
   }
 };
 
@@ -45,7 +53,13 @@ const CodeEditor = ({
   const handleMount = (editor) => {
     editorRef.current = editor;
     // Set initial starter code
-    updateStarterCode(editorRef, language, starterCode);
+    updateStarterCode(
+      editorRef,
+      language,
+      starterCode,
+      savedCode.current,
+      onChange,
+    );
     onMount?.();
   };
 
@@ -80,7 +94,13 @@ const CodeEditor = ({
 
   // Build starter_code for respective languages
   useEffect(() => {
-    updateStarterCode(editorRef, language, starterCode, savedCode.current);
+    updateStarterCode(
+      editorRef,
+      language,
+      starterCode,
+      savedCode.current,
+      onChange,
+    );
   }, [language, starterCode]);
 
   return (

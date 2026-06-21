@@ -116,7 +116,12 @@ const Game = () => {
 
     // Emit code submission event to server
     console.log("Submitting code:", codeInput);
-    socket.emit("submit-code", { code, codeInput, language, timeSubmitted });
+    socket.emit("submit-code", {
+      code,
+      codeInput: codeInputRef.current,
+      language,
+      timeSubmitted,
+    });
   };
 
   // language change
