@@ -132,6 +132,11 @@ export const startRound = async (
     ),
   );
 
+  // Check if room still exists
+  if (!rooms[code]) {
+    return;
+  }
+
   // Process all force submissions
   await Promise.all(
     forceSubmitAll.map(({ player, codeInput, language }) =>
@@ -145,6 +150,11 @@ export const startRound = async (
       ),
     ),
   );
+
+  // Check if room still exists
+  if (!rooms[code]) {
+    return;
+  }
 
   // Notify players of submission
   notifySubmission(io, socketUnsubmitted ? socket : null, rooms[code], code);
