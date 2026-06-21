@@ -1,0 +1,40 @@
+import { useState, useEffect, useRef } from "react";
+import socket from "../../socket";
+
+// Import timer utils
+import { playAnyTimer } from "../../utils/timers.js";
+
+// Round Timer
+export const useRoundTimer = () => {
+  const [roundTimeLeft, setRoundTimeLeft] = useState(0);
+  const [roundTimerFinished, setRoundTimerFinished] = useState(false);
+  const roundTimerCleanupRef = useRef(null);
+
+  useEffect(() => {
+    socket.on("round-tick", ({ roundTimerEndsAt }) => {
+      // Game timer tick
+      setRoundTimerFinished(false);
+      roundTimerCleanupRef.current = playAnyTimer({
+        endsAt: roundTimerEndsAt,
+        functionSetter: setRoundTimeLeft,
+      });
+    });
+
+    // Game timer finished
+    socket.on("round-timer-finished", () => {
+      setRoundTimerFinished(true);
+      if (roundTimerCleanupRef.current) {
+        roundTimerCleanupRef.current();
+        roundTimerCleanupRef.current = null;
+      }
+    });
+
+    // Cleanup on unmount
+    return () => {
+      socket.off("round-tick");
+      socket.off("round-timer-finished");
+    };
+  }, []);
+
+  return { roundTimeLeft };
+};
