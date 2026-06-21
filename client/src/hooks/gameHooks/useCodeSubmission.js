@@ -59,7 +59,7 @@ export const useCodeSubmission = (code, players) => {
       setPlayersList((prev) =>
         prev.map((player) => ({
           ...player,
-          judging: judgingPlayers.includes(player.username),
+          judging: judgingPlayers.includes(player.id),
         })),
       );
     });
@@ -77,7 +77,7 @@ export const useCodeSubmission = (code, players) => {
       setPlayersList((prev) =>
         prev.map((player) => ({
           ...player,
-          submitted: submittedPlayers.includes(player.username),
+          submitted: submittedPlayers.includes(player.id),
         })),
       );
     });

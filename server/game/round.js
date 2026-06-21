@@ -60,6 +60,7 @@ export const startRound = async (
   if (rooms[code].currentRound === 0) {
     io.to(code).emit("game-started", {
       code,
+      serverPlayers: rooms[code].players,
       endsAt,
       question: randomQuestion,
     });

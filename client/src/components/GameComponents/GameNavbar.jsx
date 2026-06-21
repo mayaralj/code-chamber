@@ -51,14 +51,14 @@ const GameNavbar = ({
         >
           <div className="bg-gray-950/50 backdrop-blur-sm p-4 rounded-lg flex flex-col gap-4 w-96">
             <h2 className="text-2xl text-white font-bold mb-2">Players</h2>
-            {/* List out players, put an icon next to them for submtited or not submitted */}
+            {/* List out players, put an icon next to them for submtited or judging or not submitted */}
             {playersList.map((player) => (
               <div
                 key={player.id}
                 className="flex items-center gap-3 text-white text-lg"
               >
                 <div
-                  className={`w-3 h-3 rounded-full ${player.submitted ? "bg-green-500" : "bg-red-500"}`}
+                  className={`w-3 h-3 rounded-full ${player.submitted ? "bg-green-500" : player.judging ? "bg-yellow-500" : "bg-red-500"}`}
                 ></div>
                 {player.username}
               </div>

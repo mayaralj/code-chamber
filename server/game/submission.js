@@ -4,9 +4,7 @@ import runCode from "../executor.js";
 // Helper to notify players of code judging
 export const notifyJudging = (io, socketId, room, code) => {
   // Build a list of all judging players
-  const judgingPlayers = room.players
-    .filter((p) => p.judging)
-    .map((p) => p.username);
+  const judgingPlayers = room.players.filter((p) => p.judging).map((p) => p.id);
 
   // Notify player that code is being judged
   io.to(socketId).emit("code-judging");
@@ -22,7 +20,7 @@ export const notifySubmission = (io, socketId, room, code) => {
   // Build a list of all submitted players
   const submittedPlayers = room.players
     .filter((p) => p.submitted)
-    .map((p) => p.username);
+    .map((p) => p.id);
 
   // Notify player that code has been submitted
   io.to(socketId).emit("code-submitted");
