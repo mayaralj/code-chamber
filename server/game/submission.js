@@ -1,5 +1,5 @@
 import db from "../db.js";
-import runCode from "../executor.js";
+import runCode from "./executor.js";
 
 // Helper to notify players of code judging
 export const notifyJudging = (io, socketId, room, code) => {
@@ -29,6 +29,29 @@ export const notifySubmission = (io, socketId, room, code) => {
   io.to(code).emit("submitted-players", {
     submittedPlayers,
   });
+};
+
+// Helper to calculate score based on results
+const calculateScore = (result, numOfTestCases) => {
+  const { passed, testCasesPassed, executionTime, submitTime } = result;
+
+  // Ratio of test cases passed
+  const testCaseRatio = testCasesPassed / numOfTestCases;
+
+  // Score is based on test cases passed, execution time, and submission time
+  let score = 0;
+  score += passed ? 60 : 0;
+  score += testCaseRatio * 50;
+  score -= executionTime * 5;
+  score -= submitTime;
+
+  // Clamp score to a minimum of 0
+  score = Math.max(0, Math.round(score));
+
+  // Ceil the score to the nearest integer
+  score = Math.ceil(score);
+
+  return score;
 };
 
 // Helper to process player submission
@@ -65,11 +88,16 @@ export const processSubmission = async (
   const functionName = rows[0]?.function_name;
 
   // Run the code against the test cases (handle missing code gracefully)
-  const results = codeInput
+  const result = codeInput
     ? runCode(codeInput, functionName, testCases)
-    : { testResults: [], passed: false };
+    : { testResult: [], passed: false };
 
-  results.submitTime = submitTime;
+  result.submitTime = submitTime;
+
+  // Calculate score based on test cases passed, execution time, and submission time
+  const numOfTestCases = testCases.length;
+  const score = calculateScore(result, numOfTestCases);
+  result.score = score;
 
   // Update player status
   player.judging = false;
@@ -79,10 +107,10 @@ export const processSubmission = async (
   // Store results in current round results
   room.roundResults.push({
     username: player.username,
-    results,
+    result,
   });
 
-  return results;
+  return result;
 };
 
 export const forceSubmitPlayer = (

@@ -6,23 +6,26 @@ const Results = ({ results }) => {
       <div className="bg-gray-800 rounded-lg p-8 w-[500px] flex flex-col gap-4">
         <h1 className="text-2xl font-bold text-white text-center">Results</h1>
         {/* Categories listing  */}
-        <div className="grid grid-cols-5 gap-4 text-center">
+        <div className="grid grid-cols-6 gap-4 text-center">
           <span className="text-gray-400">Player</span>
           <span className="text-gray-400">Passed</span>
           <span className="text-gray-400">Test Cases Passed</span>
           <span className="text-gray-400">Execution Time (s)</span>
           <span className="text-gray-400">Submit Time (s)</span>
+          <span className="text-gray-400">Score</span>
         </div>
         {/* Create a list of each player's results */}
         {results.map((result, index) => (
-          <div key={index} className="grid grid-cols-5 gap-4 text-center">
+          <div key={index} className="grid grid-cols-6 gap-4 text-center">
             <span className="text-white font-semibold">{result.username}</span>
             <span className="text-white">
-              {result.results.passed ? "Yes" : "No"}
+              {result.result.passed ? "Yes" : "No"}
             </span>
-            <span className="text-white">{result.results.testCasesPassed}</span>
-            <span className="text-white">{result.results.executionTime}</span>
-            <span className="text-white">{result.results.submitTime}</span>
+            <span className="text-white">{result.result.testCasesPassed}</span>
+            <span className="text-white">{result.result.executionTime}</span>
+            <span className="text-white">{result.result.submitTime}</span>
+            {/* Total score */}
+            <span className="text-white">{result.result.score}</span>
           </div>
         ))}
       </div>

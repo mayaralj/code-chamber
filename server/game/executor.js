@@ -3,7 +3,7 @@ import vm from "vm";
 const runCode = (userCode, functionName, testCases) => {
   let testCasesPassed = 0;
   const startTime = Date.now();
-  const testResults = testCases.map(({ input, expected }) => {
+  const testResult = testCases.map(({ input, expected }) => {
     try {
       // Create blank sandbox
       const sandbox = {};
@@ -37,10 +37,10 @@ const runCode = (userCode, functionName, testCases) => {
   const executionTime = (endTime - startTime) / 1000;
 
   return {
-    passed: testResults.every((r) => r.passed),
+    passed: testResult.every((r) => r.passed),
     testCasesPassed,
     executionTime,
-    testResults,
+    testResult,
   };
 };
 
