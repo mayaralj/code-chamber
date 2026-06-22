@@ -48,6 +48,9 @@ const calculateScore = (result, numOfTestCases) => {
   // Clamp score to a minimum of 0
   score = Math.max(0, Math.round(score));
 
+  // Clamp score to a maximum of 100
+  score = Math.min(100, score);
+
   // Ceil the score to the nearest integer
   score = Math.ceil(score);
 
@@ -106,7 +109,7 @@ export const processSubmission = async (
 
   // Store results in current round results
   room.roundResults.push({
-    username: player.username,
+    player: player.username,
     result,
   });
 

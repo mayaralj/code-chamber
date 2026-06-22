@@ -7,12 +7,22 @@ export const useResults = () => {
   const [resultsTimer, setResultsTimer] = useState(null);
   const [resultsReady, setResultsReady] = useState(false);
 
+  // Player Eliminated
+  const [playerEliminated, setPlayerEliminated] = useState(null);
+
   useEffect(() => {
-    socket.on("send-results", ({ results, resultsEndsAt }) => {
-      setResults(results);
-      setResultsReady(true);
-      playAnyTimer({ endsAt: resultsEndsAt, functionSetter: setResultsTimer });
-    });
+    socket.on(
+      "send-results",
+      ({ results, resultsEndsAt, playerEliminated }) => {
+        setResults(results);
+        setResultsReady(true);
+        setPlayerEliminated(playerEliminated);
+        playAnyTimer({
+          endsAt: resultsEndsAt,
+          functionSetter: setResultsTimer,
+        });
+      },
+    );
 
     socket.on("results-timer-finished", () => {
       setResultsReady(false);
@@ -24,5 +34,5 @@ export const useResults = () => {
     };
   }, []);
 
-  return { results, resultsReady };
+  return { results, resultsReady, playerEliminated };
 };

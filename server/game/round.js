@@ -16,11 +16,12 @@ const RESULTS_TIMER = 15;
 const FORCE_SUBMIT_TIMEOUT = 5000;
 
 // Send results
-const sendResults = async (io, room, code) => {
+const sendResults = async (io, room, code, playerEliminated) => {
   const resultsEndsAt = Date.now() + 1000 * RESULTS_TIMER;
   io.to(code).emit("send-results", {
     results: room.roundResults,
     resultsEndsAt,
+    playerEliminated,
   });
 
   // Sleep for results timer duration
@@ -28,6 +29,32 @@ const sendResults = async (io, room, code) => {
 
   // Emit that results timer is finished
   io.to(code).emit("results-timer-finished");
+};
+
+// Helper to determine player eliminated
+const determinePlayerEliminated = (room, results) => {
+  // For each player, find their total score and have a chance to be eliminated based on score
+  let highestChance = -Infinity;
+  let playerEliminated = null;
+  results.forEach(({ player, result }) => {
+    const score = result.score;
+    // Higher score means lower chance of elimination
+    const weight = 1 - score / 100;
+
+    // Clamp weight to a minimum of 0.05 to give even high scorers a small chance of elimination
+    const clampedWeight = Math.max(weight, 0.05);
+
+    // Random chance with clamped weight
+    const chance = Math.random() * clampedWeight;
+
+    // check if this player has the highest chance of elimination so far
+    if (chance > highestChance) {
+      highestChance = chance;
+      playerEliminated = player;
+    }
+  });
+
+  return playerEliminated;
 };
 
 // Start game event
@@ -141,8 +168,14 @@ export const startRound = async (
     return;
   }
 
+  // Determine player eliminated
+  const playerEliminated = determinePlayerEliminated(
+    rooms[code],
+    rooms[code].roundResults,
+  );
+
   // Send results
-  await sendResults(io, rooms[code], code);
+  await sendResults(io, rooms[code], code, playerEliminated);
 
   // TODO
 };
