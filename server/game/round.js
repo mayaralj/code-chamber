@@ -92,8 +92,9 @@ export const startRound = async (
 ) => {
   // Check if room exists
   if (!rooms[code]) {
-    io.in(code).socketsLeave(code);
     io.to(code).emit("room-deleted");
+
+    io.in(code).socketsLeave(code);
     return;
   }
 
@@ -125,8 +126,8 @@ export const startRound = async (
   // Wait for countdown to finish before sending question
   await sleep(COUNTDOWN_TIMER * 1000);
   if (!rooms[code]) {
-    io.in(code).socketsLeave(code);
     io.to(code).emit("room-deleted");
+    io.in(code).socketsLeave(code);
     return;
   }
 
@@ -153,8 +154,8 @@ export const startRound = async (
   // Wait for round timer to finish or be cancelled
   await roundTimerPromise;
   if (!rooms[code]) {
-    io.in(code).socketsLeave(code);
     io.to(code).emit("room-deleted");
+    io.in(code).socketsLeave(code);
     return;
   }
   // Clear the cancel function from the room
@@ -175,8 +176,8 @@ export const startRound = async (
 
   // Check if room still exists
   if (!rooms[code]) {
-    io.in(code).socketsLeave(code);
     io.to(code).emit("room-deleted");
+    io.in(code).socketsLeave(code);
     return;
   }
 
@@ -197,8 +198,8 @@ export const startRound = async (
 
   // Check if room still exists
   if (!rooms[code]) {
-    io.in(code).socketsLeave(code);
     io.to(code).emit("room-deleted");
+    io.in(code).socketsLeave(code);
     return;
   }
 
@@ -213,8 +214,8 @@ export const startRound = async (
 
   // Check if room still exists
   if (!rooms[code]) {
-    io.in(code).socketsLeave(code);
     io.to(code).emit("room-deleted");
+    io.in(code).socketsLeave(code);
     return;
   }
 
@@ -229,9 +230,9 @@ export const startRound = async (
     await sleep(GAME_OVER_TIMER * 1000);
 
     // Delete room
-    io.to(code).emit("room-deleted");
     delete rooms[code];
     // Clear socket room
+    io.to(code).emit("room-deleted");
     io.in(code).socketsLeave(code);
     console.log(`Room ${code} deleted as game is over`);
   }
