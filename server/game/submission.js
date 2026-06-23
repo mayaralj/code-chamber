@@ -109,7 +109,7 @@ export const processSubmission = async (
 
   // Store results in current round results
   room.roundResults.push({
-    player: player.username,
+    player,
     result,
   });
 

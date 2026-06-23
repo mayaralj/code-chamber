@@ -17,7 +17,9 @@ const Results = ({ results, playerEliminated }) => {
         {/* Create a list of each player's results */}
         {results.map((result, index) => (
           <div key={index} className="grid grid-cols-6 gap-4 text-center">
-            <span className="text-white font-semibold">{result.player}</span>
+            <span className="text-white font-semibold">
+              {result.player.username}
+            </span>
             <span className="text-white">
               {result.result.passed ? "Yes" : "No"}
             </span>

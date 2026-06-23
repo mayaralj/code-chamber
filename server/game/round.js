@@ -11,25 +11,10 @@ import {
 // Timers (s)
 const COUNTDOWN_TIMER = 5;
 const ROUND_TIMER = 30;
-const RESULTS_TIMER = 15;
+const RESULTS_TIMER = 10;
 // Timeouts (ms)
 const FORCE_SUBMIT_TIMEOUT = 5000;
-
-// Send results
-const sendResults = async (io, room, code, playerEliminated) => {
-  const resultsEndsAt = Date.now() + 1000 * RESULTS_TIMER;
-  io.to(code).emit("send-results", {
-    results: room.roundResults,
-    resultsEndsAt,
-    playerEliminated,
-  });
-
-  // Sleep for results timer duration
-  await sleep(RESULTS_TIMER * 1000);
-
-  // Emit that results timer is finished
-  io.to(code).emit("results-timer-finished");
-};
+const ELIMINATE_TIMEOUT = 5000;
 
 // Helper to determine player eliminated
 const determinePlayerEliminated = (room, results) => {
@@ -55,6 +40,42 @@ const determinePlayerEliminated = (room, results) => {
   });
 
   return playerEliminated;
+};
+
+// Helper to eliminate player from room
+export const eliminatePlayer = (io, room, code, playerEliminated) => {
+  console.log(`Eliminating player ${playerEliminated} from room ${code}`);
+
+  // Remove player from room
+  room.players = room.players.filter(
+    (p) => p.username !== playerEliminated.username,
+  );
+
+  // Emit to player eliminated that they have been eliminated
+  io.to(playerEliminated.id).emit("player-eliminated");
+};
+
+// Send results
+const sendResults = async (io, room, code, playerEliminated) => {
+  const resultsEndsAt = Date.now() + 1000 * RESULTS_TIMER;
+  console.log(
+    `Sending results for room ${code}, player eliminated: ${playerEliminated.username}`,
+  );
+  io.to(code).emit("send-results", {
+    results: room.roundResults,
+    resultsEndsAt,
+    playerEliminated: playerEliminated.username,
+  });
+
+  // Wait 5 seconds before kicking player eliminated
+  await sleep(ELIMINATE_TIMEOUT);
+  eliminatePlayer(io, room, code, playerEliminated);
+
+  // Sleep for results timer duration
+  await sleep(RESULTS_TIMER * 1000);
+
+  // Emit that results timer is finished
+  io.to(code).emit("results-timer-finished");
 };
 
 // Start game event

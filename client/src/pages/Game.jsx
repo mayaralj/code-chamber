@@ -62,6 +62,18 @@ const Game = () => {
   //   });
   // }, []);
 
+  // Kick them out on player eliminated
+  useEffect(() => {
+    socket.once("player-eliminated", () => {
+      console.log("You have been eliminated, redirecting to home");
+      navigate("/", { replace: true });
+    });
+
+    return () => {
+      socket.off("player-eliminated");
+    };
+  }, []);
+
   // Disconnection
   useEffect(() => {
     return () => {
