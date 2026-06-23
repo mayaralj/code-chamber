@@ -12,6 +12,7 @@ import {
 const COUNTDOWN_TIMER = 5;
 const ROUND_TIMER = 30;
 const RESULTS_TIMER = 10;
+const GAME_OVER_TIMER = 10;
 // Timeouts (ms)
 const FORCE_SUBMIT_TIMEOUT = 5000;
 const ELIMINATE_TIMEOUT = 5000;
@@ -50,6 +51,8 @@ export const eliminatePlayer = (io, room, code, playerEliminated) => {
   room.players = room.players.filter(
     (p) => p.username !== playerEliminated.username,
   );
+  // Remove player from socket room
+  io.sockets.sockets.get(playerEliminated.id)?.leave(code);
 
   // Emit to player eliminated that they have been eliminated
   io.to(playerEliminated.id).emit("player-eliminated");
@@ -89,6 +92,8 @@ export const startRound = async (
 ) => {
   // Check if room exists
   if (!rooms[code]) {
+    io.in(code).socketsLeave(code);
+    io.to(code).emit("room-deleted");
     return;
   }
 
@@ -120,6 +125,8 @@ export const startRound = async (
   // Wait for countdown to finish before sending question
   await sleep(COUNTDOWN_TIMER * 1000);
   if (!rooms[code]) {
+    io.in(code).socketsLeave(code);
+    io.to(code).emit("room-deleted");
     return;
   }
 
@@ -146,6 +153,8 @@ export const startRound = async (
   // Wait for round timer to finish or be cancelled
   await roundTimerPromise;
   if (!rooms[code]) {
+    io.in(code).socketsLeave(code);
+    io.to(code).emit("room-deleted");
     return;
   }
   // Clear the cancel function from the room
@@ -166,6 +175,8 @@ export const startRound = async (
 
   // Check if room still exists
   if (!rooms[code]) {
+    io.in(code).socketsLeave(code);
+    io.to(code).emit("room-deleted");
     return;
   }
 
@@ -186,6 +197,8 @@ export const startRound = async (
 
   // Check if room still exists
   if (!rooms[code]) {
+    io.in(code).socketsLeave(code);
+    io.to(code).emit("room-deleted");
     return;
   }
 
@@ -197,6 +210,31 @@ export const startRound = async (
 
   // Send results
   await sendResults(io, rooms[code], code, playerEliminated);
+
+  // Check if room still exists
+  if (!rooms[code]) {
+    io.in(code).socketsLeave(code);
+    io.to(code).emit("room-deleted");
+    return;
+  }
+
+  // Check if game is over (only one player left)
+  if (rooms[code].players.length <= 1) {
+    // Emit game over
+    io.to(code).emit("game-over", {
+      winner: rooms[code].players[0],
+    });
+
+    // Wait for game over timer before deleting room
+    await sleep(GAME_OVER_TIMER * 1000);
+
+    // Delete room
+    io.to(code).emit("room-deleted");
+    delete rooms[code];
+    // Clear socket room
+    io.in(code).socketsLeave(code);
+    console.log(`Room ${code} deleted as game is over`);
+  }
 
   // TODO
 };

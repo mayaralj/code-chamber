@@ -74,6 +74,18 @@ const Game = () => {
     };
   }, []);
 
+  // Room Deletion
+  useEffect(() => {
+    socket.once("room-deleted", () => {
+      console.log("Room has been deleted, redirecting to home");
+      navigate("/", { replace: true });
+    });
+
+    return () => {
+      socket.off("room-deleted");
+    };
+  }, []);
+
   // Disconnection
   useEffect(() => {
     return () => {
