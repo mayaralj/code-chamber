@@ -10,6 +10,7 @@ import {
 // Config
 // Timers (s)
 const COUNTDOWN_TIMER = 5;
+const GAME_OVER_TIMER = 5;
 const ROUND_TIMER = 30;
 const RESULTS_TIMER = 10;
 // Timeouts (ms)
@@ -56,7 +57,12 @@ export const eliminatePlayer = (io, room, code, playerEliminated) => {
 };
 
 // Send results
-const sendResults = async (io, room, code, playerEliminated, winner) => {
+const sendResults = async (io, room, code, playerEliminated) => {
+  // Check if player eliminated exists, if not, set to N/A
+  if (!playerEliminated) {
+    console.log(`No player eliminated in room ${code}, sending results`);
+    playerEliminated = { username: "N/A" };
+  }
   const resultsEndsAt = Date.now() + 1000 * RESULTS_TIMER;
   console.log(
     `Sending results for room ${code}, player eliminated: ${playerEliminated.username}`,
@@ -65,7 +71,6 @@ const sendResults = async (io, room, code, playerEliminated, winner) => {
     results: room.roundResults,
     resultsEndsAt,
     playerEliminated: playerEliminated.username,
-    winner: winner?.username,
   });
 
   // Sleep for results timer duration
@@ -73,6 +78,33 @@ const sendResults = async (io, room, code, playerEliminated, winner) => {
 
   // Emit that results timer is finished
   io.to(code).emit("results-timer-finished");
+};
+
+// Game over helper
+const gameOver = async (io, rooms, code, playerEliminated, winner) => {
+  // Check if player eliminated exists, if not, set to N/A
+  if (!playerEliminated) {
+    console.log(`No player eliminated in room ${code}, sending results`);
+    playerEliminated = { username: "N/A" };
+  }
+  const gameOverEndsAt = Date.now() + 1000 * GAME_OVER_TIMER;
+  io.to(code).emit("game-over", {
+    results: rooms[code].roundResults,
+    gameOverEndsAt,
+    playerEliminated: playerEliminated.username,
+    winner: winner?.username,
+  });
+
+  // Sleep for game over timer duration
+  await sleep(GAME_OVER_TIMER * 1000);
+
+  // Emit that room is deleted
+  io.to(code).emit("room-deleted");
+
+  // Delete room
+  delete rooms[code];
+  io.in(code).socketsLeave(code);
+  console.log(`Room ${code} deleted as game is over`);
 };
 
 // Start game event
@@ -196,25 +228,30 @@ export const startRound = async (
     return;
   }
 
-  // Determine player eliminated
-  const playerEliminated = determinePlayerEliminated(
-    rooms[code],
-    rooms[code].roundResults,
-  );
-  eliminatePlayer(io, rooms[code], code, playerEliminated);
+  // Determine player eliminated (if more than 1 player left)
+  let playerEliminated = null;
+  if (rooms[code].players.length > 1) {
+    playerEliminated = determinePlayerEliminated(
+      rooms[code],
+      rooms[code].roundResults,
+    );
+    eliminatePlayer(io, rooms[code], code, playerEliminated);
+  }
 
   // Check if game is over (only one player left)
   console.log(`Players remaining in room ${code}:`, rooms[code].players);
-  let winner = null;
   if (rooms[code].players.length == 1) {
     console.log(
       `Game over in room ${code}, winner: ${rooms[code].players[0].username}`,
     );
-    winner = rooms[code].players[0];
+    const winner = rooms[code].players[0];
+    await gameOver(io, rooms, code, playerEliminated, winner);
+    // Game is over, return
+    return;
   }
 
   // Send results
-  await sendResults(io, rooms[code], code, playerEliminated, winner);
+  await sendResults(io, rooms[code], code, playerEliminated);
 
   // Check if room still exists
   if (!rooms[code]) {

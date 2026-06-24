@@ -17,14 +17,10 @@ export const useResults = () => {
     // Listen for results from server
     socket.on(
       "send-results",
-      ({ results, resultsEndsAt, playerEliminated, winner }) => {
+      ({ results, resultsEndsAt, playerEliminated }) => {
         setResults(results);
         setResultsReady(true);
         setPlayerEliminated(playerEliminated);
-        if (winner) {
-          console.log("Game over, winner:", winner);
-          setWinner(winner);
-        }
         playAnyTimer({
           endsAt: resultsEndsAt,
           functionSetter: setResultsTimer,
@@ -36,6 +32,21 @@ export const useResults = () => {
     socket.on("results-timer-finished", () => {
       setResultsReady(false);
     });
+
+    // Game over connections
+    socket.on(
+      "game-over",
+      ({ results, gameOverEndsAt, playerEliminated, winner }) => {
+        setResults(results);
+        setResultsReady(true);
+        setPlayerEliminated(playerEliminated);
+        setWinner(winner);
+        playAnyTimer({
+          endsAt: gameOverEndsAt,
+          functionSetter: setResultsTimer,
+        });
+      },
+    );
 
     // Cleanup on unmount
     return () => {
