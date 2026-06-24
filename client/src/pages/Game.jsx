@@ -49,7 +49,7 @@ const Game = () => {
   // Editor Ready
   const [editorReady, setEditorReady] = useState(false);
   // Results
-  const { results, resultsReady, playerEliminated } = useResults(code);
+  const { results, resultsReady, playerEliminated, winner } = useResults(code);
 
   // Check with server if user is supposed to be here
   // useEffect(() => {
@@ -134,7 +134,11 @@ const Game = () => {
 
         {/* Show Results if ready */}
         {resultsReady && (
-          <Results results={results} playerEliminated={playerEliminated} />
+          <Results
+            results={results}
+            playerEliminated={playerEliminated}
+            winner={winner}
+          />
         )}
       </div>
 
