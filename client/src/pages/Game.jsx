@@ -75,9 +75,11 @@ const Game = () => {
   }, []);
 
   // Room Deletion
+  const roomDeletedRef = useRef(false);
   useEffect(() => {
     socket.once("room-deleted", () => {
       console.log("Room has been deleted, redirecting to home");
+      roomDeletedRef.current = true;
       navigate("/", { replace: true });
     });
 
@@ -89,6 +91,9 @@ const Game = () => {
   // Disconnection
   useEffect(() => {
     return () => {
+      if (roomDeletedRef.current) {
+        return;
+      }
       console.log("Game component unmounting, leaving room");
       socket.emit("game-leave-room", { code });
     };
