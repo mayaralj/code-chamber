@@ -123,31 +123,17 @@ const startRound = async (io, socket, code, rooms, pendingCodeRequests) => {
   // Begin initial countdown
   const endsAt = Date.now() + 1000 * COUNTDOWN_TIMER;
 
-  // If its the first round emit game started, otherwise just emit timer tick
-  const randomQuestion = getQuestion(
-    io,
-    code,
-    rooms[code],
-    rooms[code].questions,
-  );
-  // Remove the question from the list of questions for the room
-  // rooms[code].questions = rooms[code].questions.filter(
-  //   (q) => q.id !== randomQuestion.id,
-  // );
+  // Get the question for this round
+  const roundQuestion = rooms[code].questions[rooms[code].currentRound - 1];
+  rooms[code].currentQuestion = roundQuestion;
 
-  // Get the starter code for the question
-  const { rows } = await db.query(
-    "SELECT language, code FROM starter_code WHERE question_id = $1",
-    [randomQuestion.id],
-  );
-  randomQuestion.starterCode = rows;
   if (rooms[code].currentRound === 1) {
     console.log(`Current round is 1, emitting game-started for room ${code}`);
     io.to(code).emit("game-started", {
       code,
       serverPlayers: rooms[code].players,
       endsAt,
-      question: randomQuestion,
+      question: roundQuestion,
     });
   } else {
     console.log(
@@ -155,7 +141,7 @@ const startRound = async (io, socket, code, rooms, pendingCodeRequests) => {
     );
     io.to(code).emit("timer-tick", { newEndsAt: endsAt });
     console.log(`Emitting send-question for room ${code}`);
-    io.to(code).emit("send-question", { question: randomQuestion });
+    io.to(code).emit("send-question", { question: roundQuestion });
   }
 
   // Wait for countdown to finish before sending question
@@ -298,8 +284,34 @@ export const startGame = async (
     "SELECT * FROM questions WHERE difficulty = $1",
     [rooms[code].difficulty],
   );
-  rooms[code].questions = questions.rows;
-  console.log(`Available questions for room ${code}:`, rooms[code].questions);
+
+  // Determine questions amount based on number of players
+  let numPlayers = rooms[code].players.length;
+  let excludeList = [];
+  // Create a list of questions for the game based on the number of players
+  while (numPlayers > 0) {
+    const randomQuestion = getQuestion(
+      io,
+      code,
+      rooms[code],
+      questions.rows,
+      excludeList,
+    );
+    //excludeList.push(randomQuestion.id);
+    // Add the question to the room's questions list if it doesn't already exist
+    if (!rooms[code].questions) {
+      rooms[code].questions = [];
+    }
+    rooms[code].questions.push(randomQuestion);
+    numPlayers--;
+    // Find Starter code
+    const { rows } = await db.query(
+      "SELECT language, code FROM starter_code WHERE question_id = $1",
+      [randomQuestion.id],
+    );
+    // Add the starter code to the question object
+    rooms[code].questions[rooms[code].questions.length - 1].starterCode = rows;
+  }
 
   // While loop to start rounds until game is over
   while (rooms[code] && rooms[code].players.length > 0) {
