@@ -10,8 +10,25 @@ export const useRoundTimer = () => {
   const [roundTimerFinished, setRoundTimerFinished] = useState(false);
   const roundTimerCleanupRef = useRef(null);
 
+  // Handle new round start by resetting states
+  useEffect(() => {
+    const handleNewRound = () => {
+      setRoundTimeLeft(0);
+      setRoundTimerFinished(false);
+    };
+
+    // Listen for new round event
+    socket.on("new-round", handleNewRound);
+
+    // Cleanup
+    return () => {
+      socket.off("new-round", handleNewRound);
+    };
+  }, []);
+
   useEffect(() => {
     socket.on("round-tick", ({ roundTimerEndsAt }) => {
+      console.log(`Received round-tick with endsAt: ${roundTimerEndsAt}`);
       // Game timer tick
       setRoundTimerFinished(false);
       roundTimerCleanupRef.current = playAnyTimer({
