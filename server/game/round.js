@@ -71,6 +71,7 @@ const sendResults = async (io, room, code, playerEliminated) => {
     results: room.roundResults,
     resultsEndsAt,
     playerEliminated: playerEliminated.username,
+    players: room.players,
   });
 
   // Sleep for results timer duration
@@ -108,14 +109,7 @@ const gameOver = async (io, rooms, code, playerEliminated, winner) => {
 };
 
 // Start game event
-export const startRound = async (
-  io,
-  socket,
-  code,
-  rooms,
-  questions,
-  pendingCodeRequests,
-) => {
+const startRound = async (io, socket, code, rooms, pendingCodeRequests) => {
   // Check if room exists
   if (!rooms[code]) {
     io.to(code).emit("room-deleted");
@@ -123,11 +117,23 @@ export const startRound = async (
     return;
   }
 
+  // Increment current round
+  rooms[code].currentRound += 1;
+
   // Begin initial countdown
   const endsAt = Date.now() + 1000 * COUNTDOWN_TIMER;
 
   // If its the first round emit game started, otherwise just emit timer tick
-  const randomQuestion = getQuestion(io, code, rooms[code], questions);
+  const randomQuestion = getQuestion(
+    io,
+    code,
+    rooms[code],
+    rooms[code].questions,
+  );
+  // Remove the question from the list of questions for the room
+  // rooms[code].questions = rooms[code].questions.filter(
+  //   (q) => q.id !== randomQuestion.id,
+  // );
 
   // Get the starter code for the question
   const { rows } = await db.query(
@@ -135,8 +141,8 @@ export const startRound = async (
     [randomQuestion.id],
   );
   randomQuestion.starterCode = rows;
-
-  if (rooms[code].currentRound === 0) {
+  if (rooms[code].currentRound === 1) {
+    console.log(`Current round is 1, emitting game-started for room ${code}`);
     io.to(code).emit("game-started", {
       code,
       serverPlayers: rooms[code].players,
@@ -144,7 +150,11 @@ export const startRound = async (
       question: randomQuestion,
     });
   } else {
-    io.to(code).emit("timer-tick", { endsAt });
+    console.log(
+      `New EndsAt for room ${code}: ${endsAt}, emitting timer-tick and send-question`,
+    );
+    io.to(code).emit("timer-tick", { newEndsAt: endsAt });
+    console.log(`Emitting send-question for room ${code}`);
     io.to(code).emit("send-question", { question: randomQuestion });
   }
 
@@ -260,5 +270,40 @@ export const startRound = async (
     return;
   }
 
-  // TODO
+  // Reset player states
+  rooms[code].players.forEach((player) => {
+    player.submitted = false;
+    player.judging = false;
+    player.codeInput = "";
+  });
+
+  // Reset room states
+  rooms[code].currentQuestion = null;
+  rooms[code].roundResults = [];
+
+  // Emit to each client that round has ended and new round is starting to reset their states
+  io.to(code).emit("new-round");
+};
+
+// Start game
+export const startGame = async (
+  io,
+  socket,
+  code,
+  rooms,
+  pendingCodeRequests,
+) => {
+  // Build a list of all available questions for the game based on the room's difficulty
+  const questions = await db.query(
+    "SELECT * FROM questions WHERE difficulty = $1",
+    [rooms[code].difficulty],
+  );
+  rooms[code].questions = questions.rows;
+  console.log(`Available questions for room ${code}:`, rooms[code].questions);
+
+  // While loop to start rounds until game is over
+  while (rooms[code] && rooms[code].players.length > 0) {
+    await startRound(io, socket, code, rooms, pendingCodeRequests);
+    console.log(`Round ${rooms[code]?.currentRound} completed in room ${code}`);
+  }
 };

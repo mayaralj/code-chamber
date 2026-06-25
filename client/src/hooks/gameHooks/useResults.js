@@ -6,6 +6,8 @@ export const useResults = () => {
   const [results, setResults] = useState(null);
   const [resultsTimer, setResultsTimer] = useState(null);
   const [resultsReady, setResultsReady] = useState(false);
+  // Cleanup ref
+  const cleanupRef = useState(null);
 
   // Player Eliminated
   const [playerEliminated, setPlayerEliminated] = useState(null);
@@ -13,24 +15,50 @@ export const useResults = () => {
   // Winner
   const [winner, setWinner] = useState(null);
 
+  // Handle new round start by resetting states
+  useEffect(() => {
+    const handleNewRound = () => {
+      setResults(null);
+      setResultsTimer(null);
+      setResultsReady(false);
+      setPlayerEliminated(null);
+      setWinner(null);
+    };
+
+    // Listen for new round event
+    socket.on("new-round", handleNewRound);
+
+    // Cleanup
+    return () => {
+      socket.off("new-round", handleNewRound);
+    };
+  }, []);
+
   useEffect(() => {
     // Listen for results from server
-    socket.on(
-      "send-results",
-      ({ results, resultsEndsAt, playerEliminated }) => {
-        setResults(results);
-        setResultsReady(true);
-        setPlayerEliminated(playerEliminated);
-        playAnyTimer({
-          endsAt: resultsEndsAt,
-          functionSetter: setResultsTimer,
-        });
-      },
-    );
+    const handleResults = ({ results, resultsEndsAt, playerEliminated }) => {
+      setResults(results);
+      setResultsReady(true);
+      setPlayerEliminated(playerEliminated);
+      if (cleanupRef.current) {
+        cleanupRef.current();
+      }
+      cleanupRef.current = playAnyTimer({
+        endsAt: resultsEndsAt,
+        functionSetter: setResultsTimer,
+      });
+    };
+
+    // Handle Results
+    socket.on("send-results", handleResults);
 
     // Listen for results timer finished event
     socket.on("results-timer-finished", () => {
       setResultsReady(false);
+      if (cleanupRef.current) {
+        cleanupRef.current();
+        cleanupRef.current = null;
+      }
     });
 
     // Game over connections
@@ -41,7 +69,10 @@ export const useResults = () => {
         setResultsReady(true);
         setPlayerEliminated(playerEliminated);
         setWinner(winner);
-        playAnyTimer({
+        if (cleanupRef.current) {
+          cleanupRef.current();
+        }
+        cleanupRef.current = playAnyTimer({
           endsAt: gameOverEndsAt,
           functionSetter: setResultsTimer,
         });
@@ -50,7 +81,11 @@ export const useResults = () => {
 
     // Cleanup on unmount
     return () => {
-      socket.off("send-results");
+      if (cleanupRef.current) {
+        cleanupRef.current();
+        cleanupRef.current = null;
+      }
+      socket.off("send-results", handleResults);
       socket.off("results-timer-finished");
       socket.off("game-over");
     };

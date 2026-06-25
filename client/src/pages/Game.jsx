@@ -16,6 +16,7 @@ import { useRoundTimer } from "../hooks/gameHooks/useRoundTimer";
 import { useGameQuestion } from "../hooks/gameHooks/useGameQuestion";
 import { useCodeSubmission } from "../hooks/gameHooks/useCodeSubmission";
 import { useResults } from "../hooks/gameHooks/useResults";
+import { useCodeEditor } from "../hooks/gameHooks/useCodeEditor";
 
 const Game = () => {
   // Game Code
@@ -47,7 +48,7 @@ const Game = () => {
     playersList,
   } = useCodeSubmission(code, players);
   // Editor Ready
-  const [editorReady, setEditorReady] = useState(false);
+  const { editorReady, setEditorReady } = useCodeEditor();
   // Results
   const { results, resultsReady, playerEliminated, winner } = useResults(code);
 

@@ -72,6 +72,15 @@ const setUpRoomSockets = (io, socket, { rooms, playersInRooms }) => {
         code = Math.random().toString(36).substring(2, 6).toUpperCase();
       }
 
+      // Verify difficulty is valid
+      const validDifficulties = ["Easy", "Medium", "Hard"];
+      if (!validDifficulties.includes(difficulty)) {
+        socket.emit("room-create-error", {
+          message: "Invalid difficulty level",
+        });
+        return;
+      }
+
       // Store new room in active rooms
       rooms[code] = {
         host: { id: socket.id, username },

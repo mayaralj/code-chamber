@@ -25,7 +25,11 @@ export const useCodeSubmission = (code, players) => {
 
   // Player list
   const [playersList, setPlayersList] = useState(
-    players?.map((player) => ({ ...player, submitted: false })) || [],
+    players?.map((player) => ({
+      ...player,
+      judging: false,
+      submitted: false,
+    })) || [],
   );
 
   // Handle code submission
@@ -42,6 +46,39 @@ export const useCodeSubmission = (code, players) => {
       timeSubmitted,
     });
   };
+
+  // Handle results (only update player list here)
+  useEffect(() => {
+    const handleResults = ({ players }) => {
+      setPlayersList(players);
+    };
+    socket.on("send-results", handleResults);
+
+    return () => {
+      socket.off("send-results", handleResults);
+    };
+  }, []);
+
+  // Handle new round start by resetting states
+  useEffect(() => {
+    const handleNewRound = () => {
+      setCodeInput("");
+      setCodeSubmitted(false);
+      hasSubmitted.current = false;
+      setIsJudging(false);
+      setPlayersList((prev) =>
+        prev.map((player) => ({ ...player, judging: false, submitted: false })),
+      );
+    };
+
+    // Listen for new round event
+    socket.on("new-round", handleNewRound);
+
+    // Cleanup
+    return () => {
+      socket.off("new-round", handleNewRound);
+    };
+  }, []);
 
   // Handle language change
   const handleLanguageChange = (e) => {

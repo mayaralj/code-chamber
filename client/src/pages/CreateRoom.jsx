@@ -8,7 +8,7 @@ const CreateRoom = () => {
   // Room name state
   const [roomName, setRoomName] = useState("");
   // Difficulty state
-  const [difficulty, setDifficulty] = useState("easy"); // default difficulty
+  const [difficulty, setDifficulty] = useState("Easy"); // default difficulty
   // MaxPlayer state
   const [maxPlayers, setMaxPlayers] = useState(4); // default max players
   // Public or Private state
@@ -60,9 +60,9 @@ const CreateRoom = () => {
           onChange={(e) => setDifficulty(e.target.value)}
           className="bg-gray-700 text-white border border-gray-600 px-3 py-2 rounded focus:outline-none focus:ring-1 focus:ring-orange-100"
         >
-          <option value="easy">Easy</option>
-          <option value="medium">Medium</option>
-          <option value="hard">Hard</option>
+          <option value="Easy">Easy</option>
+          <option value="Medium">Medium</option>
+          <option value="Hard">Hard</option>
         </select>
 
         {/* Selector for number of max players */}

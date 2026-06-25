@@ -16,7 +16,6 @@ const initSocket = (io, info) => {
       rooms: info.rooms,
       playersInRooms: info.playersInRooms,
       pendingCodeRequests: info.pendingCodeRequests,
-      questions: info.questions,
     });
   });
 };

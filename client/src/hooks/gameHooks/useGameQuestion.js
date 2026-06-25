@@ -8,6 +8,22 @@ export const useGameQuestion = (initQuestion) => {
     initQuestion?.starterCode || "",
   );
 
+  // Handle new round start by resetting states
+  useEffect(() => {
+    const handleNewRound = () => {
+      setQuestion(null);
+      setStarterCode("");
+    };
+
+    // Listen for new round event
+    socket.on("new-round", handleNewRound);
+
+    // Cleanup
+    return () => {
+      socket.off("new-round", handleNewRound);
+    };
+  }, []);
+
   // Get the Question from server
   useEffect(() => {
     socket.on("send-question", ({ question }) => {

@@ -53,7 +53,7 @@ const startup = async () => {
   try {
     // List out all of the queries
     const queries = {
-      questions: "SELECT * FROM questions",
+      //questions: "SELECT * FROM questions",
     };
 
     // Run all of the queries

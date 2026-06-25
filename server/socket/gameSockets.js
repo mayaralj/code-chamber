@@ -8,12 +8,12 @@ import getQuestion from "./questionSockets.js";
 import { notifySubmission, processSubmission } from "../game/submission.js";
 
 // Import round manager
-import { startRound } from "../game/round.js";
+import { startGame } from "../game/round.js";
 
 const setUpGameSockets = (
   io,
   socket,
-  { rooms, playersInRooms, pendingCodeRequests, questions },
+  { rooms, playersInRooms, pendingCodeRequests },
 ) => {
   // Game leave
   const gameLeave = (code) => {
@@ -67,6 +67,11 @@ const setUpGameSockets = (
       return;
     }
 
+    // Ensur game has not already started
+    if (room.isGameStarted) {
+      return;
+    }
+
     // Check if more than 1 player
     if (room.players.length < 1) {
       return;
@@ -76,7 +81,7 @@ const setUpGameSockets = (
     room.isGameStarted = true;
     console.log(`Game started in room ${code}`);
 
-    startRound(io, socket, code, rooms, questions, pendingCodeRequests);
+    startGame(io, socket, code, rooms, pendingCodeRequests);
   });
 
   // Listen for code submission
