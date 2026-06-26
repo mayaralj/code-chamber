@@ -5,7 +5,7 @@ const Question = ({ question }) => {
       {/* Display Question Title Centered */}
       <h2 className="text-4xl font-bold mb-4 text-center">{question?.title}</h2>
       {/* Display Question Description */}
-      <p className="text-lg">{question?.description}</p>
+      <p className="text-xl whitespace-pre-wrap">{question?.description}</p>
     </div>
   );
 };
