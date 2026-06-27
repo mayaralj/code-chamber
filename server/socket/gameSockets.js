@@ -1,9 +1,3 @@
-// Imports
-import db from "../db.js";
-
-// Question
-import getQuestion from "./questionSockets.js";
-
 // Import submission processor
 import { notifySubmission, processSubmission } from "../game/submission.js";
 

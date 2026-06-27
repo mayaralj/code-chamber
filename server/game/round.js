@@ -1,5 +1,4 @@
-import getQuestion from "../socket/questionSockets.js";
-import db from "../db.js";
+import { setUpGameQuestions } from "./questionHandler.js";
 import { sleep, cancellableSleep } from "../utils/timers.js";
 import {
   notifySubmission,
@@ -279,39 +278,8 @@ export const startGame = async (
   rooms,
   pendingCodeRequests,
 ) => {
-  // Build a list of all available questions for the game based on the room's difficulty
-  const questions = await db.query(
-    "SELECT * FROM questions WHERE difficulty = $1",
-    [rooms[code].difficulty],
-  );
-
-  // Determine questions amount based on number of players
-  let numPlayers = rooms[code].players.length;
-  let excludeList = [];
-  // Create a list of questions for the game based on the number of players
-  while (numPlayers > 0) {
-    const randomQuestion = getQuestion(
-      io,
-      code,
-      rooms[code],
-      questions.rows,
-      excludeList,
-    );
-    //excludeList.push(randomQuestion.id);
-    // Add the question to the room's questions list if it doesn't already exist
-    if (!rooms[code].questions) {
-      rooms[code].questions = [];
-    }
-    rooms[code].questions.push(randomQuestion);
-    numPlayers--;
-    // Find Starter code
-    const { rows } = await db.query(
-      "SELECT language, code FROM starter_code WHERE question_id = $1",
-      [randomQuestion.id],
-    );
-    // Add the starter code to the question object
-    rooms[code].questions[rooms[code].questions.length - 1].starterCode = rows;
-  }
+  // Set up game questions
+  await setUpGameQuestions(io, code, rooms);
 
   // While loop to start rounds until game is over
   while (rooms[code] && rooms[code].players.length > 0) {
