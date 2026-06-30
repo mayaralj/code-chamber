@@ -1,10 +1,6 @@
 import { setUpGameQuestions } from "./questionHandler.js";
 import { sleep, cancellableSleep } from "../utils/timers.js";
-import {
-  notifySubmission,
-  processSubmission,
-  forceSubmitPlayer,
-} from "./submission.js";
+import { processSubmission, forceSubmitPlayer } from "./submission.js";
 
 // Config
 // Timers (s)
