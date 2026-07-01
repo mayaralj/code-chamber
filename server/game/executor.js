@@ -1,33 +1,46 @@
 import vm from "vm";
+import fs from "fs";
+import path from "path";
+import os from "os";
 import { execSync } from "child_process";
 
 // Config
 const languageConfig = {
-  // JS
   javascript: {
     image: "node:alpine",
-    run: (userCode) => `node -e ${JSON.stringify(userCode)}`,
+    ext: "js",
+    containerPath: "/solution.js",
+    run: () => `node /solution.js`,
+    buildCode: (userCode, fnName, input) =>
+      `${userCode}\nconsole.log(JSON.stringify(${fnName}(${input})));`,
   },
 
-  // Python
   python: {
     image: "python:alpine",
-    run: (userCode) => `python -c ${JSON.stringify(userCode)}`,
+    ext: "py",
+    containerPath: "/solution.py",
+    run: () => `python /solution.py`,
+    buildCode: (userCode, fnName, input) =>
+      `${userCode}\nimport json\nprint(json.dumps(${fnName}(${input})))`,
   },
 
-  // C++
   cpp: {
-    image: "gcc:alpine",
-    run: (userCode) =>
-      `echo ${JSON.stringify(userCode)} | g++ -x c++ -o /tmp/a.out - && /tmp/a.out`,
+    image: "gcc:latest",
+    ext: "cpp",
+    containerPath: "/solution.cpp",
+    run: () => `sh -c "g++ /solution.cpp -o /a.out && /a.out"`,
+    buildCode: (userCode, fnName, input) =>
+      `${userCode}\nint main(){auto r=${fnName}(${input});/* print logic */}`,
   },
 };
 
 // Executor
 const runCode = (language, userCode, functionName, testCases) => {
   const config = languageConfig[language];
+  console.log(`Running code in language: ${language}`);
   // Check  language is supported
   if (!config) {
+    console.log(`Language ${language} not supported`);
     return {
       passed: false,
       testCasesPassed: 0,
@@ -46,26 +59,25 @@ const runCode = (language, userCode, functionName, testCases) => {
   // Loop through test cases and run code in docker container
   for (const { input, expected } of testCases) {
     try {
-      // Create code to run in docker container
-      const code = `${userCode}
-      const result = ${functionName}(${input});
-      console.log(JSON.stringify(result));`;
+      const code = config.buildCode(userCode, functionName, input);
 
-      // Convert code to single line only with no comments (clean up all the format)
-      const cleanedCode = code
-        .replace(/\/\/[^\n]*/g, "")
-        .replace(/\/\*[\s\S]*?\*\//g, "")
-        .replace(/\n/g, " ")
-        .replace(/\r/g, " ")
-        .replace(/\s+/g, " ");
+      // Write code to a temp file, mount it, run it
+      const tmpFile = path.join(
+        os.tmpdir(),
+        `solution_${Date.now()}.${config.ext}`,
+      );
+      fs.writeFileSync(tmpFile, code, "utf-8");
 
-      // Run code in docker container
       const output = execSync(
-        `docker run --rm --network none --memory 64m --cpus 0.5 ${config.image} ${config.run(cleanedCode)}`,
+        `docker run --rm --network none --memory 64m --cpus 0.5 \
+        -v ${tmpFile}:${config.containerPath} \
+        ${config.image} ${config.run()}`,
         { timeout: 5000 },
       )
         .toString()
         .trim();
+
+      fs.unlinkSync(tmpFile); // cleanup
 
       // Parse output
       const received = JSON.parse(output);
@@ -76,6 +88,7 @@ const runCode = (language, userCode, functionName, testCases) => {
       if (passed) testCasesPassed++;
       testResult.push({ input, expected, received, passed });
     } catch (err) {
+      console.log(`Error running test case with input ${input}:`, err.message);
       testResult.push({
         input,
         expected,
