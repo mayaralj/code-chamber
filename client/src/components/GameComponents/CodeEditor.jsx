@@ -3,8 +3,9 @@ import { useRef, useEffect, useState } from "react";
 
 // Languages supported (No language support besides javascript for now)
 const LANGUAGES = {
-  JavaScript: "javascript",
-  Python: "python",
+  javascript: "JavaScript",
+  python: "Python",
+  cpp: "C++",
 };
 
 // Update starter code helper
@@ -70,6 +71,7 @@ const CodeEditor = ({
   const savedCode = useRef({
     javascript: "",
     python: "",
+    cpp: "",
   });
 
   // Previous language ref
@@ -117,8 +119,8 @@ const CodeEditor = ({
         >
           {/* List out all the language options */}
           {Object.entries(LANGUAGES).map(([key, value]) => (
-            <option key={value} value={value}>
-              {key}
+            <option key={key} value={key}>
+              {value}
             </option>
           ))}
         </select>

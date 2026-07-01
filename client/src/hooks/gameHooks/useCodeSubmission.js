@@ -83,6 +83,7 @@ export const useCodeSubmission = (code, players) => {
   // Handle language change
   const handleLanguageChange = (e) => {
     if (hasSubmitted.current) return;
+    console.log("Language changed to:", e.target.value);
     setLanguage(e.target.value);
   };
 
