@@ -1,6 +1,6 @@
 // Import from CPP helpers
 import { buildCppArgDeclarations, buildCppArgNames } from "./cpp/cppHelpers.js";
-import { execSync } from "child_process";
+import { execAsync } from "./execHelper.js";
 
 // Config
 const languageConfig = {
@@ -40,7 +40,7 @@ print(json.dumps(${fnName}(*args)))
     ext: "cpp",
     containerPath: "/solution.cpp",
     compile: (containerName) =>
-      execSync(
+      execAsync(
         `docker exec ${containerName} sh -c "g++ /solution.cpp -o /a.out"`,
         {
           timeout: 30000,

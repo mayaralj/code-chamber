@@ -6,7 +6,7 @@ import { processSubmission, forceSubmitPlayer } from "./submission.js";
 // Timers (s)
 const COUNTDOWN_TIMER = 5;
 const GAME_OVER_TIMER = 5;
-const ROUND_TIMER = 120;
+const ROUND_TIMER = 30;
 const RESULTS_TIMER = 10;
 // Timeouts (ms)
 const FORCE_SUBMIT_TIMEOUT = 5000;
@@ -184,18 +184,29 @@ const startRound = async (io, socket, code, rooms, pendingCodeRequests) => {
   }
   // Clear the cancel function from the room
   rooms[code].cancelRoundTimer = null;
+  console.log(`Round timer finished for room ${code}, processing submissions`);
 
   // Emit that game timer is finished
   io.to(code).emit("round-timer-finished");
 
-  // List all unsubmitted players
-  const unsubmittedPlayers = rooms[code].players.filter((p) => !p.submitted);
+  // List all unsubmitted players (not submitted and not judging)
+  const unsubmittedPlayers = rooms[code].players.filter(
+    (p) => !p.submitted && !p.judging,
+  );
 
   // Force submit all players
   const forceSubmitAll = await Promise.all(
-    unsubmittedPlayers.map((player) =>
-      forceSubmitPlayer(player, io, pendingCodeRequests, FORCE_SUBMIT_TIMEOUT),
-    ),
+    unsubmittedPlayers.map((player) => {
+      console.log(
+        `Requesting force submit for player ${player.username} in room ${code}`,
+      );
+      return forceSubmitPlayer(
+        player,
+        io,
+        pendingCodeRequests,
+        FORCE_SUBMIT_TIMEOUT,
+      );
+    }),
   );
 
   // Check if room still exists
@@ -205,8 +216,9 @@ const startRound = async (io, socket, code, rooms, pendingCodeRequests) => {
 
   // Process all force submissions
   await Promise.all(
-    forceSubmitAll.map(({ player, codeInput, language }) =>
-      processSubmission(
+    forceSubmitAll.map(({ player, codeInput, language }) => {
+      console.log(`Force submitting player ${player.username} in room ${code}`);
+      return processSubmission(
         io,
         rooms[code],
         code,
@@ -214,8 +226,12 @@ const startRound = async (io, socket, code, rooms, pendingCodeRequests) => {
         codeInput,
         language,
         ROUND_TIMER,
-      ),
-    ),
+      );
+    }),
+  );
+
+  console.log(
+    "All players have submitted or been force submitted, processing results",
   );
 
   // Check if room still exists

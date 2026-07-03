@@ -2,7 +2,7 @@ import vm from "vm";
 import fs from "fs";
 import path from "path";
 import os from "os";
-import { execSync } from "child_process";
+import { execAsync, execWithStdin } from "./execHelper.js";
 import languageConfig from "./languageConfig.js";
 import { getParamTypes } from "./cpp/cppHelpers.js";
 
@@ -44,7 +44,7 @@ const runCode = async (language, userCode, functionName, testCases) => {
   fs.writeFileSync(containerFile, code, "utf-8");
 
   // Create container but dont run any code yet
-  execSync(
+  await execAsync(
     `docker run -d --name ${containerName} --network none --memory 256m --cpus 0.5 -v ${containerFile}:${config.containerPath} ${config.image} tail -f /dev/null`,
     { timeout: 5000 },
   );
@@ -52,11 +52,11 @@ const runCode = async (language, userCode, functionName, testCases) => {
   // Compile code if its a compiled languge
   if (config.compile) {
     try {
-      config.compile(containerName);
+      await config.compile(containerName);
     } catch (err) {
       console.log(`Error compiling code:`, err.message);
       // Cleanup
-      execSync(`docker rm -f ${containerName}`, { timeout: 5000 });
+      await execAsync(`docker rm -f ${containerName}`, { timeout: 5000 });
       fs.unlinkSync(containerFile);
       return {
         passed: false,
@@ -75,12 +75,14 @@ const runCode = async (language, userCode, functionName, testCases) => {
       // Expected json
       const expectedJson = JSON.stringify(expected);
 
-      const output = execSync(
-        `docker exec -i ${containerName} ${config.run()}`,
-        { timeout: 5000, input: argsJson },
-      )
-        .toString()
-        .trim();
+      const output = (
+        await execWithStdin(
+          `docker`,
+          ["exec", "-i", containerName, ...config.run().split(" ")],
+          argsJson,
+          5000,
+        )
+      ).trim();
 
       // Parse output
       const received = JSON.parse(output);
@@ -105,7 +107,7 @@ const runCode = async (language, userCode, functionName, testCases) => {
   const executionTime = (Date.now() - startTime) / 1000;
 
   // Cleanup
-  execSync(`docker rm -f ${containerName}`, { timeout: 5000 });
+  await execAsync(`docker rm -f ${containerName}`, { timeout: 5000 });
   fs.unlinkSync(containerFile);
 
   // Return result

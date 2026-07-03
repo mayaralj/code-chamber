@@ -129,6 +129,9 @@ const setUpGameSockets = (
       // If all players have submitted, stop game timer to send all results
       if (room.players.every((p) => p.submitted)) {
         if (room.cancelRoundTimer) {
+          console.log(
+            `All players have submitted in room ${code}, cancelling round timer`,
+          );
           room.cancelRoundTimer();
         }
       }
