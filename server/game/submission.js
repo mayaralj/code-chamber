@@ -92,7 +92,7 @@ export const processSubmission = async (
 
   // Run the code against the test cases (handle missing code gracefully)
   const result = codeInput
-    ? runCode(language, codeInput, functionName, testCases)
+    ? await runCode(language, codeInput, functionName, testCases)
     : { testResult: [], passed: false };
 
   result.submitTime = submitTime;

@@ -6,7 +6,7 @@ import { processSubmission, forceSubmitPlayer } from "./submission.js";
 // Timers (s)
 const COUNTDOWN_TIMER = 5;
 const GAME_OVER_TIMER = 5;
-const ROUND_TIMER = 30;
+const ROUND_TIMER = 120;
 const RESULTS_TIMER = 10;
 // Timeouts (ms)
 const FORCE_SUBMIT_TIMEOUT = 5000;
