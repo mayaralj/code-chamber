@@ -55,7 +55,8 @@ print(json.dumps(${fnName}(*args)))
     image: "cpp-executor:latest",
     ext: "cpp",
     containerPath: "/solution.cpp",
-    run: () => `sh -c "g++ /solution.cpp -o /a.out && /a.out"`,
+    run: (argsJson) =>
+      `sh -c "g++ /solution.cpp -o /a.out && echo '${argsJson}' | /a.out"`,
     buildCode: (userCode, fnName, argsJson, paramTypes) => {
       const argDecls = buildCppArgDeclarations(paramTypes);
       const argNames = buildCppArgNames(paramTypes);
@@ -107,10 +108,10 @@ print(json.dumps(${fnName}(*args)))
     }
 
     int main() {
-      string inputJson
+      string inputJson;
       getline(cin, inputJson);
 
-      json args = json::parse(R"(inputJson)");
+      json args = json::parse(inputJson);
       ${argDecls}
       auto r = ${fnName}(${argNames});
       printResult(r);
@@ -171,10 +172,10 @@ const runCode = async (language, userCode, functionName, testCases) => {
       fs.writeFileSync(tmpFile, code, "utf-8");
 
       const output = execSync(
-        `docker run --rm --network none --memory 64m --cpus 0.5 \
+        `docker run --rm --network none --memory 500m --cpus 2.0 \
         -v ${tmpFile}:${config.containerPath} \
-        ${config.image} ${config.run()}`,
-        { timeout: 5000 },
+        ${config.image} ${config.run(argsJson)}`,
+        { timeout: 20000 },
       )
         .toString()
         .trim();
