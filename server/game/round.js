@@ -230,11 +230,22 @@ const startRound = async (io, socket, code, rooms, pendingCodeRequests) => {
     }),
   );
 
+  // Check if room still exists
+  if (!checkRoom(io, rooms, code)) {
+    return;
+  }
+
+  // Check for pending submissions and wait for them to finish (not from force submission)
+  if (rooms[code].pendingSubmissions?.size > 0) {
+    console.log(`Waiting for pending submissions in room ${code}...`);
+    await Promise.all(rooms[code].pendingSubmissions.values());
+  }
+
   console.log(
     "All players have submitted or been force submitted, processing results",
   );
 
-  // Check if room still exists
+  // Check room
   if (!checkRoom(io, rooms, code)) {
     return;
   }

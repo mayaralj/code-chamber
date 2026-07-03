@@ -115,8 +115,12 @@ const setUpGameSockets = (
       const roundStartTime = room.roundStartTime || Date.now();
       const submitTime = (timeSubmitted - roundStartTime) / 1000;
 
-      // Process submission
-      await processSubmission(
+      if (!room.pendingSubmissions) {
+        room.pendingSubmissions = new Map();
+      }
+
+      // Store submission promise
+      const submissionPromise = processSubmission(
         io,
         room,
         code,
@@ -125,6 +129,15 @@ const setUpGameSockets = (
         language,
         submitTime,
       );
+
+      // Set in the map
+      room.pendingSubmissions.set(player.id, submissionPromise);
+
+      // Wait for submission to finish
+      await submissionPromise;
+
+      // Delete from the map
+      room.pendingSubmissions.delete(player.id);
 
       // If all players have submitted, stop game timer to send all results
       if (room.players.every((p) => p.submitted)) {
