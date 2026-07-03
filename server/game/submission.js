@@ -1,5 +1,5 @@
 import db from "../db.js";
-import runCode from "./executor.js";
+import runCode from "../executor/executor.js";
 
 // Helper to notify players of code judging
 export const notifyJudging = (io, socketId, room, code) => {
