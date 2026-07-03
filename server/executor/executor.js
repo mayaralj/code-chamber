@@ -32,36 +32,55 @@ const runCode = async (language, userCode, functionName, testCases) => {
   // Test result
   const testResult = [];
 
+  // Create file to run code in docker container
+  const containerName = `solution_${Date.now()}`;
+  const containerFile = path.join(
+    os.tmpdir(),
+    `solution_${Date.now()}.${config.ext}`,
+  );
+
+  const code = config.buildCode(userCode, functionName, paramTypes);
+  console.log(`code to run:\n${code}`);
+  fs.writeFileSync(containerFile, code, "utf-8");
+
+  // Create container but dont run any code yet
+  execSync(
+    `docker run -d --name ${containerName} --network none --memory 256m --cpus 0.5 -v ${containerFile}:${config.containerPath} ${config.image} tail -f /dev/null`,
+    { timeout: 5000 },
+  );
+
+  // Compile code if its a compiled languge
+  if (config.compile) {
+    try {
+      config.compile(containerName);
+    } catch (err) {
+      console.log(`Error compiling code:`, err.message);
+      // Cleanup
+      execSync(`docker rm -f ${containerName}`, { timeout: 5000 });
+      fs.unlinkSync(containerFile);
+      return {
+        passed: false,
+        testCasesPassed: 0,
+        executionTime: 0,
+        testResult: `Compilation error: ${err.message}`,
+      };
+    }
+  }
+
   // Loop through test cases and run code in docker container
   for (const { input, expected } of testCases) {
     try {
+      // Args json
       const argsJson = JSON.stringify(input);
+      // Expected json
       const expectedJson = JSON.stringify(expected);
-      const code = config.buildCode(
-        userCode,
-        functionName,
-        argsJson,
-        paramTypes,
-      );
-      console.log(`code to run:\n${code}`);
-
-      // Write code to a temp file, mount it, run it
-      const tmpFile = path.join(
-        os.tmpdir(),
-        `solution_${Date.now()}.${config.ext}`,
-      );
-      fs.writeFileSync(tmpFile, code, "utf-8");
 
       const output = execSync(
-        `docker run --rm --network none --memory 64 --cpus 0.5 \
-        -v ${tmpFile}:${config.containerPath} \
-        ${config.image} ${config.run(argsJson)}`,
-        { timeout: 5000 },
+        `docker exec -i ${containerName} ${config.run()}`,
+        { timeout: 5000, input: argsJson },
       )
         .toString()
         .trim();
-
-      fs.unlinkSync(tmpFile); // cleanup
 
       // Parse output
       const received = JSON.parse(output);
@@ -84,6 +103,10 @@ const runCode = async (language, userCode, functionName, testCases) => {
 
   // Calculate full execution time
   const executionTime = (Date.now() - startTime) / 1000;
+
+  // Cleanup
+  execSync(`docker rm -f ${containerName}`, { timeout: 5000 });
+  fs.unlinkSync(containerFile);
 
   // Return result
   return {

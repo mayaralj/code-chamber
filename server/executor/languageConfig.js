@@ -1,5 +1,6 @@
 // Import from CPP helpers
 import { buildCppArgDeclarations, buildCppArgNames } from "./cpp/cppHelpers.js";
+import { execSync } from "child_process";
 
 // Config
 const languageConfig = {
@@ -8,11 +9,12 @@ const languageConfig = {
     ext: "js",
     containerPath: "/solution.js",
     run: () => `node /solution.js`,
-    buildCode: (userCode, fnName, argsJson) =>
+    buildCode: (userCode, fnName) =>
       `
+    const fs = require("fs");
     ${userCode}
     
-    const args = ${argsJson};
+    const args = JSON.parse(fs.readFileSync(0, "utf-8"));
     console.log(JSON.stringify(${fnName}(...args)));
     `,
   },
@@ -22,13 +24,13 @@ const languageConfig = {
     ext: "py",
     containerPath: "/solution.py",
     run: () => `python /solution.py`,
-    buildCode: (userCode, fnName, argsJson) =>
+    buildCode: (userCode, fnName) =>
       `
-import json
+import sys, json
 
 ${userCode}
 
-args = json.loads('''${argsJson}''')
+args = json.loads(sys.stdin.read())
 print(json.dumps(${fnName}(*args)))
     `,
   },
@@ -37,9 +39,15 @@ print(json.dumps(${fnName}(*args)))
     image: "cpp-executor:latest",
     ext: "cpp",
     containerPath: "/solution.cpp",
-    run: (argsJson) =>
-      `sh -c "g++ /solution.cpp -o /a.out && echo '${argsJson}' | /a.out"`,
-    buildCode: (userCode, fnName, argsJson, paramTypes) => {
+    compile: (containerName) =>
+      execSync(
+        `docker exec ${containerName} sh -c "g++ /solution.cpp -o /a.out"`,
+        {
+          timeout: 30000,
+        },
+      ),
+    run: () => `/a.out`,
+    buildCode: (userCode, fnName, paramTypes) => {
       const argDecls = buildCppArgDeclarations(paramTypes);
       const argNames = buildCppArgNames(paramTypes);
 
