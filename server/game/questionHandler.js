@@ -40,15 +40,24 @@ export const setUpGameQuestions = async (io, code, rooms) => {
   // Determine questions amount based on number of players
   let numPlayers = rooms[code].players.length;
   let excludeList = [];
+  let first = true;
   // Create a list of questions for the game based on the number of players
   while (numPlayers > 0) {
-    const randomQuestion = getQuestion(
-      io,
-      code,
-      rooms[code],
-      questions,
-      excludeList,
-    );
+    // if first force get celsiusToFahrenheit question for first round
+    let randomQuestion;
+    if (first) {
+      randomQuestion = questions.find(
+        (q) => q.title === "Celsius to Fahrenheit",
+      );
+    } else {
+      randomQuestion = getQuestion(
+        io,
+        code,
+        rooms[code],
+        questions,
+        excludeList,
+      );
+    }
     // Add the question ID to the exclude list to avoid duplicates
     excludeList.push(randomQuestion.id);
 

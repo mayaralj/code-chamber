@@ -47,7 +47,11 @@ const runCode = async (language, userCode, functionName, testCases) => {
     { timeout: 5000 },
   );
 
+  // Start time (ignore compilation since unfair)
+  const startTime = Date.now();
+
   // Compile code if its a compiled languge
+  const compileStart = Date.now();
   if (config.compile) {
     try {
       await config.compile(containerName);
@@ -64,9 +68,7 @@ const runCode = async (language, userCode, functionName, testCases) => {
       };
     }
   }
-
-  // Start time (ignore compilation since unfair)
-  const startTime = Date.now();
+  console.log(`Compile took: ${(Date.now() - compileStart) / 1000}s`);
 
   // Loop through test cases and run code in docker container
   for (const { input, expected } of testCases) {
