@@ -27,8 +27,6 @@ const runCode = async (language, userCode, functionName, testCases) => {
 
   // Test cases passed
   let testCasesPassed = 0;
-  // Start time
-  const startTime = Date.now();
   // Test result
   const testResult = [];
 
@@ -66,6 +64,9 @@ const runCode = async (language, userCode, functionName, testCases) => {
       };
     }
   }
+
+  // Start time (ignore compilation since unfair)
+  const startTime = Date.now();
 
   // Loop through test cases and run code in docker container
   for (const { input, expected } of testCases) {

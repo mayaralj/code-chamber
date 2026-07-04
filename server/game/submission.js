@@ -33,13 +33,21 @@ export const notifySubmission = (io, socketId, room, code) => {
 
 // Helper to calculate score based on results
 const calculateScore = (result, numOfTestCases) => {
-  const { passed, testCasesPassed, executionTime, submitTime } = result;
+  let { passed, testCasesPassed, executionTime, submitTime } = result;
 
   // Ratio of test cases passed
   const testCaseRatio = testCasesPassed / numOfTestCases;
 
-  // Score is based on test cases passed, execution time, and submission time
+  // Track score
   let score = 0;
+
+  // If execution time is under 3 seconds give bonus points
+  if (executionTime < 3) {
+    score += (3 - executionTime) * 5;
+    executionTime = 0;
+  }
+
+  // Score is based on test cases passed, execution time, and submission time
   score += passed ? 60 : 0;
   score += testCaseRatio * 50;
   score -= executionTime * 5;
