@@ -20,14 +20,12 @@ const Results = ({ results, playerEliminated, winner }) => {
             <span className="text-white font-semibold">
               {result.player.username}
             </span>
-            <span className="text-white">
-              {result.result.passed ? "Yes" : "No"}
-            </span>
-            <span className="text-white">{result.result.testCasesPassed}</span>
-            <span className="text-white">{result.result.executionTime}</span>
-            <span className="text-white">{result.result.submitTime}</span>
+            <span className="text-white">{result.passed ? "Yes" : "No"}</span>
+            <span className="text-white">{result.testCasesPassed}</span>
+            <span className="text-white">{result.executionTime}</span>
+            <span className="text-white">{result.submitTime}</span>
             {/* Total score */}
-            <span className="text-white">{result.result.score}</span>
+            <span className="text-white">{result.score}</span>
           </div>
         ))}
 

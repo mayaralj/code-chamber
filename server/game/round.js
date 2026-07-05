@@ -41,7 +41,7 @@ const determinePlayerEliminated = (room, results) => {
   // For each player, find their total score and have a chance to be eliminated based on score
   let highestChance = -Infinity;
   let playerEliminated = null;
-  results.forEach(({ player, result }) => {
+  results.forEach((result) => {
     const score = result.score;
     // Higher score means lower chance of elimination
     const weight = 1 - score / 100;
@@ -55,7 +55,7 @@ const determinePlayerEliminated = (room, results) => {
     // check if this player has the highest chance of elimination so far
     if (chance > highestChance) {
       highestChance = chance;
-      playerEliminated = player;
+      playerEliminated = result.player;
     }
   });
 
@@ -255,7 +255,7 @@ const startRound = async (io, socket, code, rooms, pendingCodeRequests) => {
   }
 
   // Calculate scores for all players
-  rooms[code].roundResults.forEach(({ player, result }) => {
+  rooms[code].roundResults.forEach((result) => {
     result.score = calculateScore(
       result,
       rooms[code].roundResults.averageExecutionTime[result.languageUsed],

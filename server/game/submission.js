@@ -80,7 +80,6 @@ export const processSubmission = async (
 
   // Mark player as judging
   player.judging = true;
-  player.submitTime = submitTime;
   notifyJudging(io, player.id, room, code);
 
   // Fetch test cases for the current question
@@ -102,6 +101,7 @@ export const processSubmission = async (
     : { testResult: [], passed: false };
 
   result.submitTime = submitTime;
+  result.player = player;
 
   // Calculate score based on test cases passed, execution time, and submission time
   const numOfTestCases = testCases.length;
@@ -113,10 +113,7 @@ export const processSubmission = async (
   notifySubmission(io, player.id, room, code);
 
   // Store results in current round results
-  room.roundResults.push({
-    player,
-    result,
-  });
+  room.roundResults.push(result);
 
   // Update rooms average execution time for this round for this specific language
   if (!room.roundResults.averageExecutionTime) {
