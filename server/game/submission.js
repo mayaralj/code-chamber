@@ -32,25 +32,20 @@ export const notifySubmission = (io, socketId, room, code) => {
 };
 
 // Helper to calculate score based on results
-const calculateScore = (result, numOfTestCases) => {
+export const calculateScore = (result, averageExecutionTime) => {
   let { passed, testCasesPassed, executionTime, submitTime } = result;
 
   // Ratio of test cases passed
-  const testCaseRatio = testCasesPassed / numOfTestCases;
+  const testCaseRatio = testCasesPassed / result.numOfTestCases;
 
   // Track score
   let score = 0;
 
-  // If execution time is under 3 seconds give bonus points
-  if (executionTime < 3) {
-    score += (3 - executionTime) * 5;
-    executionTime = 0;
-  }
-
   // Score is based on test cases passed, execution time, and submission time
   score += passed ? 60 : 0;
   score += testCaseRatio * 50;
-  score -= executionTime * 5;
+  // If execution time is less than average, give bonus points
+  score += (averageExecutionTime - executionTime) * 5;
   score -= submitTime;
 
   // Clamp score to a minimum of 0
@@ -62,6 +57,9 @@ const calculateScore = (result, numOfTestCases) => {
   // Ceil the score to the nearest integer
   score = Math.ceil(score);
 
+  console.log(
+    `Calculated score for player  ${score} (passed: ${passed}, testCasesPassed: ${testCasesPassed}, executionTime: ${executionTime}, averageExecutionTime: ${averageExecutionTime}, submitTime: ${submitTime})`,
+  );
   return score;
 };
 
@@ -107,8 +105,7 @@ export const processSubmission = async (
 
   // Calculate score based on test cases passed, execution time, and submission time
   const numOfTestCases = testCases.length;
-  const score = calculateScore(result, numOfTestCases);
-  result.score = score;
+  result.numOfTestCases = numOfTestCases;
 
   // Update player status
   player.judging = false;
@@ -120,6 +117,19 @@ export const processSubmission = async (
     player,
     result,
   });
+
+  // Update rooms average execution time for this round for this specific language
+  if (!room.roundResults.averageExecutionTime) {
+    room.roundResults.averageExecutionTime = {};
+  }
+  if (!room.roundResults.averageExecutionTime[language]) {
+    room.roundResults.averageExecutionTime[language] = result.executionTime;
+  } else {
+    room.roundResults.averageExecutionTime[language] =
+      (room.roundResults.averageExecutionTime[language] +
+        result.executionTime) /
+      2;
+  }
 
   return result;
 };

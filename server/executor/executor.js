@@ -15,6 +15,7 @@ const runCode = async (language, userCode, functionName, testCases) => {
   if (!config) {
     console.log(`Language ${language} not supported`);
     return {
+      languageUsed: language,
       passed: false,
       testCasesPassed: 0,
       executionTime: 0,
@@ -61,6 +62,7 @@ const runCode = async (language, userCode, functionName, testCases) => {
       await execAsync(`docker rm -f ${containerName}`, { timeout: 5000 });
       fs.unlinkSync(containerFile);
       return {
+        languageUsed: language,
         passed: false,
         testCasesPassed: 0,
         executionTime: 0,
@@ -115,6 +117,7 @@ const runCode = async (language, userCode, functionName, testCases) => {
 
   // Return result
   return {
+    languageUsed: language,
     passed: testResult.every((r) => r.passed),
     testCasesPassed,
     executionTime,
@@ -160,6 +163,7 @@ const testRunCode = (userCode, functionName, testCases) => {
   const executionTime = (endTime - startTime) / 1000;
 
   return {
+    languageUsed: "javascript",
     passed: testResult.every((r) => r.passed),
     testCasesPassed,
     executionTime,

@@ -1,6 +1,10 @@
 import { setUpGameQuestions } from "./questionHandler.js";
 import { sleep, cancellableSleep } from "../utils/timers.js";
-import { processSubmission, forceSubmitPlayer } from "./submission.js";
+import {
+  processSubmission,
+  forceSubmitPlayer,
+  calculateScore,
+} from "./submission.js";
 
 // Config
 // Timers (s)
@@ -249,6 +253,14 @@ const startRound = async (io, socket, code, rooms, pendingCodeRequests) => {
   if (!checkRoom(io, rooms, code)) {
     return;
   }
+
+  // Calculate scores for all players
+  rooms[code].roundResults.forEach(({ player, result }) => {
+    result.score = calculateScore(
+      result,
+      rooms[code].roundResults.averageExecutionTime[result.languageUsed],
+    );
+  });
 
   // Determine player eliminated (if more than 1 player left)
   let playerEliminated = null;
