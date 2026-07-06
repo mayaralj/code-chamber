@@ -78,6 +78,15 @@ export const processSubmission = async (
     return;
   }
 
+  // Get round data
+  const roundData = room.roundData[room.currentRound];
+  if (!roundData) {
+    console.error(
+      `No round data found for room ${code} and round ${room.currentRound}`,
+    );
+    return;
+  }
+
   // Mark player as judging
   player.judging = true;
   notifyJudging(io, player.id, room, code);
@@ -85,13 +94,13 @@ export const processSubmission = async (
   // Fetch test cases for the current question
   const { rows: testCases } = await db.query(
     "SELECT input, expected FROM test_cases WHERE question_id = $1",
-    [room.currentQuestion.id],
+    [roundData.question.id],
   );
 
   // Fetch the function name from starter_code table
   const { rows } = await db.query(
     "SELECT function_name FROM starter_code WHERE question_id = $1 AND language = $2",
-    [room.currentQuestion.id, language],
+    [roundData.question.id, language],
   );
   const functionName = rows[0]?.function_name;
 
@@ -102,10 +111,7 @@ export const processSubmission = async (
 
   result.submitTime = submitTime;
   result.player = player;
-
-  // Calculate score based on test cases passed, execution time, and submission time
-  const numOfTestCases = testCases.length;
-  result.numOfTestCases = numOfTestCases;
+  result.numOfTestCases = testCases.length;
 
   // Update player status
   player.judging = false;
@@ -113,19 +119,20 @@ export const processSubmission = async (
   notifySubmission(io, player.id, room, code);
 
   // Store results in current round results
-  room.roundResults.push(result);
+  roundData.roundResults.push(result);
 
-  // Update rooms average execution time for this round for this specific language
-  if (!room.roundResults.averageExecutionTime) {
-    room.roundResults.averageExecutionTime = {};
+  // Update round results average execution time for this round for this specific language
+  if (!roundData.roundResults.averageExecutionTime) {
+    roundData.roundResults.averageExecutionTime = {};
   }
-  if (!room.roundResults.averageExecutionTime[language]) {
-    room.roundResults.averageExecutionTime[language] = result.executionTime;
+  if (!roundData.roundResults.averageExecutionTime[language]) {
+    roundData.roundResults.averageExecutionTime[language] =
+      result.executionTime;
   } else {
-    room.roundResults.averageExecutionTime[language] =
-      (room.roundResults.averageExecutionTime[language] +
+    roundData.roundResults.averageExecutionTime[language] =
+      (roundData.roundResults.averageExecutionTime[language] +
         result.executionTime) /
-      2;
+      roundData.roundResults.length;
   }
 
   return result;
