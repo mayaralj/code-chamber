@@ -109,6 +109,7 @@ export const processSubmission = async (
     ? await runCode(language, codeInput, functionName, testCases)
     : { testResult: [], passed: false };
 
+  // Fill in the result object with additional information
   result.submitTime = submitTime;
   result.player = player;
   result.numOfTestCases = testCases.length;
@@ -122,16 +123,14 @@ export const processSubmission = async (
   roundData.roundResults.push(result);
 
   // Update round results average execution time for this round for this specific language
-  if (!roundData.roundResults.averageExecutionTime) {
-    roundData.roundResults.averageExecutionTime = {};
+  if (!roundData.averageExecutionTime) {
+    roundData.averageExecutionTime = {};
   }
-  if (!roundData.roundResults.averageExecutionTime[language]) {
-    roundData.roundResults.averageExecutionTime[language] =
-      result.executionTime;
+  if (!roundData.averageExecutionTime[language]) {
+    roundData.averageExecutionTime[language] = result.executionTime;
   } else {
-    roundData.roundResults.averageExecutionTime[language] =
-      (roundData.roundResults.averageExecutionTime[language] +
-        result.executionTime) /
+    roundData.averageExecutionTime[language] =
+      (roundData.averageExecutionTime[language] + result.executionTime) /
       roundData.roundResults.length;
   }
 

@@ -37,6 +37,9 @@ export const useResults = () => {
   useEffect(() => {
     // Listen for results from server
     const handleResults = ({ results, resultsEndsAt, playerEliminated }) => {
+      console.log(
+        `Received results from server: ${JSON.stringify(results)}, player eliminated: ${playerEliminated}, resultsEndsAt: ${resultsEndsAt}`,
+      );
       setResults(results);
       setResultsReady(true);
       setPlayerEliminated(playerEliminated);
@@ -65,6 +68,11 @@ export const useResults = () => {
     socket.on(
       "game-over",
       ({ results, gameOverEndsAt, playerEliminated, winner }) => {
+        console.log(
+          `Received game over from server: ${JSON.stringify(
+            results,
+          )}, player eliminated: ${playerEliminated}, winner: ${winner}, gameOverEndsAt: ${gameOverEndsAt}`,
+        );
         setResults(results);
         setResultsReady(true);
         setPlayerEliminated(playerEliminated);

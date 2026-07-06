@@ -37,11 +37,11 @@ const checkRoom = (io, rooms, code) => {
 };
 
 // Helper to determine player eliminated
-const determinePlayerEliminated = (room, results) => {
+const determinePlayerEliminated = (roundData) => {
   // For each player, find their total score and have a chance to be eliminated based on score
   let highestChance = -Infinity;
   let playerEliminated = null;
-  results.forEach((result) => {
+  roundData.roundResults.forEach((result) => {
     const score = result.score;
     // Higher score means lower chance of elimination
     const weight = 1 - score / 100;
@@ -59,37 +59,41 @@ const determinePlayerEliminated = (room, results) => {
     }
   });
 
-  return playerEliminated;
+  roundData.playerEliminated = playerEliminated;
 };
 
 // Helper to eliminate player from room
-export const eliminatePlayer = (io, room, code, playerEliminated) => {
-  console.log(`Eliminating player ${playerEliminated} from room ${code}`);
+export const eliminatePlayer = (io, room, code, roundData) => {
+  console.log(
+    `Eliminating player ${roundData.playerEliminated.username} from room ${code}`,
+  );
 
   // Remove player from room
-  room.players = room.players.filter((p) => p.id !== playerEliminated.id);
+  room.players = room.players.filter(
+    (p) => p.id !== roundData.playerEliminated.id,
+  );
   // Emit to player eliminated that they have been eliminated
-  io.to(playerEliminated.id).emit("player-eliminated");
+  io.to(roundData.playerEliminated.id).emit("player-eliminated");
 
   // Remove player from socket room
-  io.sockets.sockets.get(playerEliminated.id)?.leave(code);
+  io.sockets.sockets.get(roundData.playerEliminated.id)?.leave(code);
 };
 
 // Send results
-const sendResults = async (io, room, code, playerEliminated) => {
+const sendResults = async (io, room, code, roundData) => {
   // Check if player eliminated exists, if not, set to N/A
-  if (!playerEliminated) {
+  if (!roundData.playerEliminated) {
     console.log(`No player eliminated in room ${code}, sending results`);
-    playerEliminated = { username: "N/A" };
+    roundData.playerEliminated = { username: "N/A" };
   }
-  const resultsEndsAt = Date.now() + 1000 * RESULTS_TIMER;
+  roundData.resultsEndsAt = Date.now() + 1000 * RESULTS_TIMER;
   console.log(
-    `Sending results for room ${code}, player eliminated: ${playerEliminated.username}`,
+    `Sending results for room ${code}, player eliminated: ${roundData.playerEliminated.username}`,
   );
   io.to(code).emit("send-results", {
-    results: room.roundResults,
-    resultsEndsAt,
-    playerEliminated: playerEliminated.username,
+    results: roundData.roundResults,
+    resultsEndsAt: roundData.resultsEndsAt,
+    playerEliminated: roundData.playerEliminated.username,
     players: room.players,
   });
 
@@ -101,17 +105,17 @@ const sendResults = async (io, room, code, playerEliminated) => {
 };
 
 // Game over helper
-const gameOver = async (io, rooms, code, playerEliminated, winner) => {
+const gameOver = async (io, rooms, code, roundData, winner) => {
   // Check if player eliminated exists, if not, set to N/A
-  if (!playerEliminated) {
+  if (!roundData.playerEliminated) {
     console.log(`No player eliminated in room ${code}, sending results`);
-    playerEliminated = { username: "N/A" };
+    roundData.playerEliminated = { username: "N/A" };
   }
   const gameOverEndsAt = Date.now() + 1000 * GAME_OVER_TIMER;
   io.to(code).emit("game-over", {
-    results: rooms[code].roundResults,
+    results: roundData.roundResults,
     gameOverEndsAt,
-    playerEliminated: playerEliminated.username,
+    playerEliminated: roundData.playerEliminated.username,
     winner: winner?.username,
   });
 
@@ -129,30 +133,35 @@ const gameOver = async (io, rooms, code, playerEliminated, winner) => {
 // Start game event
 const startRound = async (io, socket, code, rooms, pendingCodeRequests) => {
   // Increment current round
-  rooms[code].currentRound += 1;
+  const curRound = rooms[code].currentRound + 1;
+  rooms[code].currentRound = curRound;
+
+  // Construct Round Data
+  rooms[code].roundData[curRound] = { roundNumber: curRound, roundResults: [] };
+  let roundData = rooms[code].roundData[curRound];
 
   // Begin initial countdown
-  const endsAt = Date.now() + 1000 * COUNTDOWN_TIMER;
+  roundData.endsAt = Date.now() + 1000 * COUNTDOWN_TIMER;
 
   // Get the question for this round
-  const roundQuestion = rooms[code].questions[rooms[code].currentRound - 1];
-  rooms[code].currentQuestion = roundQuestion;
+  roundData.question = rooms[code].questions[curRound - 1];
 
-  if (rooms[code].currentRound === 1) {
+  // If this is the first round, emit game-started, else emit timer-tick and send-question
+  if (curRound === 1) {
     console.log(`Current round is 1, emitting game-started for room ${code}`);
     io.to(code).emit("game-started", {
       code,
       serverPlayers: rooms[code].players,
-      endsAt,
-      question: roundQuestion,
+      endsAt: roundData.endsAt,
+      question: roundData.question,
     });
   } else {
     console.log(
-      `New EndsAt for room ${code}: ${endsAt}, emitting timer-tick and send-question`,
+      `New EndsAt for room ${code}: ${roundData.endsAt}, emitting timer-tick and send-question`,
     );
-    io.to(code).emit("timer-tick", { newEndsAt: endsAt });
+    io.to(code).emit("timer-tick", { newEndsAt: roundData.endsAt });
     console.log(`Emitting send-question for room ${code}`);
-    io.to(code).emit("send-question", { question: roundQuestion });
+    io.to(code).emit("send-question", { question: roundData.question });
   }
 
   // Wait for countdown to finish before sending question
@@ -164,22 +173,18 @@ const startRound = async (io, socket, code, rooms, pendingCodeRequests) => {
   // Emit that timer is finished
   io.to(code).emit("timer-finished");
 
-  // Start game timer
-  const roundTimerEndsAt = Date.now() + 1000 * ROUND_TIMER;
-  io.to(code).emit("round-tick", { roundTimerEndsAt });
-
   // Save start round time
-  rooms[code].roundStartTime = Date.now();
-
-  // Store current round results
-  rooms[code].roundResults = [];
+  roundData.roundStartTime = Date.now();
+  roundData.roundEndsAt = Date.now() + 1000 * ROUND_TIMER;
+  // Start game timer
+  io.to(code).emit("round-tick", { roundTimerEndsAt: roundData.roundEndsAt });
 
   // Create a new promise and cancel function for the round timer
   const { promise: roundTimerPromise, cancel: cancelRoundTimer } =
     cancellableSleep(ROUND_TIMER * 1000);
 
   // Save the cancel function in the room so it can be cancelled if all players submit early
-  rooms[code].cancelRoundTimer = cancelRoundTimer;
+  roundData.cancelRoundTimer = cancelRoundTimer;
 
   // Wait for round timer to finish or be cancelled
   await roundTimerPromise;
@@ -187,7 +192,7 @@ const startRound = async (io, socket, code, rooms, pendingCodeRequests) => {
     return;
   }
   // Clear the cancel function from the room
-  rooms[code].cancelRoundTimer = null;
+  roundData.cancelRoundTimer = null;
   console.log(`Round timer finished for room ${code}, processing submissions`);
 
   // Emit that game timer is finished
@@ -240,9 +245,9 @@ const startRound = async (io, socket, code, rooms, pendingCodeRequests) => {
   }
 
   // Check for pending submissions and wait for them to finish (not from force submission)
-  if (rooms[code].pendingSubmissions?.size > 0) {
+  if (roundData.pendingSubmissions?.size > 0) {
     console.log(`Waiting for pending submissions in room ${code}...`);
-    await Promise.all(rooms[code].pendingSubmissions.values());
+    await Promise.all(roundData.pendingSubmissions.values());
   }
 
   console.log(
@@ -255,21 +260,17 @@ const startRound = async (io, socket, code, rooms, pendingCodeRequests) => {
   }
 
   // Calculate scores for all players
-  rooms[code].roundResults.forEach((result) => {
+  roundData.roundResults.forEach((result) => {
     result.score = calculateScore(
       result,
-      rooms[code].roundResults.averageExecutionTime[result.languageUsed],
+      roundData.averageExecutionTime[result.languageUsed],
     );
   });
 
   // Determine player eliminated (if more than 1 player left)
-  let playerEliminated = null;
   if (rooms[code].players.length > 1) {
-    playerEliminated = determinePlayerEliminated(
-      rooms[code],
-      rooms[code].roundResults,
-    );
-    eliminatePlayer(io, rooms[code], code, playerEliminated);
+    determinePlayerEliminated(roundData);
+    eliminatePlayer(io, rooms[code], code, roundData);
   }
 
   // Check if game is over (only one player left)
@@ -279,13 +280,13 @@ const startRound = async (io, socket, code, rooms, pendingCodeRequests) => {
       `Game over in room ${code}, winner: ${rooms[code].players[0].username}`,
     );
     const winner = rooms[code].players[0];
-    await gameOver(io, rooms, code, playerEliminated, winner);
+    await gameOver(io, rooms, code, roundData, winner);
     // Game is over, return
     return;
   }
 
   // Send results
-  await sendResults(io, rooms[code], code, playerEliminated);
+  await sendResults(io, rooms[code], code, roundData);
 
   // Check if room still exists
   if (!checkRoom(io, rooms, code)) {
@@ -298,10 +299,6 @@ const startRound = async (io, socket, code, rooms, pendingCodeRequests) => {
     player.judging = false;
     player.codeInput = "";
   });
-
-  // Reset room states
-  rooms[code].currentQuestion = null;
-  rooms[code].roundResults = [];
 
   // Emit to each client that round has ended and new round is starting to reset their states
   io.to(code).emit("new-round");
@@ -317,6 +314,14 @@ export const startGame = async (
 ) => {
   // Set up game questions
   await setUpGameQuestions(io, code, rooms);
+
+  // CHeck if room still exists
+  if (!checkRoom(io, rooms, code)) {
+    return;
+  }
+
+  // Initialize Round data
+  rooms[code].roundData = {};
 
   // While loop to start rounds until game is over
   while (rooms[code] && rooms[code].players.length > 0) {
