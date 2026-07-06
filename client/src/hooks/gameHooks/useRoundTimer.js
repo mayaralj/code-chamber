@@ -27,12 +27,12 @@ export const useRoundTimer = () => {
   }, []);
 
   useEffect(() => {
-    socket.on("round-tick", ({ roundTimerEndsAt }) => {
-      console.log(`Received round-tick with endsAt: ${roundTimerEndsAt}`);
+    socket.on("round-tick", ({ roundEndsAt }) => {
+      console.log(`Received round-tick with endsAt: ${roundEndsAt}`);
       // Game timer tick
       setRoundTimerFinished(false);
       roundTimerCleanupRef.current = playAnyTimer({
-        endsAt: roundTimerEndsAt,
+        endsAt: roundEndsAt,
         functionSetter: setRoundTimeLeft,
       });
     });

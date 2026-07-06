@@ -54,7 +54,7 @@ const GameNavbar = ({
             {/* List out players, put an icon next to them for submtited or judging or not submitted */}
             {playerList.map((player) => (
               <div
-                key={player.id}
+                key={player.username}
                 className="flex items-center gap-3 text-white text-lg"
               >
                 <div

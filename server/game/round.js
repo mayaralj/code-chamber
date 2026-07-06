@@ -178,7 +178,7 @@ const startRound = async (io, socket, code, rooms, pendingCodeRequests) => {
   roundData.roundStartTime = Date.now();
   roundData.roundEndsAt = Date.now() + 1000 * ROUND_TIMER;
   // Start game timer
-  io.to(code).emit("round-tick", { roundTimerEndsAt: roundData.roundEndsAt });
+  io.to(code).emit("round-tick", { roundEndsAt: roundData.roundEndsAt });
 
   // Create a new promise and cancel function for the round timer
   const { promise: roundTimerPromise, cancel: cancelRoundTimer } =

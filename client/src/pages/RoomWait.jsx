@@ -114,7 +114,7 @@ const RoomWait = () => {
       {/* Display players in current room */}
       <div className="flex flex-col gap-4">
         {players.map((player) => (
-          <div key={player.id} className="bg-gray-800 p-4 rounded-lg">
+          <div key={player.username} className="bg-gray-800 p-4 rounded-lg">
             <p className="text-xl font-bold">{player.username}</p>
           </div>
         ))}
