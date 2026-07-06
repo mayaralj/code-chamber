@@ -47,9 +47,10 @@ const setUpGameSockets = (
     // Notify players in the room that someone left
     io.to(code).emit("player-left", { players: buildPlayerList(room) });
 
-    // Check if all players have submitted after someone leaves
-    if (room.players.every((p) => p.submitted)) {
+    // Check if all players have submitted after someone leaves or player is only one left
+    if (room.players.every((p) => p.submitted) || room.players.length === 1) {
       if (room.roundData[room.currentRound]?.cancelRoundTimer) {
+        // Force end round
         room.roundData[room.currentRound].cancelRoundTimer();
       }
     }
