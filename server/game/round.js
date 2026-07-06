@@ -1,5 +1,6 @@
 import { setUpGameQuestions } from "./questionHandler.js";
 import { sleep, cancellableSleep } from "../utils/timers.js";
+import { buildPlayerList } from "../utils/playerList.js";
 import {
   processSubmission,
   forceSubmitPlayer,
@@ -94,7 +95,7 @@ const sendResults = async (io, room, code, roundData) => {
     results: roundData.roundResults,
     resultsEndsAt: roundData.resultsEndsAt,
     playerEliminated: roundData.playerEliminated.username,
-    players: room.players,
+    players: buildPlayerList(room),
   });
 
   // Sleep for results timer duration
@@ -151,7 +152,7 @@ const startRound = async (io, socket, code, rooms, pendingCodeRequests) => {
     console.log(`Current round is 1, emitting game-started for room ${code}`);
     io.to(code).emit("game-started", {
       code,
-      serverPlayers: rooms[code].players,
+      serverPlayers: buildPlayerList(rooms[code]),
       endsAt: roundData.endsAt,
       question: roundData.question,
     });
@@ -301,7 +302,7 @@ const startRound = async (io, socket, code, rooms, pendingCodeRequests) => {
   });
 
   // Emit to each client that round has ended and new round is starting to reset their states
-  io.to(code).emit("new-round");
+  io.to(code).emit("new-round", { players: buildPlayerList(rooms[code]) });
 };
 
 // Start game

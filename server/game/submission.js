@@ -1,33 +1,32 @@
 import db from "../db.js";
 import runCode from "../executor/executor.js";
+import { buildPlayerList } from "../utils/playerList.js";
 
 // Helper to notify players of code judging
 export const notifyJudging = (io, socketId, room, code) => {
-  // Build a list of all judging players
-  const judgingPlayers = room.players.filter((p) => p.judging).map((p) => p.id);
+  // Build a player list with needed data
+  const playerList = buildPlayerList(room);
 
   // Notify player that code is being judged
   io.to(socketId).emit("code-judging");
 
   // Emit to all players with list of judging players
   io.to(code).emit("judging-players", {
-    judgingPlayers,
+    players: playerList,
   });
 };
 
 // Helper to notify players of code submission
 export const notifySubmission = (io, socketId, room, code) => {
-  // Build a list of all submitted players
-  const submittedPlayers = room.players
-    .filter((p) => p.submitted)
-    .map((p) => p.id);
+  // Build a player list with needed data
+  const playerList = buildPlayerList(room);
 
   // Notify player that code has been submitted
   io.to(socketId).emit("code-submitted");
 
   // Emit to all players with list of submitted players
   io.to(code).emit("submitted-players", {
-    submittedPlayers,
+    players: playerList,
   });
 };
 

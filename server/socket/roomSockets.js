@@ -1,7 +1,9 @@
+import { buildPlayerList } from "../utils/playerList.js";
+
 const setUpRoomSockets = (io, socket, { rooms, playersInRooms }) => {
   // BRoadcast rooms helper
   const broadcastRooms = () => {
-    const publicRooms = Object.values(rooms).filter(
+    let publicRooms = Object.values(rooms).filter(
       (room) => room.isPublic && !room.isGameStarted,
     );
     console.log("Broadcasting rooms list:", publicRooms);
@@ -18,6 +20,18 @@ const setUpRoomSockets = (io, socket, { rooms, playersInRooms }) => {
     //     isGameStarted: false,
     //   });
     // }
+
+    // Build rooms object with only necessary info for public rooms page
+    publicRooms = publicRooms.map((room) => ({
+      code: room.code,
+      roomName: room.roomName,
+      host: room.host,
+      players: room.players,
+      maxPlayers: room.maxPlayers,
+      isPublic: room.isPublic,
+      difficulty: room.difficulty,
+    }));
+
     // Broadcast only to clients in public rooms page
     io.to("public-rooms").emit("rooms-list", publicRooms);
   };
@@ -53,12 +67,25 @@ const setUpRoomSockets = (io, socket, { rooms, playersInRooms }) => {
         console.log(`Room ${code} deleted as it became empty`);
       } else {
         // Notify players in the room that someone left
-        io.to(code).emit("player-left", { players: room.players });
+        io.to(code).emit("player-left", { players: buildPlayerList(room) });
       }
     }
 
     // Broadcast updated rooms list to all clients
     broadcastRooms();
+  };
+
+  // Helper to build minimal room info
+  const buildRoomInfo = (room) => {
+    return {
+      code: room.code,
+      roomName: room.roomName,
+      host: room.host,
+      players: buildPlayerList(room),
+      maxPlayers: room.maxPlayers,
+      isPublic: room.isPublic,
+      difficulty: room.difficulty,
+    };
   };
 
   // Listen for room creation
@@ -102,7 +129,9 @@ const setUpRoomSockets = (io, socket, { rooms, playersInRooms }) => {
       playersInRooms[socket.id] = code;
 
       // Emit back to the creator
-      socket.emit("room-created", { roomInfo: rooms[code] });
+      socket.emit("room-created", {
+        roomInfo: buildRoomInfo(rooms[code]),
+      });
       broadcastRooms();
       console.log(`Room ${code} created by ${username}`);
     },
@@ -137,10 +166,10 @@ const setUpRoomSockets = (io, socket, { rooms, playersInRooms }) => {
 
     // Emit back to the player that joined
     socket.emit("room-joined", {
-      roomInfo: rooms[code],
+      roomInfo: buildRoomInfo(room),
     });
     // Emit to the rest of players inside that room
-    socket.to(code).emit("player-joined", { players: room.players });
+    socket.to(code).emit("player-joined", { players: buildPlayerList(room) });
     // Broadcast updated rooms list to all clients
     broadcastRooms();
     console.log(`Player ${username} joined room ${code}`);

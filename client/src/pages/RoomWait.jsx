@@ -1,8 +1,10 @@
-import { useNavigate, useLocation } from "react-router-dom";
+import { useNavigate, useLocation, useParams } from "react-router-dom";
 import socket from "../socket";
 import { useState, useEffect, useRef } from "react";
 
 const RoomWait = () => {
+  // Code
+  const { code } = useParams();
   const navigate = useNavigate();
   // Get Info passed from Join or CreateRoom
   const location = useLocation();
@@ -16,10 +18,7 @@ const RoomWait = () => {
 
   // Check with server if user is supposed to be in this room
   useEffect(() => {
-    if (!roomInfo) {
-      return;
-    }
-    socket.emit("check-room", { code: roomInfo.code });
+    socket.emit("check-room", { code });
     socket.once("check-room-response", ({ valid }) => {
       if (!valid) {
         navigate("/", { replace: true });
@@ -29,7 +28,7 @@ const RoomWait = () => {
     return () => {
       socket.off("check-room-response");
     };
-  }, [roomInfo.code]);
+  }, [code, navigate]);
 
   // useEffect to listen for player updates and game start
   useEffect(() => {
@@ -65,7 +64,7 @@ const RoomWait = () => {
       socket.off("game-started");
       socket.off("host-left");
       if (!gameStartedRef.current) {
-        socket.emit("leave-room", { code: roomInfo.code });
+        socket.emit("leave-room", { code });
       }
     };
   }, [navigate]);
@@ -80,12 +79,12 @@ const RoomWait = () => {
 
   // Handle start game
   const handleStart = () => {
-    socket.emit("start-game", { code: roomInfo.code });
+    socket.emit("start-game", { code });
   };
 
   // Handle leave room by emitting leave room event and navigating back to home
   const handleLeave = () => {
-    socket.emit("leave-room", { code: roomInfo.code });
+    socket.emit("leave-room", { code });
     // Redirect host back to create room and other players back to rooms page
     if (isHost) {
       navigate("/create", { replace: true });

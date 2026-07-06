@@ -45,7 +45,8 @@ const Game = () => {
     language,
     handleSubmit,
     handleLanguageChange,
-    playersList,
+    playerList,
+    setPlayerList,
   } = useCodeSubmission(code, players);
   // Editor Ready
   const { editorReady, setEditorReady } = useCodeEditor();
@@ -62,6 +63,20 @@ const Game = () => {
   //     }
   //   });
   // }, []);
+
+  // Player left
+  useEffect(() => {
+    socket.on("player-left", ({ players }) => {
+      console.log("Player left, updating players list");
+      // Update players list
+      setPlayerList(players);
+    });
+
+    // Cleanup
+    return () => {
+      socket.off("player-left");
+    };
+  }, []);
 
   // Kick them out on player eliminated
   useEffect(() => {
@@ -122,7 +137,7 @@ const Game = () => {
           isSubmitted={codeSubmitted}
           isJudging={isJudging}
           onSubmit={handleSubmit}
-          playersList={playersList}
+          playerList={playerList}
           roundTimeLeft={roundTimeLeft}
         />
         <div className="flex flex-1 overflow-hidden bg-gray-950">

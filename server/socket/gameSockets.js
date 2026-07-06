@@ -1,6 +1,9 @@
 // Import submission processor
 import { notifySubmission, processSubmission } from "../game/submission.js";
 
+// import build player list
+import { buildPlayerList } from "../utils/playerList.js";
+
 // Import round manager
 import { startGame } from "../game/round.js";
 
@@ -41,10 +44,13 @@ const setUpGameSockets = (
       return;
     }
 
+    // Notify players in the room that someone left
+    io.to(code).emit("player-left", { players: buildPlayerList(room) });
+
     // Check if all players have submitted after someone leaves
     if (room.players.every((p) => p.submitted)) {
-      if (room.cancelRoundTimer) {
-        room.cancelRoundTimer();
+      if (room.roundData[room.currentRound]?.cancelRoundTimer) {
+        room.roundData[room.currentRound].cancelRoundTimer();
       }
     }
   };

@@ -24,13 +24,7 @@ export const useCodeSubmission = (code, players) => {
   }, [language]);
 
   // Player list
-  const [playersList, setPlayersList] = useState(
-    players?.map((player) => ({
-      ...player,
-      judging: false,
-      submitted: false,
-    })) || [],
-  );
+  const [playerList, setPlayerList] = useState(players || []);
 
   // Handle code submission
   const handleSubmit = () => {
@@ -50,7 +44,7 @@ export const useCodeSubmission = (code, players) => {
   // Handle results (only update player list here)
   useEffect(() => {
     const handleResults = ({ players }) => {
-      setPlayersList(players);
+      setPlayerList(players);
     };
     socket.on("send-results", handleResults);
 
@@ -61,14 +55,12 @@ export const useCodeSubmission = (code, players) => {
 
   // Handle new round start by resetting states
   useEffect(() => {
-    const handleNewRound = () => {
+    const handleNewRound = ({ players }) => {
       setCodeInput("");
       setCodeSubmitted(false);
       hasSubmitted.current = false;
       setIsJudging(false);
-      setPlayersList((prev) =>
-        prev.map((player) => ({ ...player, judging: false, submitted: false })),
-      );
+      setPlayerList(players);
     };
 
     // Listen for new round event
@@ -93,13 +85,8 @@ export const useCodeSubmission = (code, players) => {
       setIsJudging(true);
     });
 
-    socket.on("judging-players", ({ judgingPlayers }) => {
-      setPlayersList((prev) =>
-        prev.map((player) => ({
-          ...player,
-          judging: judgingPlayers.includes(player.id),
-        })),
-      );
+    socket.on("judging-players", ({ players }) => {
+      setPlayerList(players);
     });
 
     // Cleanup
@@ -111,13 +98,8 @@ export const useCodeSubmission = (code, players) => {
 
   // Listen for submission updates and errors
   useEffect(() => {
-    socket.on("submitted-players", ({ submittedPlayers }) => {
-      setPlayersList((prev) =>
-        prev.map((player) => ({
-          ...player,
-          submitted: submittedPlayers.includes(player.id),
-        })),
-      );
+    socket.on("submitted-players", ({ players }) => {
+      setPlayerList(players);
     });
 
     socket.on("code-submitted", () => {
@@ -151,6 +133,7 @@ export const useCodeSubmission = (code, players) => {
     language,
     handleSubmit,
     handleLanguageChange,
-    playersList,
+    playerList,
+    setPlayerList,
   };
 };
