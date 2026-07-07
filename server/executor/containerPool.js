@@ -5,9 +5,9 @@ import { execAsync } from "./execHelper.js";
 // CONFIG
 const usePool = true;
 const languagePoolSize = {
-  python: 2,
-  javascript: 2,
-  cpp: 2,
+  python: 3,
+  javascript: 3,
+  cpp: 3,
 };
 const pool = {};
 
@@ -46,7 +46,7 @@ const replenishContainer = async (language) => {
     const config = languageConfig[language];
     const { stdout: id } = await execAsync(
       `docker run -d --label pool=code-chamber --network none --memory 256m --cpus 0.5 ${config.image} tail -f /dev/null`,
-      { timeout: 5000 },
+      { timeout: 30000 },
     );
     pool[language].push(id.trim());
   } catch (error) {
@@ -116,20 +116,29 @@ export const getContainer = async (language, forceCreate = false) => {
 
 // Clean old pool helper
 const cleanOldPool = async () => {
+  // Get all old pool containers
   try {
     const { stdout } = await execAsync(
       `docker ps -a --filter "label=pool=code-chamber" -q`,
       { timeout: 10000 },
     );
     const ids = stdout.trim().split("\n").filter(Boolean);
-    for (const id of ids) {
-      await execAsync(`docker rm -f ${id}`, { timeout: 5000 }).catch(() => {});
+    // Check if no ids
+    if (ids.length === 0) {
+      console.log("No old pool containers to clean up");
+      return;
     }
-    if (ids.length > 0) {
-      console.log(`Cleaned up ${ids.length} containers`);
-    }
+
+    // Cleanup in parallel
+    await Promise.all(
+      ids.map((id) =>
+        execAsync(`docker rm -f ${id}`, { timeout: 30000 }).catch(() => {}),
+      ),
+    );
+    console.log(`Cleaned up ${ids.length} old pool containers`);
   } catch (error) {
-    console.error("Error cleaning up orphaned containers:", error);
+    // Log error
+    console.error("Error cleaning up old containers:", error);
   }
 };
 
@@ -149,19 +158,33 @@ export const startPool = async () => {
   // Clean up any old pool containers
   await cleanOldPool();
 
-  // Start containers for each language
-  for (const language of Object.keys(languagePoolSize)) {
-    const config = languageConfig[language];
-    const size = languagePoolSize[language];
-    pool[language] = [];
-    for (let i = 0; i < size; i++) {
-      const { stdout: id } = await execAsync(
-        `docker run -d --label pool=code-chamber --network none --memory 256m --cpus 0.5 ${config.image} tail -f /dev/null`,
-        { timeout: 5000 },
+  // Start containers for each language in parallel
+  await Promise.all(
+    Object.keys(languagePoolSize).map(async (language) => {
+      const config = languageConfig[language];
+      const size = languagePoolSize[language];
+      pool[language] = [];
+      await Promise.all(
+        Array.from({ length: size }, async () => {
+          try {
+            const { stdout: id } = await execAsync(
+              `docker run -d --label pool=code-chamber --network none --memory 256m --cpus 0.5 ${config.image} tail -f /dev/null`,
+              { timeout: 30000 },
+            );
+            pool[language].push(id.trim());
+          } catch (error) {
+            console.error(
+              `Error creating container for language: ${language}`,
+              error,
+            );
+
+            // Call replenishContainer to try to create a new container
+            await replenishContainer(language);
+          }
+        }),
       );
-      pool[language].push(id.trim());
-    }
-  }
+    }),
+  );
 
   // Log pool status
   console.log("Container pool started");

@@ -91,6 +91,7 @@ const startup = async () => {
 
 startup();
 
+// On shutdown, cleanup
 const onShutdown = async (signal) => {
   console.log(`---SHUTTING DOWN SERVER (${signal})---`);
   // Stop pool and clean up containers
@@ -103,6 +104,7 @@ const onShutdown = async (signal) => {
   }
 };
 
+// Handle shutdown signals
 ["SIGINT", "SIGTERM"].forEach((signal) => {
-  process.on(signal, () => onShutdown(signal));
+  process.on(signal, onShutdown);
 });
