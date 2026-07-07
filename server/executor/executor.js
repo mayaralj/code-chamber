@@ -6,6 +6,7 @@ import pLimit from "p-limit";
 import { execAsync, execWithStdin } from "./execHelper.js";
 import languageConfig from "./languageConfig.js";
 import { getParamTypes } from "./cpp/cppHelpers.js";
+import { getContainer } from "./containerPool.js";
 
 // Config
 const MAX_CONCURRENT_EXECUTIONS = 3;
@@ -13,6 +14,7 @@ const limit = pLimit(MAX_CONCURRENT_EXECUTIONS);
 
 // Executor (via docker)
 const runCode = async (language, userCode, functionName, testCases) => {
+  const executorTime = Date.now();
   // Get Config
   const config = languageConfig[language];
   console.log(`Running code in language: ${language}`);
@@ -32,34 +34,49 @@ const runCode = async (language, userCode, functionName, testCases) => {
   let paramTypes = await getParamTypes(functionName, language);
 
   // Create file to run code in docker container
-  const containerName = `solution_${Date.now()}`;
   const containerFile = path.join(
     os.tmpdir(),
     `solution_${Date.now()}.${config.ext}`,
   );
 
+  // Build the code to run in the container
   const code = config.buildCode(userCode, functionName, paramTypes);
   console.log(`code to run:\n${code}`);
   fs.writeFileSync(containerFile, code, "utf-8");
 
-  // Create container but dont run any code yet
-  const containerStart = Date.now();
+  // Get Container
+  const containerId = await getContainer(language);
+  if (!containerId) {
+    console.error(`No container available for language: ${language}`);
+    return {
+      languageUsed: language,
+      passed: false,
+      testCasesPassed: 0,
+      executionTime: 0,
+      testResult: "No container available for execution",
+    };
+  }
+
+  // Copy file into container
+  const copyTime = Date.now();
   await execAsync(
-    `docker run -d --name ${containerName} --network none --memory 256m --cpus 0.5 -v ${containerFile}:${config.containerPath} ${config.image} tail -f /dev/null`,
+    `docker cp ${containerFile} ${containerId}:${config.containerPath}`,
     { timeout: 5000 },
   );
-  console.log(`Container start took: ${(Date.now() - containerStart) / 1000}s`);
+  console.log(
+    `Copying file into container took: ${(Date.now() - copyTime) / 1000}s`,
+  );
 
   // Compile code if its a compiled languge
   if (config.compile) {
     try {
       const compileStart = Date.now();
-      await config.compile(containerName);
+      await config.compile(containerId);
       console.log(`Compile took: ${(Date.now() - compileStart) / 1000}s`);
     } catch (err) {
       console.log(`Error compiling code:`, err.message);
       // Cleanup
-      await execAsync(`docker rm -f ${containerName}`, { timeout: 5000 });
+      await execAsync(`docker rm -f ${containerId}`, { timeout: 5000 });
       fs.unlinkSync(containerFile);
       return {
         languageUsed: language,
@@ -86,7 +103,7 @@ const runCode = async (language, userCode, functionName, testCases) => {
         const output = (
           await execWithStdin(
             `docker`,
-            ["exec", "-i", containerName, ...config.run().split(" ")],
+            ["exec", "-i", containerId, ...config.run().split(" ")],
             argsJson,
             5000,
           )
@@ -123,8 +140,13 @@ const runCode = async (language, userCode, functionName, testCases) => {
   const executionTime = (Date.now() - startTime) / 1000;
 
   // Cleanup
-  await execAsync(`docker rm -f ${containerName}`, { timeout: 5000 });
+  await execAsync(`docker rm -f ${containerId}`, { timeout: 5000 });
   fs.unlinkSync(containerFile);
+
+  // Log execution time
+  console.log(
+    `Executor took: ${(Date.now() - executorTime) / 1000}s for language: ${language}`,
+  );
 
   // Return result
   return {

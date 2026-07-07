@@ -10,6 +10,9 @@ import usersRouter from "./routes/users.js";
 // Socket
 import initSocket from "./socket/socket.js";
 
+// Container pool
+import { startPool, stopPool } from "./executor/containerPool.js";
+
 // Database
 import db from "./db.js";
 // db.query("SELECT NOW()", (err, res) => {
@@ -69,6 +72,9 @@ const startup = async () => {
 
     console.log("All queries executed successfully");
 
+    // Start the container pool
+    await startPool();
+
     // Socket initialization
     initSocket(io, { rooms, playersInRooms, pendingCodeRequests, ...data });
 
@@ -84,3 +90,19 @@ const startup = async () => {
 };
 
 startup();
+
+const onShutdown = async (signal) => {
+  console.log(`---SHUTTING DOWN SERVER (${signal})---`);
+  // Stop pool and clean up containers
+  try {
+    await stopPool();
+  } catch (error) {
+    console.error("Error during pool shutdown:", error);
+  } finally {
+    process.exit(0);
+  }
+};
+
+["SIGINT", "SIGTERM"].forEach((signal) => {
+  process.on(signal, () => onShutdown(signal));
+});
