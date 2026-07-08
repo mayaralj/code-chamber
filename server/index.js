@@ -94,17 +94,23 @@ startup();
 // On shutdown, cleanup
 const onShutdown = async (signal) => {
   console.log(`---SHUTTING DOWN SERVER (${signal})---`);
-  // Stop pool and clean up containers
   try {
+    // Stop pool and clean up containers
     await stopPool();
   } catch (error) {
     console.error("Error during pool shutdown:", error);
   } finally {
+    console.log("SERVER HAS BEEN SHUTDOWN");
     process.exit(0);
   }
 };
 
 // Handle shutdown signals
-["SIGINT", "SIGTERM"].forEach((signal) => {
-  process.on(signal, onShutdown);
+process.on("SIGINT", async () => {
+  process.exitCode = 0;
+  await onShutdown("SIGINT");
+});
+process.on("SIGTERM", async () => {
+  process.exitCode = 0;
+  await onShutdown("SIGTERM");
 });

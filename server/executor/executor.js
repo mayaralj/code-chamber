@@ -41,7 +41,7 @@ const runCode = async (language, userCode, functionName, testCases) => {
 
   // Build the code to run in the container
   const code = config.buildCode(userCode, functionName, paramTypes);
-  console.log(`code to run:\n${code}`);
+  //console.log(`code to run:\n${code}`);
   fs.writeFileSync(containerFile, code, "utf-8");
 
   // Get Container

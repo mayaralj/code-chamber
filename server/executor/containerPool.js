@@ -34,11 +34,11 @@ const removeContainer = async (containerId) => {
 // Helper to check container
 const checkContainer = async (containerId) => {
   try {
-    const { stdout } = await execAsync(
-      `docker inspect --format="{{.State.Running}}" ${containerId}`,
-      { timeout: 5000 },
-    );
-    return stdout.trim() === "true";
+    const { stdout } = await execAsync(`docker inspect  ${containerId}`, {
+      timeout: 5000,
+    });
+    const info = JSON.parse(stdout);
+    return info[0]?.State?.Running === true;
   } catch (error) {
     console.error(`Error checking container ${containerId}:`, error);
     return false;
@@ -138,11 +138,12 @@ const cleanOldPool = async () => {
       console.log("No old pool containers to clean up");
       return;
     }
-
     // Cleanup in parallel
     await Promise.all(
       ids.map((id) =>
-        execAsync(`docker rm -f ${id}`, { timeout: 30000 }).catch(() => {}),
+        execAsync(`docker rm -f ${id}`, {
+          timeout: 30000,
+        }).catch(() => {}),
       ),
     );
     console.log(`Cleaned up ${ids.length} old pool containers`);
@@ -159,11 +160,8 @@ export const startPool = async () => {
     return;
   }
 
-  // Check if pool is already started
-  if (Object.keys(pool).length > 0) {
-    console.log("Container pool already started");
-    return;
-  }
+  // Reset pool
+  Object.keys(pool).forEach((lang) => (pool[lang] = []));
 
   // Clean up any old pool containers
   await cleanOldPool();
@@ -198,22 +196,9 @@ export const startPool = async () => {
 
 // Stop pool
 export const stopPool = async () => {
-  // Get all ids
-  const allIds = Object.values(pool).flat();
-  if (allIds.length === 0) {
-    console.log("Container pool already stopped");
-    return;
-  }
-
-  await Promise.all(
-    allIds.map(async (id) => {
-      try {
-        await execAsync(`docker rm -f ${id}`, { timeout: 30000 });
-      } catch (error) {
-        console.error(`Error stopping container ${id}`, error);
-      }
-    }),
-  );
+  console.log("Stopping container pool...");
+  // clean all the old containers
+  await cleanOldPool();
 
   // Clear the pool
   for (const language of Object.keys(pool)) {
