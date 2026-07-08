@@ -160,8 +160,11 @@ export const startPool = async () => {
     return;
   }
 
-  // Reset pool
-  Object.keys(pool).forEach((lang) => (pool[lang] = []));
+  // Check if pool already started
+  if (Object.keys(pool).length > 0) {
+    console.log("Container pool already started");
+    return;
+  }
 
   // Clean up any old pool containers
   await cleanOldPool();
