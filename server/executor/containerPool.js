@@ -9,13 +9,23 @@ const languagePoolSize = {
   javascript: 3,
   cpp: 3,
 };
+const MAX_RETRIES = 3;
 const pool = {};
 
-// Helper to fix pool
+// Helper to create a container
+const createContainer = async (language, timeout = 30000) => {
+  const config = languageConfig[language];
+  const { stdout: id } = await execAsync(
+    `docker run -d --label pool=code-chamber --network none --memory 256m --cpus 0.5 ${config.image} tail -f /dev/null`,
+    { timeout },
+  );
+  return id.trim();
+};
+
+// Helper to remove a container
 const removeContainer = async (containerId) => {
-  // Remove the failed container
   try {
-    await execAsync(`docker rm -f ${containerId}`, { timeout: 5000 });
+    await execAsync(`docker rm -f ${containerId}`, { timeout: 10000 });
   } catch (error) {
     console.error(`Error removing failed container ${containerId}:`, error);
   }
@@ -36,24 +46,29 @@ const checkContainer = async (containerId) => {
 };
 
 // Helper to replenish container
-const replenishContainer = async (language) => {
+const replenishContainer = async (language, attempt = 1) => {
   if (!usePool) {
     return;
   }
 
   // Replenish the pool asynchronously
   try {
-    const config = languageConfig[language];
-    const { stdout: id } = await execAsync(
-      `docker run -d --label pool=code-chamber --network none --memory 256m --cpus 0.5 ${config.image} tail -f /dev/null`,
-      { timeout: 30000 },
-    );
-    pool[language].push(id.trim());
+    pool[language].push(await createContainer(language));
   } catch (error) {
     console.error(
-      `Error replenishing container for language: ${language}`,
+      `Error replenishing container for language: ${language} attempt ${attempt} of ${MAX_RETRIES}`,
       error,
     );
+    if (attempt < MAX_RETRIES) {
+      console.log(`Retrying replenishContainer for language: ${language}`);
+      // Wait for a short delay before retrying
+      await new Promise((resolve) => setTimeout(resolve, 1000));
+      await replenishContainer(language, attempt + 1);
+    } else {
+      console.error(
+        `Failed to replenish container for language: ${language} after ${MAX_RETRIES} attempts`,
+      );
+    }
   }
 };
 
@@ -73,12 +88,7 @@ export const getContainer = async (language, forceCreate = false) => {
       `No available containers for language: ${language}... Creating a new one`,
     );
     try {
-      const config = languageConfig[language];
-      let { stdout: id } = await execAsync(
-        `docker run -d --label pool=code-chamber --network none --memory 256m --cpus 0.5 ${config.image} tail -f /dev/null`,
-        { timeout: 5000 },
-      );
-      id = id.trim();
+      const id = await createContainer(language, 10000);
       console.log(
         `Container creation took: ${(Date.now() - startTime) / 1000}s`,
       );
@@ -161,17 +171,13 @@ export const startPool = async () => {
   // Start containers for each language in parallel
   await Promise.all(
     Object.keys(languagePoolSize).map(async (language) => {
-      const config = languageConfig[language];
       const size = languagePoolSize[language];
       pool[language] = [];
       await Promise.all(
         Array.from({ length: size }, async () => {
           try {
-            const { stdout: id } = await execAsync(
-              `docker run -d --label pool=code-chamber --network none --memory 256m --cpus 0.5 ${config.image} tail -f /dev/null`,
-              { timeout: 30000 },
-            );
-            pool[language].push(id.trim());
+            const id = await createContainer(language);
+            pool[language].push(id);
           } catch (error) {
             console.error(
               `Error creating container for language: ${language}`,
@@ -202,7 +208,7 @@ export const stopPool = async () => {
   await Promise.all(
     allIds.map(async (id) => {
       try {
-        await execAsync(`docker rm -f ${id}`, { timeout: 5000 });
+        await execAsync(`docker rm -f ${id}`, { timeout: 30000 });
       } catch (error) {
         console.error(`Error stopping container ${id}`, error);
       }
