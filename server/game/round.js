@@ -1,3 +1,4 @@
+// Imports
 import { sleep, cancellableSleep } from "../utils/timers.js";
 import { buildPlayerList } from "../utils/playerList.js";
 import {
@@ -5,143 +6,37 @@ import {
   forceSubmitPlayer,
   calculateScore,
 } from "./submission.js";
+import { determinePlayerEliminated, eliminatePlayer } from "./elimination.js";
 import { beforeGame } from "./beforeGame.js";
+import checkRoom from "../room/checkRoom.js";
+import { sendResults, gameOver } from "./results.js";
 
 // Config
 // Timers (s)
 const COUNTDOWN_TIMER = 5;
-const GAME_OVER_TIMER = 5;
 const ROUND_TIMER = 30;
-const RESULTS_TIMER = 10;
 // Timeouts (ms)
 const FORCE_SUBMIT_TIMEOUT = 5000;
 
-// Helper to delete room
-const deleteRoom = (io, rooms, code) => {
-  if (!rooms[code]) {
-    return;
-  }
-  io.to(code).emit("room-deleted");
-  io.in(code).socketsLeave(code);
-  delete rooms[code];
-  console.log(`Room ${code} deleted`);
-};
-
-// Helper to check if room exists and delete it if not
-const checkRoom = (io, rooms, code) => {
-  if (rooms[code]) {
-    return true;
-  }
-
-  deleteRoom(io, rooms, code);
-  return false;
-};
-
-// Helper to determine player eliminated
-const determinePlayerEliminated = (roundData) => {
-  // For each player, find their total score and have a chance to be eliminated based on score
-  let highestChance = -Infinity;
-  let playerEliminated = null;
-  roundData.roundResults.forEach((result) => {
-    const score = result.score;
-    // Higher score means lower chance of elimination
-    const weight = 1 - score / 100;
-
-    // Clamp weight to a minimum of 0.05 to give even high scorers a small chance of elimination
-    const clampedWeight = Math.max(weight, 0.05);
-
-    // Random chance with clamped weight
-    const chance = Math.random() * clampedWeight;
-
-    // check if this player has the highest chance of elimination so far
-    if (chance > highestChance) {
-      highestChance = chance;
-      playerEliminated = result.player;
-    }
-  });
-
-  roundData.playerEliminated = playerEliminated;
-};
-
-// Helper to eliminate player from room
-export const eliminatePlayer = (io, room, code, roundData) => {
-  console.log(
-    `Eliminating player ${roundData.playerEliminated.username} from room ${code}`,
-  );
-
-  // Remove player from room
-  room.players = room.players.filter(
-    (p) => p.id !== roundData.playerEliminated.id,
-  );
-  // Emit to player eliminated that they have been eliminated
-  io.to(roundData.playerEliminated.id).emit("player-eliminated");
-
-  // Remove player from socket room
-  io.sockets.sockets.get(roundData.playerEliminated.id)?.leave(code);
-};
-
-// Send results
-const sendResults = async (io, room, code, roundData) => {
-  // Check if player eliminated exists, if not, set to N/A
-  if (!roundData.playerEliminated) {
-    console.log(`No player eliminated in room ${code}, sending results`);
-    roundData.playerEliminated = { username: "N/A" };
-  }
-  roundData.resultsEndsAt = Date.now() + 1000 * RESULTS_TIMER;
-  console.log(
-    `Sending results for room ${code}, player eliminated: ${roundData.playerEliminated.username}`,
-  );
-  io.to(code).emit("send-results", {
-    results: roundData.roundResults,
-    resultsEndsAt: roundData.resultsEndsAt,
-    playerEliminated: roundData.playerEliminated.username,
-    players: buildPlayerList(room),
-  });
-
-  // Sleep for results timer duration
-  await sleep(RESULTS_TIMER * 1000);
-
-  // Emit that results timer is finished
-  io.to(code).emit("results-timer-finished");
-};
-
-// Game over helper
-const gameOver = async (io, rooms, code, roundData, winner) => {
-  // Check if player eliminated exists, if not, set to N/A
-  if (!roundData.playerEliminated) {
-    console.log(`No player eliminated in room ${code}, sending results`);
-    roundData.playerEliminated = { username: "N/A" };
-  }
-  const gameOverEndsAt = Date.now() + 1000 * GAME_OVER_TIMER;
-  io.to(code).emit("game-over", {
-    results: roundData.roundResults,
-    gameOverEndsAt,
-    playerEliminated: roundData.playerEliminated.username,
-    winner: winner?.username,
-  });
-
-  // Sleep for game over timer duration
-  await sleep(GAME_OVER_TIMER * 1000);
-
-  // Emit that room is deleted
-  io.to(code).emit("room-deleted");
-
-  // Delete room
-  console.log(`Game over in room ${code}, deleting room`);
-  deleteRoom(io, rooms, code);
-};
-
-// Start game event
-const startRound = async (io, socket, code, rooms, pendingCodeRequests) => {
+// Before Round
+const beforeRound = (room) => {
   // Increment current round
-  const curRound = rooms[code].currentRound + 1;
-  rooms[code].currentRound = curRound;
+  const curRound = room.currentRound + 1;
+  room.currentRound = curRound;
 
   // Round Data
-  const roundData = rooms[code].roundData[curRound];
+  const roundData = room.roundData[curRound];
 
   // Begin initial countdown
   roundData.endsAt = Date.now() + 1000 * COUNTDOWN_TIMER;
+
+  return [curRound, roundData];
+};
+
+// Start round
+const startRound = async (io, socket, code, rooms, pendingCodeRequests) => {
+  // Before Round
+  const [curRound, roundData] = beforeRound(rooms[code]);
 
   // If this is the first round, emit game-started, else emit timer-tick and send-question
   if (curRound === 1) {
