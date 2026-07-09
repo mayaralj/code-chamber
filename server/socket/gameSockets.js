@@ -1,11 +1,11 @@
 // Import submission processor
-import { notifySubmission, processSubmission } from "../game/submission.js";
+import { processSubmission } from "../game/submission.js";
 
 // import build player list
 import { buildPlayerList } from "../utils/playerList.js";
 
 // Import round manager
-import { startGame } from "../game/round.js";
+import startGame from "../game/startGame.js";
 
 const setUpGameSockets = (
   io,

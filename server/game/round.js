@@ -7,7 +7,6 @@ import {
   calculateScore,
 } from "./submission.js";
 import { determinePlayerEliminated, eliminatePlayer } from "./elimination.js";
-import { beforeGame } from "./beforeGame.js";
 import checkRoom from "../room/checkRoom.js";
 import { sendResults, gameOver } from "./results.js";
 
@@ -197,25 +196,4 @@ const startRound = async (io, socket, code, rooms, pendingCodeRequests) => {
   io.to(code).emit("new-round", { players: buildPlayerList(rooms[code]) });
 };
 
-// Start game
-export const startGame = async (
-  io,
-  socket,
-  code,
-  rooms,
-  pendingCodeRequests,
-) => {
-  // Call beforeGame initialization
-  await beforeGame(rooms, code);
-
-  // CHeck if room still exists
-  if (!checkRoom(io, rooms, code)) {
-    return;
-  }
-
-  // While loop to start rounds until game is over
-  while (rooms[code] && rooms[code].players.length > 0) {
-    await startRound(io, socket, code, rooms, pendingCodeRequests);
-    console.log(`Round ${rooms[code]?.currentRound} completed in room ${code}`);
-  }
-};
+export default startRound;
