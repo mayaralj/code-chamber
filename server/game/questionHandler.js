@@ -11,71 +11,65 @@ const getDifficultyQuestions = async (difficulty) => {
 };
 
 // helper to send a question to all clients for a specific room
-const getQuestion = (io, code, room, questions, excludeList) => {
+const getQuestion = (questions, excludeList) => {
   // Filter out questions that have already been used in the room
   questions = questions.filter((q) => !excludeList.includes(q.id));
   const randomQuestion =
     questions[Math.floor(Math.random() * questions.length)];
 
-  // Store the current question in the room state
-  console.log(
-    `Setting current question for room ${code} to question ID ${randomQuestion.id}`,
-  );
-  room.currentQuestion = randomQuestion;
-
   return randomQuestion;
 };
 
 // Helper to set up game questions fully
-export const setUpGameQuestions = async (io, code, rooms) => {
+export const setUpGameQuestions = async (rooms, code) => {
   // Build a list of all available questions for the game based on the room's difficulty
   const questions = await getDifficultyQuestions(rooms[code].difficulty);
 
   // Check room still exists after await
   if (!rooms[code]) {
-    console.log(`Room ${code} no longer exists after fetching questions`);
+    return;
+  }
+
+  // get all starter codes
+  const { rows: allStarterCodes } = await db.query(
+    "SELECT language, code, question_id FROM starter_code WHERE question_id = ANY($1)",
+    [questions.map((q) => q.id)],
+  );
+
+  // Check room still exists after await
+  if (!rooms[code]) {
     return;
   }
 
   // Determine questions amount based on number of players
-  let numPlayers = rooms[code].players.length;
+  let totalRounds = rooms[code].totalRounds;
+  let currentRound = 1;
   let excludeList = [];
   let first = true;
+
   // Create a list of questions for the game based on the number of players
-  while (numPlayers > 0) {
+  while (currentRound <= totalRounds) {
     // if first force get celsiusToFahrenheit question for first round
     let randomQuestion;
     if (first) {
       randomQuestion = questions.find(
         (q) => q.title === "Celsius to Fahrenheit",
       );
+      first = false;
     } else {
-      randomQuestion = getQuestion(
-        io,
-        code,
-        rooms[code],
-        questions,
-        excludeList,
-      );
+      randomQuestion = getQuestion(questions, excludeList);
     }
     // Add the question ID to the exclude list to avoid duplicates
     excludeList.push(randomQuestion.id);
 
     // Add the question to the room's questions list if it doesn't already exist
-    if (!rooms[code].questions) {
-      rooms[code].questions = [];
-    }
-    rooms[code].questions.push(randomQuestion);
+    rooms[code].roundData[currentRound].question = randomQuestion;
 
-    // Find Starter code
-    const { rows } = await db.query(
-      "SELECT language, code FROM starter_code WHERE question_id = $1",
-      [randomQuestion.id],
-    );
-    // Add the starter code to the question object
-    rooms[code].questions[rooms[code].questions.length - 1].starterCode = rows;
+    // Find Starter code for this question
+    rooms[code].roundData[currentRound].question.starterCode =
+      allStarterCodes.filter((sc) => sc.question_id === randomQuestion.id);
 
-    // Decrement numPlayers to ensure we only add as many questions as there are players
-    numPlayers--;
+    // Increment the current round
+    currentRound++;
   }
 };

@@ -117,7 +117,6 @@ const setUpRoomSockets = (io, socket, { rooms, playersInRooms }) => {
         ],
         roomName,
         maxPlayers,
-        currentRound: 0,
         roundStartTime: null,
         isPublic,
         difficulty,

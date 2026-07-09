@@ -79,12 +79,8 @@ export const processSubmission = async (
 
   // Get round data
   const roundData = room.roundData[room.currentRound];
-  if (!roundData) {
-    console.error(
-      `No round data found for room ${code} and round ${room.currentRound}`,
-    );
-    return;
-  }
+  // Init round results
+  roundData.roundResults = [];
 
   // Mark player as judging
   player.judging = true;

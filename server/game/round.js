@@ -1,4 +1,3 @@
-import { setUpGameQuestions } from "./questionHandler.js";
 import { sleep, cancellableSleep } from "../utils/timers.js";
 import { buildPlayerList } from "../utils/playerList.js";
 import {
@@ -6,7 +5,7 @@ import {
   forceSubmitPlayer,
   calculateScore,
 } from "./submission.js";
-import { determineAllEvents } from "./roundEvents.js";
+import { beforeGame } from "./beforeGame.js";
 
 // Config
 // Timers (s)
@@ -138,18 +137,11 @@ const startRound = async (io, socket, code, rooms, pendingCodeRequests) => {
   const curRound = rooms[code].currentRound + 1;
   rooms[code].currentRound = curRound;
 
-  // Construct Round Data
-  rooms[code].roundData[curRound] = { roundNumber: curRound, roundResults: [] };
-  let roundData = rooms[code].roundData[curRound];
-
-  // Determine all round events
-  determineAllEvents(io, code, roundData);
+  // Round Data
+  const roundData = rooms[code].roundData[curRound];
 
   // Begin initial countdown
   roundData.endsAt = Date.now() + 1000 * COUNTDOWN_TIMER;
-
-  // Get the question for this round
-  roundData.question = rooms[code].questions[curRound - 1];
 
   // If this is the first round, emit game-started, else emit timer-tick and send-question
   if (curRound === 1) {
@@ -318,16 +310,13 @@ export const startGame = async (
   rooms,
   pendingCodeRequests,
 ) => {
-  // Set up game questions
-  await setUpGameQuestions(io, code, rooms);
+  // Call beforeGame initialization
+  await beforeGame(rooms, code);
 
   // CHeck if room still exists
   if (!checkRoom(io, rooms, code)) {
     return;
   }
-
-  // Initialize Round data
-  rooms[code].roundData = {};
 
   // While loop to start rounds until game is over
   while (rooms[code] && rooms[code].players.length > 0) {
