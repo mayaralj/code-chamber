@@ -6,6 +6,7 @@ import {
   forceSubmitPlayer,
   calculateScore,
 } from "./submission.js";
+import { determineAllEvents } from "./roundEvents.js";
 
 // Config
 // Timers (s)
@@ -141,6 +142,9 @@ const startRound = async (io, socket, code, rooms, pendingCodeRequests) => {
   rooms[code].roundData[curRound] = { roundNumber: curRound, roundResults: [] };
   let roundData = rooms[code].roundData[curRound];
 
+  // Determine all round events
+  determineAllEvents(io, code, roundData);
+
   // Begin initial countdown
   roundData.endsAt = Date.now() + 1000 * COUNTDOWN_TIMER;
 
@@ -150,19 +154,20 @@ const startRound = async (io, socket, code, rooms, pendingCodeRequests) => {
   // If this is the first round, emit game-started, else emit timer-tick and send-question
   if (curRound === 1) {
     console.log(`Current round is 1, emitting game-started for room ${code}`);
+    console.log(`Befoere round events:`, roundData?.beforeRound);
     io.to(code).emit("game-started", {
       code,
       serverPlayers: buildPlayerList(rooms[code]),
       endsAt: roundData.endsAt,
       question: roundData.question,
+      beforeRoundEvents: roundData?.beforeRound,
     });
   } else {
-    console.log(
-      `New EndsAt for room ${code}: ${roundData.endsAt}, emitting timer-tick and send-question`,
-    );
     io.to(code).emit("timer-tick", { newEndsAt: roundData.endsAt });
-    console.log(`Emitting send-question for room ${code}`);
     io.to(code).emit("send-question", { question: roundData.question });
+    io.to(code).emit("before-round-events", {
+      beforeRoundEvents: roundData?.beforeRound,
+    });
   }
 
   // Wait for countdown to finish before sending question
