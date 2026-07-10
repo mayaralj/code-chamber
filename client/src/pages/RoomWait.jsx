@@ -43,14 +43,23 @@ const RoomWait = () => {
     });
 
     // Listen for game started
-    socket.on("game-started", ({ code, serverPlayers, endsAt, question }) => {
-      gameStartedRef.current = true;
-      console.log(`Game started in room ${code}`);
-      navigate(`/game/${code}`, {
-        replace: true,
-        state: { username, players: serverPlayers, endsAt, question },
-      });
-    });
+    socket.on(
+      "game-started",
+      ({ code, serverPlayers, endsAt, question, beforeRoundEvents }) => {
+        gameStartedRef.current = true;
+        console.log(`Game started in room ${code}`);
+        navigate(`/game/${code}`, {
+          replace: true,
+          state: {
+            username,
+            players: serverPlayers,
+            endsAt,
+            question,
+            beforeRoundEvents,
+          },
+        });
+      },
+    );
 
     // Listen for host left
     socket.on("host-left", () => {

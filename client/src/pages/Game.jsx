@@ -17,6 +17,7 @@ import { useGameQuestion } from "../hooks/gameHooks/useGameQuestion";
 import { useCodeSubmission } from "../hooks/gameHooks/useCodeSubmission";
 import { useResults } from "../hooks/gameHooks/useResults";
 import { useCodeEditor } from "../hooks/gameHooks/useCodeEditor";
+import { useRoundEvents } from "../hooks/gameHooks/useRoundEvents";
 
 const Game = () => {
   // Game Code
@@ -28,6 +29,7 @@ const Game = () => {
     players,
     endsAt: initEndsAt,
     question: initQuestion,
+    beforeRoundEvents: firstBeforeEvents,
   } = location.state || {};
   const navigate = useNavigate();
 
@@ -50,6 +52,9 @@ const Game = () => {
   } = useCodeSubmission(code, players);
   // Editor Ready
   const { editorReady, setEditorReady } = useCodeEditor();
+  // Round events
+  const { beforeRoundEvents, afterRoundEvents } =
+    useRoundEvents(firstBeforeEvents);
   // Results
   const { results, resultsReady, playerEliminated, winner } = useResults(code);
 
@@ -159,12 +164,15 @@ const Game = () => {
             results={results}
             playerEliminated={playerEliminated}
             winner={winner}
+            afterRoundEvents={afterRoundEvents}
           />
         )}
       </div>
 
       {/* Show timer until ready */}
-      {(!timerFinished || !editorReady) && <Timer timeLeft={timeLeft} />}
+      {(!timerFinished || !editorReady) && (
+        <Timer timeLeft={timeLeft} beforeRoundEvents={beforeRoundEvents} />
+      )}
     </>
   );
 };
