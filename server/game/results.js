@@ -12,7 +12,8 @@ export const sendResults = async (io, room, code, roundData) => {
   // Check if player eliminated exists, if not, set to N/A
   if (!roundData.playerEliminated) {
     console.log(`No player eliminated in room ${code}, sending results`);
-    roundData.playerEliminated = { username: "N/A" };
+    // Check if missed player exists, if so, set to that player
+    roundData.playerEliminated = { username: "No One" };
   }
   roundData.resultsEndsAt = Date.now() + 1000 * RESULTS_TIMER;
   console.log(
@@ -23,6 +24,8 @@ export const sendResults = async (io, room, code, roundData) => {
     resultsEndsAt: roundData.resultsEndsAt,
     playerEliminated: roundData.playerEliminated.username,
     players: buildPlayerList(room),
+    // if missed bullet also send that
+    missedPlayer: roundData.missedPlayer?.username || null,
   });
 
   // Sleep for results timer duration

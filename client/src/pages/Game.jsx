@@ -56,7 +56,8 @@ const Game = () => {
   const { beforeRoundEvents, afterRoundEvents } =
     useRoundEvents(firstBeforeEvents);
   // Results
-  const { results, resultsReady, playerEliminated, winner } = useResults(code);
+  const { results, resultsReady, playerEliminated, missedPlayer, winner } =
+    useResults(code);
 
   // Check with server if user is supposed to be here
   // useEffect(() => {
@@ -162,6 +163,7 @@ const Game = () => {
         {resultsReady && (
           <Results
             results={results}
+            missedPlayer={missedPlayer}
             playerEliminated={playerEliminated}
             winner={winner}
             afterRoundEvents={afterRoundEvents}

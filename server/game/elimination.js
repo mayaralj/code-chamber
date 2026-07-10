@@ -21,21 +21,28 @@ export const determinePlayerEliminated = (roundData) => {
     }
   });
 
-  roundData.playerEliminated = playerEliminated;
+  return playerEliminated;
 };
 
 // Helper to eliminate player from room
-export const eliminatePlayer = (io, room, code, roundData) => {
+export const eliminatePlayer = (
+  io,
+  room,
+  code,
+  roundData,
+  playerEliminated,
+) => {
   console.log(
-    `Eliminating player ${roundData.playerEliminated.username} from room ${code}`,
+    `Eliminating player ${playerEliminated.username} from room ${code}`,
   );
 
   // Remove player from room
-  room.players = room.players.filter(
-    (p) => p.id !== roundData.playerEliminated.id,
-  );
+  room.players = room.players.filter((p) => p.id !== playerEliminated.id);
+  // Remove from round data
+  roundData.playerEliminated = playerEliminated;
+
   // Emit to player eliminated that they have been eliminated
-  io.to(roundData.playerEliminated.id).emit("player-eliminated");
+  io.to(playerEliminated.id).emit("player-eliminated");
 
   // Remove player from socket room
   io.sockets.sockets.get(roundData.playerEliminated.id)?.leave(code);

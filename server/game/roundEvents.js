@@ -2,7 +2,7 @@
 const eventOdds = {
   doubleElimination: 0.5,
   fasterTimer: 0.5,
-  missedBullet: 0.5,
+  missedBullet: 1,
 };
 const events = {
   doubleElimination: {
@@ -49,11 +49,14 @@ export const determineAllEvents = (room) => {
       }
       // Determine if the event should run based on odds
       if (Math.random() <= eventOdds[eventName]) {
-        if (!roundData[event.type]) {
-          roundData[event.type] = [];
+        if (!roundData.roundEvents) {
+          roundData.roundEvents = {};
+        }
+        if (!roundData.roundEvents[event.type]) {
+          roundData.roundEvents[event.type] = [];
         }
         // If event should run, set it in the roundData
-        roundData[event.type].push(eventName);
+        roundData.roundEvents[event.type].push(eventName);
 
         // Decrement the allowed counter
         ALLOWED_EVENTS[eventName]--;
@@ -63,11 +66,11 @@ export const determineAllEvents = (room) => {
     // Increment round and decrement remaining players
     currentRound++;
     // If missed bullet is in afterRound events, add 1 to remaining players
-    if (roundData.afterRound?.includes("missedBullet")) {
+    if (roundData?.roundEvents?.afterRound?.includes("missedBullet")) {
       remaining += 1;
     }
     // If double elimination is in beforeRound events, subtract 2 from remaining players
-    if (roundData.beforeRound?.includes("doubleElimination")) {
+    if (roundData?.roundEvents?.beforeRound?.includes("doubleElimination")) {
       remaining -= 2;
     } else {
       remaining -= 1;

@@ -11,6 +11,8 @@ export const useResults = () => {
 
   // Player Eliminated
   const [playerEliminated, setPlayerEliminated] = useState(null);
+  // Missed Player
+  const [missedPlayer, setMissedPlayer] = useState(null);
 
   // Winner
   const [winner, setWinner] = useState(null);
@@ -36,12 +38,18 @@ export const useResults = () => {
 
   useEffect(() => {
     // Listen for results from server
-    const handleResults = ({ results, resultsEndsAt, playerEliminated }) => {
+    const handleResults = ({
+      results,
+      resultsEndsAt,
+      playerEliminated,
+      missedPlayer,
+    }) => {
       console.log(
-        `Received results from server: ${JSON.stringify(results)}, player eliminated: ${playerEliminated}, resultsEndsAt: ${resultsEndsAt}`,
+        `Received results from server: ${JSON.stringify(results)}, player eliminated: ${playerEliminated}, missed player: ${missedPlayer}, resultsEndsAt: ${resultsEndsAt}`,
       );
       setResults(results);
       setResultsReady(true);
+      setMissedPlayer(missedPlayer);
       setPlayerEliminated(playerEliminated);
       if (cleanupRef.current) {
         cleanupRef.current();
@@ -99,5 +107,5 @@ export const useResults = () => {
     };
   }, []);
 
-  return { results, resultsReady, playerEliminated, winner };
+  return { results, resultsReady, playerEliminated, missedPlayer, winner };
 };

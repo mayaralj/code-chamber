@@ -37,22 +37,23 @@ const startRound = async (io, socket, code, rooms, pendingCodeRequests) => {
   // Before Round
   const [curRound, roundData] = beforeRound(rooms[code]);
 
+  console.log(`Round events:`, roundData?.roundEvents);
+
   // If this is the first round, emit game-started, else emit timer-tick and send-question
   if (curRound === 1) {
     console.log(`Current round is 1, emitting game-started for room ${code}`);
-    console.log(`Befoere round events:`, roundData?.beforeRound);
     io.to(code).emit("game-started", {
       code,
       serverPlayers: buildPlayerList(rooms[code]),
       endsAt: roundData.endsAt,
       question: roundData.question,
-      beforeRoundEvents: roundData?.beforeRound,
+      beforeRoundEvents: roundData?.roundEvents?.beforeRound,
     });
   } else {
     io.to(code).emit("timer-tick", { newEndsAt: roundData.endsAt });
     io.to(code).emit("send-question", { question: roundData.question });
     io.to(code).emit("before-round-events", {
-      beforeRoundEvents: roundData?.beforeRound,
+      beforeRoundEvents: roundData?.roundEvents?.beforeRound,
     });
   }
 
@@ -161,8 +162,21 @@ const startRound = async (io, socket, code, rooms, pendingCodeRequests) => {
 
   // Determine player eliminated (if more than 1 player left)
   if (rooms[code].players.length > 1) {
-    determinePlayerEliminated(roundData);
-    eliminatePlayer(io, rooms[code], code, roundData);
+    const playerEliminated = determinePlayerEliminated(roundData);
+    // Dont eliminate if missed bullet
+    if (roundData?.roundEvents?.afterRound?.includes("missedBullet")) {
+      console.log(
+        `Player ${playerEliminated.username} would have been eliminated in room ${code}, but missed bullet event occurred, skipping elimination`,
+      );
+      // Emit to all players in room
+      io.to(code).emit("missed-player", {
+        player: playerEliminated,
+      });
+      roundData.missedPlayer = playerEliminated;
+    } else {
+      // Eliminate player if bullet did not miss
+      eliminatePlayer(io, rooms[code], code, roundData, playerEliminated);
+    }
   }
 
   // Check if game is over (only one player left)
