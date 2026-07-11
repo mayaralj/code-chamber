@@ -27,13 +27,14 @@ export const useRoundTimer = () => {
   }, []);
 
   useEffect(() => {
-    socket.on("round-tick", ({ roundEndsAt }) => {
+    socket.on("round-tick", ({ roundEndsAt, fasterTimer }) => {
       console.log(`Received round-tick with endsAt: ${roundEndsAt}`);
       // Game timer tick
       setRoundTimerFinished(false);
       roundTimerCleanupRef.current = playAnyTimer({
         endsAt: roundEndsAt,
         functionSetter: setRoundTimeLeft,
+        fasterTimer: fasterTimer,
       });
     });
 

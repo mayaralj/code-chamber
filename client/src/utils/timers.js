@@ -1,6 +1,6 @@
 // Helper function to play timer with given end time
 export const playAnyTimer = ({ endsAt, functionSetter, fasterTimer = 1 }) => {
-  let lastSecond = -1;
+  let lastSecond = null;
   let interval;
 
   // Track the starting duration and the time when the timer started

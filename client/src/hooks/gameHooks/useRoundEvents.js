@@ -1,11 +1,9 @@
 import { useState, useEffect, useRef } from "react";
 import socket from "../../socket";
 
-// Import timer utils
-import { playAnyTimer } from "../../utils/timers.js";
-
 // Round Timer
 export const useRoundEvents = (firstBeforeEvents) => {
+  console.log(`useRoundEvents firstBeforeEvents: ${firstBeforeEvents}`);
   const [beforeRoundEvents, setBeforeRoundEvents] = useState(firstBeforeEvents);
   const [afterRoundEvents, setAfterRoundEvents] = useState(null);
 
@@ -27,9 +25,7 @@ export const useRoundEvents = (firstBeforeEvents) => {
   // Listen for events
   useEffect(() => {
     socket.on("before-round-events", ({ beforeRoundEvents }) => {
-      console.log(
-        `Received before-round-events: ${JSON.stringify(beforeRoundEvents)}`,
-      );
+      console.log(`Received before-round-events: ${beforeRoundEvents}`);
       setBeforeRoundEvents(beforeRoundEvents);
     });
 

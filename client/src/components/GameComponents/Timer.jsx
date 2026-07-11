@@ -6,9 +6,9 @@ const Timer = ({ timeLeft, beforeRoundEvents }) => {
         <div className="mt-4">
           <h2 className="text-xl font-bold">Before Round Events:</h2>
           <ul>
-            {beforeRoundEvents.map((event, index) => (
-              <li key={index} className="text-lg">
-                {event}
+            {Object.keys(beforeRoundEvents).map((eventName) => (
+              <li key={eventName} className="text-lg">
+                {eventName}
               </li>
             ))}
           </ul>

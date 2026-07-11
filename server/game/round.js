@@ -36,8 +36,9 @@ const beforeRound = (room) => {
 const startRound = async (io, socket, code, rooms, pendingCodeRequests) => {
   // Before Round
   const [curRound, roundData] = beforeRound(rooms[code]);
+  const roundEvents = roundData?.roundEvents;
 
-  console.log(`Round events:`, roundData?.roundEvents);
+  console.log(`Round events:`, roundEvents);
 
   // If this is the first round, emit game-started, else emit timer-tick and send-question
   if (curRound === 1) {
@@ -47,13 +48,13 @@ const startRound = async (io, socket, code, rooms, pendingCodeRequests) => {
       serverPlayers: buildPlayerList(rooms[code]),
       endsAt: roundData.endsAt,
       question: roundData.question,
-      beforeRoundEvents: roundData?.roundEvents?.beforeRound,
+      beforeRoundEvents: roundEvents?.beforeRound,
     });
   } else {
     io.to(code).emit("timer-tick", { newEndsAt: roundData.endsAt });
     io.to(code).emit("send-question", { question: roundData.question });
     io.to(code).emit("before-round-events", {
-      beforeRoundEvents: roundData?.roundEvents?.beforeRound,
+      beforeRoundEvents: roundEvents?.beforeRound,
     });
   }
 
@@ -68,9 +69,20 @@ const startRound = async (io, socket, code, rooms, pendingCodeRequests) => {
 
   // Save start round time
   roundData.roundStartTime = Date.now();
+  const fasterTimer = roundEvents?.beforeRound?.fasterTimer;
   roundData.roundEndsAt = Date.now() + 1000 * ROUND_TIMER;
+
   // Start game timer
-  io.to(code).emit("round-tick", { roundEndsAt: roundData.roundEndsAt });
+  io.to(code).emit("round-tick", {
+    roundEndsAt: roundData.roundEndsAt,
+    fasterTimer,
+  });
+
+  // If faster timer event is active, half the round timer
+  // send to client the original though and it handles the faster timer multiplier visually
+  if (fasterTimer) {
+    roundData.roundEndsAt = Date.now() + 1000 * (ROUND_TIMER / fasterTimer);
+  }
 
   // Create a new promise and cancel function for the round timer
   const { promise: roundTimerPromise, cancel: cancelRoundTimer } =
@@ -164,7 +176,7 @@ const startRound = async (io, socket, code, rooms, pendingCodeRequests) => {
   if (rooms[code].players.length > 1) {
     const playerEliminated = determinePlayerEliminated(roundData);
     // Dont eliminate if missed bullet
-    if (roundData?.roundEvents?.afterRound?.includes("missedBullet")) {
+    if (roundEvents?.afterRound?.missedBullet) {
       console.log(
         `Player ${playerEliminated.username} would have been eliminated in room ${code}, but missed bullet event occurred, skipping elimination`,
       );
