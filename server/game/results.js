@@ -9,20 +9,14 @@ const GAME_OVER_TIMER = 5;
 
 // Send results
 export const sendResults = async (io, room, code, roundData) => {
-  // Check if player eliminated exists, if not, set to N/A
-  if (!roundData.playerEliminated) {
-    console.log(`No player eliminated in room ${code}, sending results`);
-    // Check if missed player exists, if so, set to that player
-    roundData.playerEliminated = { username: "No One" };
-  }
+  // Calculate results ends at
   roundData.resultsEndsAt = Date.now() + 1000 * RESULTS_TIMER;
-  console.log(
-    `Sending results for room ${code}, player eliminated: ${roundData.playerEliminated.username}`,
-  );
+  // Send results to players in room
   io.to(code).emit("send-results", {
     results: roundData.roundResults,
     resultsEndsAt: roundData.resultsEndsAt,
-    playerEliminated: roundData.playerEliminated.username,
+    eliminatedPlayers:
+      roundData?.eliminatedPlayers?.map((p) => p.username) || [],
     players: buildPlayerList(room),
     // if missed bullet also send that
     missedPlayer: roundData.missedPlayer?.username || null,
@@ -37,16 +31,13 @@ export const sendResults = async (io, room, code, roundData) => {
 
 // Game over helper
 export const gameOver = async (io, rooms, code, roundData, winner) => {
-  // Check if player eliminated exists, if not, set to N/A
-  if (!roundData.playerEliminated) {
-    console.log(`No player eliminated in room ${code}, sending results`);
-    roundData.playerEliminated = { username: "N/A" };
-  }
+  // Send game over data
   const gameOverEndsAt = Date.now() + 1000 * GAME_OVER_TIMER;
   io.to(code).emit("game-over", {
     results: roundData.roundResults,
     gameOverEndsAt,
-    playerEliminated: roundData.playerEliminated.username,
+    eliminatedPlayers:
+      roundData.eliminatedPlayers?.map((p) => p.username) || [],
     winner: winner?.username,
   });
 

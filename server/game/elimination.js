@@ -1,9 +1,13 @@
 // Helper to determine player eliminated
-export const determinePlayerEliminated = (roundData) => {
+export const determinePlayerEliminated = (roundData, ignorePlayer) => {
   // For each player, find their total score and have a chance to be eliminated based on score
   let highestChance = -Infinity;
   let playerEliminated = null;
   roundData.roundResults.forEach((result) => {
+    // Ignore player if specified
+    if (ignorePlayer && result.player.id === ignorePlayer.id) {
+      return;
+    }
     const score = result.score;
     // Higher score means lower chance of elimination
     const weight = 1 - score / 100;
@@ -39,11 +43,14 @@ export const eliminatePlayer = (
   // Remove player from room
   room.players = room.players.filter((p) => p.id !== playerEliminated.id);
   // Remove from round data
-  roundData.playerEliminated = playerEliminated;
+  if (!roundData.eliminatedPlayers) {
+    roundData.eliminatedPlayers = [];
+  }
+  roundData.eliminatedPlayers.push(playerEliminated);
 
   // Emit to player eliminated that they have been eliminated
   io.to(playerEliminated.id).emit("player-eliminated");
 
   // Remove player from socket room
-  io.sockets.sockets.get(roundData.playerEliminated.id)?.leave(code);
+  io.sockets.sockets.get(playerEliminated.id)?.leave(code);
 };

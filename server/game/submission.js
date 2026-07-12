@@ -80,7 +80,9 @@ export const processSubmission = async (
   // Get round data
   const roundData = room.roundData[room.currentRound];
   // Init round results
-  roundData.roundResults = [];
+  if (!roundData.roundResults) {
+    roundData.roundResults = [];
+  }
 
   // Mark player as judging
   player.judging = true;

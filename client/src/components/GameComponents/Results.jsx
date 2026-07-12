@@ -1,6 +1,6 @@
 const Results = ({
   results,
-  playerEliminated,
+  eliminatedPlayers,
   missedPlayer,
   winner,
   afterRoundEvents,
@@ -58,10 +58,16 @@ const Results = ({
         )}
 
         {/* Player Eliminated Under all the players and their scores */}
-        {playerEliminated && (
+        {eliminatedPlayers.length > 0 && (
           <div className="mt-4 p-4 text-white rounded-lg text-center">
-            <p className="text-xl font-bold">Player Eliminated:</p>
-            <p>{playerEliminated}</p>
+            <p className="text-xl font-bold">Players Eliminated:</p>
+            <ul>
+              {eliminatedPlayers.map((player, index) => (
+                <li key={index} className="text-lg">
+                  {player}
+                </li>
+              ))}
+            </ul>
           </div>
         )}
 

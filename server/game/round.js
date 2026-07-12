@@ -175,6 +175,22 @@ const startRound = async (io, socket, code, rooms, pendingCodeRequests) => {
   // Determine player eliminated (if more than 1 player left)
   if (rooms[code].players.length > 1) {
     const playerEliminated = determinePlayerEliminated(roundData);
+    console.log(
+      rooms[code].players.length,
+      `players left in room ${code}, eliminating player ${playerEliminated.username}`,
+    );
+    // If double elimination determine a second player eliminated
+    if (
+      roundEvents?.beforeRound?.doubleElimination &&
+      rooms[code].players.length > 2
+    ) {
+      const secondPlayerEliminated = determinePlayerEliminated(
+        roundData,
+        playerEliminated,
+      );
+      // Eliminate second player
+      eliminatePlayer(io, rooms[code], code, roundData, secondPlayerEliminated);
+    }
     // Dont eliminate if missed bullet
     if (roundEvents?.afterRound?.missedBullet) {
       console.log(

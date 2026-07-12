@@ -10,7 +10,7 @@ export const useResults = () => {
   const cleanupRef = useState(null);
 
   // Player Eliminated
-  const [playerEliminated, setPlayerEliminated] = useState(null);
+  const [eliminatedPlayers, setEliminatedPlayers] = useState([]);
   // Missed Player
   const [missedPlayer, setMissedPlayer] = useState(null);
 
@@ -23,7 +23,8 @@ export const useResults = () => {
       setResults(null);
       setResultsTimer(null);
       setResultsReady(false);
-      setPlayerEliminated(null);
+      setMissedPlayer(null);
+      setEliminatedPlayers([]);
       setWinner(null);
     };
 
@@ -41,16 +42,13 @@ export const useResults = () => {
     const handleResults = ({
       results,
       resultsEndsAt,
-      playerEliminated,
+      eliminatedPlayers,
       missedPlayer,
     }) => {
-      console.log(
-        `Received results from server: ${JSON.stringify(results)}, player eliminated: ${playerEliminated}, missed player: ${missedPlayer}, resultsEndsAt: ${resultsEndsAt}`,
-      );
       setResults(results);
       setResultsReady(true);
       setMissedPlayer(missedPlayer);
-      setPlayerEliminated(playerEliminated);
+      setEliminatedPlayers(eliminatedPlayers);
       if (cleanupRef.current) {
         cleanupRef.current();
       }
@@ -75,15 +73,10 @@ export const useResults = () => {
     // Game over connections
     socket.on(
       "game-over",
-      ({ results, gameOverEndsAt, playerEliminated, winner }) => {
-        console.log(
-          `Received game over from server: ${JSON.stringify(
-            results,
-          )}, player eliminated: ${playerEliminated}, winner: ${winner}, gameOverEndsAt: ${gameOverEndsAt}`,
-        );
+      ({ results, gameOverEndsAt, eliminatedPlayers, winner }) => {
         setResults(results);
         setResultsReady(true);
-        setPlayerEliminated(playerEliminated);
+        setEliminatedPlayers(eliminatedPlayers);
         setWinner(winner);
         if (cleanupRef.current) {
           cleanupRef.current();
@@ -107,5 +100,5 @@ export const useResults = () => {
     };
   }, []);
 
-  return { results, resultsReady, playerEliminated, missedPlayer, winner };
+  return { results, resultsReady, eliminatedPlayers, missedPlayer, winner };
 };
