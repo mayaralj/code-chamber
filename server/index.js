@@ -13,6 +13,10 @@ import initSocket from "./socket/socket.js";
 // Container pool
 import { startPool, stopPool } from "./executor/containerPool.js";
 
+// Auth
+import { toNodeHandler } from "better-auth/node";
+import auth from "./auth.js";
+
 // Database
 import db from "./db.js";
 // db.query("SELECT NOW()", (err, res) => {
@@ -28,6 +32,8 @@ const PORT = process.env.PORT || 5000;
 
 // Define app
 const app = express();
+// Use auth for all /api/auth/* routes
+app.all("/api/auth/*splat", toNodeHandler(auth));
 app.use(express.json());
 
 // Server
