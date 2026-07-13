@@ -13,7 +13,7 @@ import { sendResults, gameOver } from "./results.js";
 // Config
 // Timers (s)
 const COUNTDOWN_TIMER = 5;
-const ROUND_TIMER = 60;
+const ROUND_TIMER = 15;
 // Timeouts (ms)
 const FORCE_SUBMIT_TIMEOUT = 5000;
 
@@ -69,24 +69,22 @@ const startRound = async (io, socket, code, rooms, pendingCodeRequests) => {
 
   // Save start round time
   roundData.roundStartTime = Date.now();
-  const fasterTimer = roundEvents?.beforeRound?.fasterTimer;
+  const timeMultiplier = roundEvents?.beforeRound?.fasterTimer || 1;
+  console.log(`Time multiplier for room ${code}: ${timeMultiplier}`);
   roundData.roundEndsAt = Date.now() + 1000 * ROUND_TIMER;
 
   // Start game timer
   io.to(code).emit("round-tick", {
     roundEndsAt: roundData.roundEndsAt,
-    fasterTimer,
+    timeMultiplier,
   });
 
-  // If faster timer event is active, half the round timer
   // send to client the original though and it handles the faster timer multiplier visually
-  if (fasterTimer) {
-    roundData.roundEndsAt = Date.now() + 1000 * (ROUND_TIMER / fasterTimer);
-  }
+  roundData.roundEndsAt = Date.now() + 1000 * (ROUND_TIMER / timeMultiplier);
 
   // Create a new promise and cancel function for the round timer
   const { promise: roundTimerPromise, cancel: cancelRoundTimer } =
-    cancellableSleep(ROUND_TIMER * 1000);
+    cancellableSleep((ROUND_TIMER / timeMultiplier) * 1000);
 
   // Save the cancel function in the room so it can be cancelled if all players submit early
   roundData.cancelRoundTimer = cancelRoundTimer;

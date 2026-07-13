@@ -27,20 +27,21 @@ export const useRoundTimer = () => {
   }, []);
 
   useEffect(() => {
-    socket.on("round-tick", ({ roundEndsAt, fasterTimer }) => {
+    socket.on("round-tick", ({ roundEndsAt, timeMultiplier }) => {
       console.log(`Received round-tick with endsAt: ${roundEndsAt}`);
       // Game timer tick
       setRoundTimerFinished(false);
       roundTimerCleanupRef.current = playAnyTimer({
         endsAt: roundEndsAt,
         functionSetter: setRoundTimeLeft,
-        fasterTimer: fasterTimer,
+        timeMultiplier,
       });
     });
 
     // Game timer finished
     socket.on("round-timer-finished", () => {
       setRoundTimerFinished(true);
+      setRoundTimeLeft(0);
       if (roundTimerCleanupRef.current) {
         roundTimerCleanupRef.current();
         roundTimerCleanupRef.current = null;

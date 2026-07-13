@@ -45,6 +45,7 @@ export const useCountdownTimer = (initEndsAt) => {
 
     socket.on("timer-finished", () => {
       setTimerFinished(true);
+      setTimeLeft(0);
       if (cleanupRef.current) {
         cleanupRef.current();
         cleanupRef.current = null;

@@ -1,5 +1,9 @@
 // Helper function to play timer with given end time
-export const playAnyTimer = ({ endsAt, functionSetter, fasterTimer = 1 }) => {
+export const playAnyTimer = ({
+  endsAt,
+  functionSetter,
+  timeMultiplier = 1,
+}) => {
   let lastSecond = null;
   let interval;
 
@@ -11,7 +15,7 @@ export const playAnyTimer = ({ endsAt, functionSetter, fasterTimer = 1 }) => {
   const tick = () => {
     const now = Date.now();
     // Calculate elapsed time and adjust for faster timer multiplier
-    const elapsedMs = (now - startedAt) * fasterTimer;
+    const elapsedMs = (now - startedAt) * timeMultiplier;
     const timeLeft = Math.max(
       0,
       Math.ceil((startingDuration - elapsedMs) / 1000),
