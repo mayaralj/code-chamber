@@ -13,7 +13,7 @@ import { sendResults, gameOver } from "./results.js";
 // Config
 // Timers (s)
 const COUNTDOWN_TIMER = 5;
-const ROUND_TIMER = 30;
+const ROUND_TIMER = 60;
 // Timeouts (ms)
 const FORCE_SUBMIT_TIMEOUT = 5000;
 
