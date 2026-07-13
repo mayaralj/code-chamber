@@ -51,10 +51,12 @@ const startRound = async (io, socket, code, rooms, pendingCodeRequests) => {
       beforeRoundEvents: roundEvents?.beforeRound,
     });
   } else {
-    io.to(code).emit("timer-tick", { newEndsAt: roundData.endsAt });
-    io.to(code).emit("send-question", { question: roundData.question });
-    io.to(code).emit("before-round-events", {
+    // Emit to each client that new round is starting and send updated player list
+    io.to(code).emit("new-round", {
+      newEndsAt: roundData.endsAt,
+      question: roundData.question,
       beforeRoundEvents: roundEvents?.beforeRound,
+      players: buildPlayerList(rooms[code]),
     });
   }
 
@@ -239,9 +241,6 @@ const startRound = async (io, socket, code, rooms, pendingCodeRequests) => {
     player.judging = false;
     player.codeInput = "";
   });
-
-  // Emit to each client that round has ended and new round is starting to reset their states
-  io.to(code).emit("new-round", { players: buildPlayerList(rooms[code]) });
 };
 
 export default startRound;

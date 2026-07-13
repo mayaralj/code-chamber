@@ -1,16 +1,17 @@
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect } from "react";
 import socket from "../../socket";
 
 // Round Timer
 export const useRoundEvents = (firstBeforeEvents) => {
   console.log(`useRoundEvents firstBeforeEvents: ${firstBeforeEvents}`);
+  // Initial before round events (from game started)
   const [beforeRoundEvents, setBeforeRoundEvents] = useState(firstBeforeEvents);
   const [afterRoundEvents, setAfterRoundEvents] = useState(null);
 
   // Handle new round start by resetting states
   useEffect(() => {
-    const handleNewRound = () => {
-      setBeforeRoundEvents(null);
+    const handleNewRound = ({ beforeRoundEvents }) => {
+      setBeforeRoundEvents(beforeRoundEvents);
       setAfterRoundEvents(null);
     };
 
@@ -19,27 +20,6 @@ export const useRoundEvents = (firstBeforeEvents) => {
     // Cleanup
     return () => {
       socket.off("new-round", handleNewRound);
-    };
-  });
-
-  // Listen for events
-  useEffect(() => {
-    socket.on("before-round-events", ({ beforeRoundEvents }) => {
-      console.log(`Received before-round-events: ${beforeRoundEvents}`);
-      setBeforeRoundEvents(beforeRoundEvents);
-    });
-
-    socket.on("after-round-events", ({ afterRoundEvents }) => {
-      console.log(
-        `Received after-round-events: ${JSON.stringify(afterRoundEvents)}`,
-      );
-      setAfterRoundEvents(afterRoundEvents);
-    });
-
-    // Cleanup
-    return () => {
-      socket.off("before-round-events");
-      socket.off("after-round-events");
     };
   }, []);
 

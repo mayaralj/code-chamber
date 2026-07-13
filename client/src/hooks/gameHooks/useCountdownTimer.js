@@ -12,8 +12,15 @@ export const useCountdownTimer = (initEndsAt) => {
 
   // Handle new round start by resetting states
   useEffect(() => {
-    const handleNewRound = () => {
+    const handleNewRound = ({ newEndsAt }) => {
       setTimerFinished(false);
+      if (cleanupRef.current) {
+        cleanupRef.current();
+      }
+      cleanupRef.current = playAnyTimer({
+        endsAt: newEndsAt,
+        functionSetter: setTimeLeft,
+      });
     };
 
     // Listen for new round event
@@ -26,23 +33,11 @@ export const useCountdownTimer = (initEndsAt) => {
   }, []);
 
   useEffect(() => {
-    // If no initial endsAt is provided, do not start the timer
+    // Play initial ends at (happens only when game started)
     if (!initEndsAt) return;
     playAnyTimer({ endsAt: initEndsAt, functionSetter: setTimeLeft });
 
-    // Listen for timer tick and finished events
-    socket.on("timer-tick", ({ newEndsAt }) => {
-      setTimerFinished(false);
-      console.log("Received newEndsAt:", newEndsAt);
-      if (cleanupRef.current) {
-        cleanupRef.current();
-      }
-      cleanupRef.current = playAnyTimer({
-        endsAt: newEndsAt,
-        functionSetter: setTimeLeft,
-      });
-    });
-
+    // Listen for timer finished event
     socket.on("timer-finished", () => {
       setTimerFinished(true);
       setTimeLeft(0);
@@ -54,7 +49,6 @@ export const useCountdownTimer = (initEndsAt) => {
 
     // Cleanup on unmount
     return () => {
-      socket.off("timer-tick");
       socket.off("timer-finished");
     };
   }, []);

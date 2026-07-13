@@ -8,11 +8,11 @@ export const useGameQuestion = (initQuestion) => {
     initQuestion?.starterCode || "",
   );
 
-  // Handle new round start by resetting states
+  // Handle new round start by setting new question and starter code
   useEffect(() => {
-    const handleNewRound = () => {
-      setQuestion(null);
-      setStarterCode("");
+    const handleNewRound = ({ question }) => {
+      setQuestion(question);
+      setStarterCode(question.starterCode);
     };
 
     // Listen for new round event
@@ -24,17 +24,5 @@ export const useGameQuestion = (initQuestion) => {
     };
   }, []);
 
-  // Get the Question from server
-  useEffect(() => {
-    socket.on("send-question", ({ question }) => {
-      setQuestion(question);
-      setStarterCode(question.starterCode);
-    });
-
-    // Cleanup
-    return () => {
-      socket.off("send-question");
-    };
-  }, []);
   return { question, starterCode };
 };
