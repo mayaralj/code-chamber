@@ -79,6 +79,10 @@ export const processSubmission = async (
 
   // Get round data
   const roundData = room.roundData[room.currentRound];
+  // Check if submissions are allowed
+  if (!roundData.submissionsAllowed) {
+    return;
+  }
   // Init round results
   if (!roundData.roundResults) {
     roundData.roundResults = [];

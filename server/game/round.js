@@ -82,6 +82,9 @@ const startRound = async (io, socket, code, rooms, pendingCodeRequests) => {
   // send to client the original though and it handles the faster timer multiplier visually
   roundData.roundEndsAt = Date.now() + 1000 * (ROUND_TIMER / timeMultiplier);
 
+  // Allow submissions now
+  roundData.submissionsAllowed = true;
+
   // Create a new promise and cancel function for the round timer
   const { promise: roundTimerPromise, cancel: cancelRoundTimer } =
     cancellableSleep((ROUND_TIMER / timeMultiplier) * 1000);
@@ -162,13 +165,18 @@ const startRound = async (io, socket, code, rooms, pendingCodeRequests) => {
     return;
   }
 
+  // Disable submissions now
+  roundData.submissionsAllowed = false;
+
   // Calculate scores for all players
-  roundData.roundResults.forEach((result) => {
-    result.score = calculateScore(
-      result,
-      roundData.averageExecutionTime[result.languageUsed],
-    );
-  });
+  if (roundData.roundResults) {
+    roundData.roundResults.forEach((result) => {
+      result.score = calculateScore(
+        result,
+        roundData.averageExecutionTime[result.languageUsed],
+      );
+    });
+  }
 
   // Determine player eliminated (if more than 1 player left)
   if (rooms[code].players.length > 1) {
