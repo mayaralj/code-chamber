@@ -11,6 +11,11 @@ const beforeGame = async (rooms, code) => {
   // Determine all events (which also determines how many rounds there will be)
   determineAllEvents(rooms[code]);
 
+  // Loop through all players and init their gameData
+  rooms[code].players.forEach((player) => {
+    player.gameData = {};
+  });
+
   // Set up game questions
   await setUpGameQuestions(rooms, code);
 };

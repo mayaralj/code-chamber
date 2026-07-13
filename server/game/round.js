@@ -26,6 +26,19 @@ const beforeRound = (room) => {
   // Round Data
   const roundData = room.roundData[curRound];
 
+  // Loop through all players and init their new round Data for this round
+  room.players.forEach((player) => {
+    const playerGameData = player.gameData;
+    if (!playerGameData.roundData) {
+      playerGameData.roundData = {};
+    }
+    playerGameData.roundData[curRound] = {
+      submitted: false,
+      judging: false,
+      codeInput: "",
+    };
+  });
+
   // Begin initial countdown
   roundData.endsAt = Date.now() + 1000 * COUNTDOWN_TIMER;
 
@@ -107,9 +120,10 @@ const startRound = async (io, socket, code, rooms, pendingCodeRequests) => {
   io.to(code).emit("round-timer-finished");
 
   // List all unsubmitted players (not submitted and not judging)
-  const unsubmittedPlayers = rooms[code].players.filter(
-    (p) => !p.submitted && !p.judging,
-  );
+  const unsubmittedPlayers = rooms[code].players.filter((p) => {
+    const playerRoundData = p?.gameData?.roundData?.[curRound];
+    return !playerRoundData?.submitted && !playerRoundData?.judging;
+  });
 
   // Force submit all players
   const forceSubmitAll = await Promise.all(
@@ -234,13 +248,6 @@ const startRound = async (io, socket, code, rooms, pendingCodeRequests) => {
   if (!checkRoom(io, rooms, code)) {
     return;
   }
-
-  // Reset player states
-  rooms[code].players.forEach((player) => {
-    player.submitted = false;
-    player.judging = false;
-    player.codeInput = "";
-  });
 };
 
 export default startRound;

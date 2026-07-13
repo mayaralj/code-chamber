@@ -53,4 +53,7 @@ export const eliminatePlayer = (
 
   // Remove player from socket room
   io.sockets.sockets.get(playerEliminated.id)?.leave(code);
+
+  // Delete the player's gameData
+  delete playerEliminated.gameData;
 };

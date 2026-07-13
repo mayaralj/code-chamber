@@ -73,7 +73,12 @@ export const processSubmission = async (
   submitTime,
 ) => {
   // Ensure player hasnt been submitted or being processed
-  if (player?.submitted || player?.judging) {
+  const playerRoundData = player?.gameData?.roundData?.[room.currentRound];
+  if (
+    !playerRoundData ||
+    playerRoundData.submitted ||
+    playerRoundData.judging
+  ) {
     return;
   }
 
@@ -89,7 +94,7 @@ export const processSubmission = async (
   }
 
   // Mark player as judging
-  player.judging = true;
+  playerRoundData.judging = true;
   notifyJudging(io, player.id, room, code);
 
   // Fetch test cases for the current question
@@ -116,8 +121,8 @@ export const processSubmission = async (
   result.numOfTestCases = testCases.length;
 
   // Update player status
-  player.judging = false;
-  player.submitted = true;
+  playerRoundData.judging = false;
+  playerRoundData.submitted = true;
   notifySubmission(io, player.id, room, code);
 
   // Store results in current round results

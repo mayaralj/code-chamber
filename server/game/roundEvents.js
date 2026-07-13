@@ -1,8 +1,8 @@
 // CONFIG
 const eventOdds = {
-  doubleElimination: 0,
+  doubleElimination: 0.5,
   fasterTimer: 0.5,
-  missedBullet: 1,
+  missedBullet: 0.5,
 };
 const events = {
   doubleElimination: {

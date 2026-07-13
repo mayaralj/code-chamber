@@ -48,7 +48,13 @@ const setUpGameSockets = (
     io.to(code).emit("player-left", { players: buildPlayerList(room) });
 
     // Check if all players have submitted after someone leaves or player is only one left
-    if (room.players.every((p) => p.submitted) || room.players.length === 1) {
+    if (
+      room.players.every((p) => {
+        const playerRoundData = p?.gameData?.roundData?.[room.currentRound];
+        return playerRoundData?.submitted;
+      }) ||
+      room.players.length === 1
+    ) {
       if (room.roundData[room.currentRound]?.cancelRoundTimer) {
         // Force end round
         room.roundData[room.currentRound].cancelRoundTimer();
@@ -98,7 +104,16 @@ const setUpGameSockets = (
 
       // Check if player is valid and not already submitted or judging
       const player = room.players.find((p) => p.id === socket.id);
-      if (!player || player.submitted || player.judging) {
+      if (!player) {
+        socket.emit("submit-code-error", { message: "Player not found" });
+        return;
+      }
+      const playerRoundData = player?.gameData?.roundData?.[room.currentRound];
+      if (
+        !playerRoundData ||
+        playerRoundData?.submitted ||
+        playerRoundData?.judging
+      ) {
         return;
       }
 
@@ -155,7 +170,11 @@ const setUpGameSockets = (
       roundData.pendingSubmissions.delete(player.id);
 
       // If all players have submitted, stop game timer to send all results
-      if (room.players.every((p) => p.submitted)) {
+      if (
+        room.players.every(
+          (p) => p?.gameData?.roundData?.[room.currentRound]?.submitted,
+        )
+      ) {
         if (roundData.cancelRoundTimer) {
           console.log(
             `All players have submitted in room ${code}, cancelling round timer`,

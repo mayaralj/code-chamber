@@ -112,9 +112,7 @@ const setUpRoomSockets = (io, socket, { rooms, playersInRooms }) => {
       rooms[code] = {
         host: { id: socket.id, username },
         code,
-        players: [
-          { id: socket.id, username, submitted: false, submitTime: null },
-        ],
+        players: [{ id: socket.id, username }],
         roomName,
         maxPlayers,
         roundStartTime: null,
@@ -155,8 +153,6 @@ const setUpRoomSockets = (io, socket, { rooms, playersInRooms }) => {
     room.players.push({
       id: socket.id,
       username,
-      submitted: false,
-      submitTime: null,
     });
 
     // Put player in the room
