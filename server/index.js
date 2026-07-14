@@ -54,8 +54,22 @@ const playersInRooms = {};
 app.use("/api/questions", questionsRouter(rooms));
 app.use("/api/users", usersRouter);
 
+// On shutdown, cleanup
+const serverShutdown = async (signal) => {
+  console.log(`---SHUTTING DOWN SERVER (${signal})---`);
+  try {
+    // Stop pool and clean up containers
+    await stopPool();
+  } catch (error) {
+    console.error("Error during pool shutdown:", error);
+  } finally {
+    console.log("SERVER HAS BEEN SHUTDOWN");
+    process.exit(0);
+  }
+};
+
 // Queries
-const startup = async () => {
+const serverStartup = async () => {
   try {
     // List out all of the queries
     const queries = {
@@ -85,35 +99,22 @@ const startup = async () => {
     server.listen(PORT, () => {
       console.log(`SERVER STARTED ON PORT ${PORT}`);
     });
+
+    // Handle shutdown signals
+    process.on("SIGINT", async () => {
+      process.exitCode = 0;
+      await serverShutdown("SIGINT");
+    });
+    process.on("SIGTERM", async () => {
+      process.exitCode = 0;
+      await serverShutdown("SIGTERM");
+    });
   } catch (err) {
     // Exit server on error
-    console.error("Failed to execute queries:", err);
+    console.error("SERVER STARTUP FAILED:", err);
     process.exit(1);
   }
 };
 
-startup();
-
-// On shutdown, cleanup
-const onShutdown = async (signal) => {
-  console.log(`---SHUTTING DOWN SERVER (${signal})---`);
-  try {
-    // Stop pool and clean up containers
-    await stopPool();
-  } catch (error) {
-    console.error("Error during pool shutdown:", error);
-  } finally {
-    console.log("SERVER HAS BEEN SHUTDOWN");
-    process.exit(0);
-  }
-};
-
-// Handle shutdown signals
-process.on("SIGINT", async () => {
-  process.exitCode = 0;
-  await onShutdown("SIGINT");
-});
-process.on("SIGTERM", async () => {
-  process.exitCode = 0;
-  await onShutdown("SIGTERM");
-});
+// Start the server
+serverStartup();
