@@ -1,74 +1,19 @@
 // Imports
-import express from "express";
-import { Server } from "socket.io";
-import http from "http";
-
-// Routes
-import questionsRouter from "./routes/questions.js";
-import usersRouter from "./routes/users.js";
-
-// Socket
+import { createServer } from "./server.js";
+import { createApp } from "./app.js";
+import { startPool } from "./executor/containerPool.js";
+import { registerShutdownSignals } from "./shutdown.js";
 import initSocket from "./socket/socket.js";
-
-// Container pool
-import { startPool, stopPool } from "./executor/containerPool.js";
-
-// Auth
-import { toNodeHandler } from "better-auth/node";
-import auth from "./auth.js";
-
-// Database
 import db from "./db.js";
-// db.query("SELECT NOW()", (err, res) => {
-//   if (err) {
-//     console.error("Database connection failed:", err);
-//   } else {
-//     console.log("Database connected at:", res.rows[0]);
-//   }
-// });
 
 // Port
 const PORT = process.env.PORT || 5000;
 
-// Define app
-const app = express();
-// Use auth for all /api/auth/* routes
-app.all("/api/auth/*splat", toNodeHandler(auth));
-app.use(express.json());
-
-// Server
-const server = http.createServer(app);
-const io = new Server(server, {
-  cors: {
-    origin: "http://localhost:3000",
-  },
-});
-
-// Store active rooms
+// Rooms and players in rooms
 const rooms = {};
-
-// Store players in rooms
 const playersInRooms = {};
 
-// Use the routes
-app.use("/api/questions", questionsRouter(rooms));
-app.use("/api/users", usersRouter);
-
-// On shutdown, cleanup
-const serverShutdown = async (signal) => {
-  console.log(`---SHUTTING DOWN SERVER (${signal})---`);
-  try {
-    // Stop pool and clean up containers
-    await stopPool();
-  } catch (error) {
-    console.error("Error during pool shutdown:", error);
-  } finally {
-    console.log("SERVER HAS BEEN SHUTDOWN");
-    process.exit(0);
-  }
-};
-
-// Queries
+// Server startup function
 const serverStartup = async () => {
   try {
     // List out all of the queries
@@ -92,6 +37,10 @@ const serverStartup = async () => {
     // Start the container pool
     await startPool();
 
+    // Create the app and server
+    const app = createApp();
+    const { server, io } = createServer(app);
+
     // Socket initialization
     initSocket(io, { rooms, playersInRooms, ...data });
 
@@ -100,15 +49,8 @@ const serverStartup = async () => {
       console.log(`SERVER STARTED ON PORT ${PORT}`);
     });
 
-    // Handle shutdown signals
-    process.on("SIGINT", async () => {
-      process.exitCode = 0;
-      await serverShutdown("SIGINT");
-    });
-    process.on("SIGTERM", async () => {
-      process.exitCode = 0;
-      await serverShutdown("SIGTERM");
-    });
+    // Register shutdown signals
+    registerShutdownSignals();
   } catch (err) {
     // Exit server on error
     console.error("SERVER STARTUP FAILED:", err);
