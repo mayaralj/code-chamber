@@ -50,9 +50,6 @@ const rooms = {};
 // Store players in rooms
 const playersInRooms = {};
 
-// Pending code requests
-const pendingCodeRequests = new Map();
-
 // Use the routes
 app.use("/api/questions", questionsRouter(rooms));
 app.use("/api/users", usersRouter);
@@ -82,7 +79,7 @@ const startup = async () => {
     await startPool();
 
     // Socket initialization
-    initSocket(io, { rooms, playersInRooms, pendingCodeRequests, ...data });
+    initSocket(io, { rooms, playersInRooms, ...data });
 
     // Start the server
     server.listen(PORT, () => {

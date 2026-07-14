@@ -46,7 +46,7 @@ const beforeRound = (room) => {
 };
 
 // Start round
-const startRound = async (io, socket, code, rooms, pendingCodeRequests) => {
+const startRound = async (io, socket, code, rooms) => {
   // Before Round
   const [curRound, roundData] = beforeRound(rooms[code]);
   const roundEvents = roundData?.roundEvents;
@@ -134,7 +134,7 @@ const startRound = async (io, socket, code, rooms, pendingCodeRequests) => {
       return forceSubmitPlayer(
         player,
         io,
-        pendingCodeRequests,
+        rooms[code].pendingCodeRequests,
         FORCE_SUBMIT_TIMEOUT,
       );
     }),

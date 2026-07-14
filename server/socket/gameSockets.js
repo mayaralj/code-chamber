@@ -7,11 +7,7 @@ import { buildPlayerList } from "../utils/playerList.js";
 // Import round manager
 import startGame from "../game/startGame.js";
 
-const setUpGameSockets = (
-  io,
-  socket,
-  { rooms, playersInRooms, pendingCodeRequests },
-) => {
+const setUpGameSockets = (io, socket, { rooms, playersInRooms }) => {
   // Game leave
   const gameLeave = (code) => {
     // Check if room is valid
@@ -88,7 +84,7 @@ const setUpGameSockets = (
     room.isGameStarted = true;
     console.log(`Game started in room ${code}`);
 
-    startGame(io, socket, code, rooms, pendingCodeRequests);
+    startGame(io, socket, code, rooms);
   });
 
   // Listen for code submission
@@ -187,7 +183,21 @@ const setUpGameSockets = (
 
   // Code request listener
   socket.on(`current-code`, ({ codeInput, language }) => {
+    // Get players room
+    const code = playersInRooms[socket.id];
+    if (!code) {
+      return;
+    }
+    const room = rooms[code];
+    if (!room) {
+      return;
+    }
+    // Get pending code requests map
+    const pendingCodeRequests = room.pendingCodeRequests;
+    // Find the resolver for this socket
     const resolver = pendingCodeRequests.get(socket.id);
+
+    // Resolve the promise with the code input and language
     if (resolver) {
       resolver({ codeInput, language });
       pendingCodeRequests.delete(socket.id);
