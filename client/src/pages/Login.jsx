@@ -1,8 +1,9 @@
 import { useState } from "react";
-import { NavLink } from "react-router-dom";
+import { NavLink, useNavigate } from "react-router-dom";
 import authClient from "../authClient";
 
 const Login = () => {
+  const navigate = useNavigate();
   // Form state
   const [form, setForm] = useState({
     email: "",
@@ -31,7 +32,11 @@ const Login = () => {
       return;
     }
 
+    // Successful login
     console.log("Logged in:", data.user);
+
+    // Redirect to home page
+    navigate("/", { replace: true });
   };
 
   return (

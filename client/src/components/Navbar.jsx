@@ -1,9 +1,11 @@
 import { NavLink } from "react-router-dom";
 import { useLocation } from "react-router-dom";
+import authClient from "../authClient";
 
 const Navbar = () => {
   const location = useLocation();
   const isLogin = location.pathname === "/login";
+  const { data: session, isPending } = authClient.useSession();
   const linkClass =
     (path) =>
     ({ isActive }) => {
@@ -24,14 +26,30 @@ const Navbar = () => {
         <NavLink to="/join" className={linkClass("/join")}>
           Join
         </NavLink>
-        {isLogin ? (
-          <NavLink to="/signup" className={linkClass("/signup")}>
-            Signup
-          </NavLink>
+        {isPending ? null : session ? (
+          <>
+            <span className="text-white">{session.user.name}</span>
+
+            <button
+              type="button"
+              onClick={() => authClient.signOut()}
+              className="text-white hover:text-blue-400 cursor-pointer"
+            >
+              Log out
+            </button>
+          </>
         ) : (
-          <NavLink to="/login" className={linkClass("/login")}>
-            Login
-          </NavLink>
+          <>
+            {isLogin ? (
+              <NavLink to="/signup" className={linkClass("/signup")}>
+                Signup
+              </NavLink>
+            ) : (
+              <NavLink to="/login" className={linkClass("/login")}>
+                Login
+              </NavLink>
+            )}
+          </>
         )}
       </div>
     </nav>
