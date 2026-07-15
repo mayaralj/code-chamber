@@ -3,6 +3,8 @@ import { useLocation } from "react-router-dom";
 
 const Navbar = () => {
   const location = useLocation();
+  const isLogin = location.pathname === "/login";
+  console.log("isLogin:", isLogin);
   const linkClass =
     (path) =>
     ({ isActive }) => {
@@ -23,6 +25,15 @@ const Navbar = () => {
         <NavLink to="/join" className={linkClass("/join")}>
           Join
         </NavLink>
+        {isLogin ? (
+          <NavLink to="/signup" className={linkClass("/signup")}>
+            Signup
+          </NavLink>
+        ) : (
+          <NavLink to="/login" className={linkClass("/login")}>
+            Login
+          </NavLink>
+        )}
       </div>
     </nav>
   );
