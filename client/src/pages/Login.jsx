@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { NavLink } from "react-router-dom";
+import authClient from "../authClient";
 
 const Login = () => {
   // Form state
@@ -17,9 +18,20 @@ const Login = () => {
   };
 
   // Handle Submit
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
-    console.log("Form submitted:", form);
+
+    const { data, error } = await authClient.signIn.email({
+      email: form.email,
+      password: form.password,
+    });
+
+    if (error) {
+      console.error("Login failed:", error);
+      return;
+    }
+
+    console.log("Logged in:", data.user);
   };
 
   return (
@@ -58,7 +70,7 @@ const Login = () => {
           className="bg-blue-500 text-white font-bold py-2 px-4 rounded hover:bg-blue-600 cursor-pointer"
           type="submit"
         >
-          Create account
+          Log In
         </button>
 
         {/* Give link to signup page */}

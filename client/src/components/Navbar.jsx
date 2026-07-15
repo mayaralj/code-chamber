@@ -4,7 +4,6 @@ import { useLocation } from "react-router-dom";
 const Navbar = () => {
   const location = useLocation();
   const isLogin = location.pathname === "/login";
-  console.log("isLogin:", isLogin);
   const linkClass =
     (path) =>
     ({ isActive }) => {

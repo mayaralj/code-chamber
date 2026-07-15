@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { NavLink } from "react-router-dom";
+import authClient from "../authClient";
 
 const Signup = () => {
   // Form state
@@ -18,9 +19,23 @@ const Signup = () => {
   };
 
   // Handle Submit
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
-    console.log("Form submitted:", form);
+
+    // Call the signup function from authClient
+    const { data, error } = await authClient.signUp.email({
+      name: form.username,
+      email: form.email,
+      password: form.password,
+    });
+
+    // Check for error
+    if (error) {
+      console.error("Signup failed:", error);
+      return;
+    }
+
+    console.log("Account created:", data.user);
   };
 
   return (
