@@ -1,6 +1,5 @@
 // Imports
-import { useState, useEffect } from "react";
-import { socket } from "../../socket";
+import { useState } from "react";
 
 export const useCodeEditor = () => {
   const [editorReady, setEditorReady] = useState(false);

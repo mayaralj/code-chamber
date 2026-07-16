@@ -55,7 +55,7 @@ const setUpRoomSockets = (io, socket, { rooms, playersInRooms }) => {
     socket.leave(code);
     delete playersInRooms[socket.id];
 
-    if (room.host.id === socket.id) {
+    if (!room.host || room.host.id === socket.id) {
       // Kick everyone when host leaves and delete room
       io.to(code).emit("host-left", { message: "Host left the room" });
       delete rooms[code];

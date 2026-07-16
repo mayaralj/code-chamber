@@ -1,5 +1,5 @@
 import Editor, { useMonaco } from "@monaco-editor/react";
-import { useRef, useEffect, useState } from "react";
+import { useRef, useEffect } from "react";
 
 // Languages supported (No language support besides javascript for now)
 const LANGUAGES = {

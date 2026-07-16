@@ -10,6 +10,7 @@ let totalConnections = 0;
 // Initialize socket.io with all socket event handlers
 const initSocket = (io, info) => {
   io.use(async (socket, next) => {
+    // Authenticate user session and attach user data to socket
     try {
       const headers = fromNodeHeaders(socket.handshake.headers);
       const session = await auth.api.getSession({ headers });
@@ -53,6 +54,7 @@ const initSocket = (io, info) => {
       playersInRooms: info.playersInRooms,
     });
 
+    // Handle disconnection
     socket.on("disconnect", () => {
       totalConnections--;
       console.log("A user disconnected: ", {
