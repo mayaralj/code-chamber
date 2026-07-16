@@ -4,7 +4,7 @@ import socket from "../socket";
 
 const CreateRoom = () => {
   // Username state
-  const [username, setUsername] = useState("Mayar"); // Temp username
+  const [username, setUsername] = useState("Guest");
   // Room name state
   const [roomName, setRoomName] = useState("");
   // Difficulty state
@@ -25,7 +25,6 @@ const CreateRoom = () => {
 
     // Emit create room to server
     socket.emit("create-room", {
-      username,
       roomName,
       maxPlayers,
       isPublic,

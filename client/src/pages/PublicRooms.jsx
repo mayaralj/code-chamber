@@ -41,7 +41,7 @@ const PublicRooms = () => {
     socket.off("room-join-error");
 
     // Emit join room to server
-    socket.emit("join-room", { code: code.toUpperCase(), username: "Mayar" }); // Temp username
+    socket.emit("join-room", { code: code.toUpperCase() }); // Temp username
 
     // Listen for room joined event
     socket.once("room-joined", ({ roomInfo }) => {
@@ -86,7 +86,7 @@ const PublicRooms = () => {
           >
             {/* Room Info */}
             <h2 className="text-xl font-bold">{room.roomName}</h2>
-            <p>Host: {room.host.username}</p>
+            <p>Host: {room.host}</p>
             <p>
               Difficulty:{" "}
               {room.difficulty.charAt(0).toUpperCase() +

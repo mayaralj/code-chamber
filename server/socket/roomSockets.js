@@ -25,7 +25,7 @@ const setUpRoomSockets = (io, socket, { rooms, playersInRooms }) => {
     publicRooms = publicRooms.map((room) => ({
       code: room.code,
       roomName: room.roomName,
-      host: room.host,
+      host: room.host.username,
       players: room.players,
       maxPlayers: room.maxPlayers,
       isPublic: room.isPublic,
@@ -89,53 +89,56 @@ const setUpRoomSockets = (io, socket, { rooms, playersInRooms }) => {
   };
 
   // Listen for room creation
-  socket.on(
-    "create-room",
-    ({ username, roomName, maxPlayers, isPublic, difficulty }) => {
-      // Create a random code
-      let code = Math.random().toString(36).substring(2, 6).toUpperCase();
-      // Ensure code is unique
-      while (rooms[code]) {
-        code = Math.random().toString(36).substring(2, 6).toUpperCase();
-      }
+  socket.on("create-room", ({ roomName, maxPlayers, isPublic, difficulty }) => {
+    // Get host username
+    const username = socket.data.username;
 
-      // Verify difficulty is valid
-      const validDifficulties = ["Easy", "Medium", "Hard"];
-      if (!validDifficulties.includes(difficulty)) {
-        socket.emit("room-create-error", {
-          message: "Invalid difficulty level",
-        });
-        return;
-      }
+    // Create a random code
+    let code = Math.random().toString(36).substring(2, 6).toUpperCase();
+    // Ensure code is unique
+    while (rooms[code]) {
+      code = Math.random().toString(36).substring(2, 6).toUpperCase();
+    }
 
-      // Store new room in active rooms
-      rooms[code] = {
-        host: { id: socket.id, username },
-        code,
-        players: [{ id: socket.id, username }],
-        roomName,
-        maxPlayers,
-        roundStartTime: null,
-        isPublic,
-        difficulty,
-        isGameStarted: false,
-      };
-
-      // Put the creator in the room
-      socket.join(code);
-      playersInRooms[socket.id] = code;
-
-      // Emit back to the creator
-      socket.emit("room-created", {
-        roomInfo: buildRoomInfo(rooms[code]),
+    // Verify difficulty is valid
+    const validDifficulties = ["Easy", "Medium", "Hard"];
+    if (!validDifficulties.includes(difficulty)) {
+      socket.emit("room-create-error", {
+        message: "Invalid difficulty level",
       });
-      broadcastRooms();
-      console.log(`Room ${code} created by ${username}`);
-    },
-  );
+      return;
+    }
+
+    // Store new room in active rooms
+    rooms[code] = {
+      host: { id: socket.id, username },
+      code,
+      players: [{ id: socket.id, username }],
+      roomName,
+      maxPlayers,
+      roundStartTime: null,
+      isPublic,
+      difficulty,
+      isGameStarted: false,
+    };
+
+    // Put the creator in the room
+    socket.join(code);
+    playersInRooms[socket.id] = code;
+
+    // Emit back to the creator
+    socket.emit("room-created", {
+      roomInfo: buildRoomInfo(rooms[code]),
+    });
+    broadcastRooms();
+    console.log(`Room ${code} created by ${username}`);
+  });
 
   // Listen for on room join
-  socket.on("join-room", ({ code, username }) => {
+  socket.on("join-room", ({ code }) => {
+    // Get username from socket data
+    const username = socket.data.username;
+
     // Check if room exists
     const room = rooms[code];
     if (!room) {
