@@ -1,5 +1,5 @@
 import { useNavigate, useLocation, useParams } from "react-router-dom";
-import socket from "../socket";
+import { socket } from "../socket";
 import { useState, useEffect, useRef } from "react";
 
 const RoomWait = () => {

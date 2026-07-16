@@ -1,6 +1,6 @@
 import { useNavigate } from "react-router-dom";
 import { useState } from "react";
-import socket from "../socket";
+import { socket } from "../socket";
 
 const Join = () => {
   const navigate = useNavigate();

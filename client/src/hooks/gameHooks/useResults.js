@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import socket from "../../socket";
+import { socket } from "../../socket";
 import { playAnyTimer } from "../../utils/timers.js";
 
 export const useResults = () => {

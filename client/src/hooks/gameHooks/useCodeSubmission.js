@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef } from "react";
-import socket from "../../socket";
+import { socket } from "../../socket";
 
 export const useCodeSubmission = (code, players) => {
   // Code input

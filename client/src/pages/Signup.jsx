@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { NavLink, useNavigate } from "react-router-dom";
 import authClient from "../authClient";
+import { refreshSocketConnection } from "../socket";
 
 const Signup = () => {
   const navigate = useNavigate();
@@ -39,6 +40,7 @@ const Signup = () => {
     console.log("Account created:", data.user);
 
     // Redirect to home page
+    refreshSocketConnection(); // Refresh the socket connection after signup
     navigate("/", { replace: true });
   };
 

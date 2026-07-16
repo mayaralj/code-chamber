@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { NavLink, useNavigate } from "react-router-dom";
 import authClient from "../authClient";
+import { refreshSocketConnection } from "../socket";
 
 const Login = () => {
   const navigate = useNavigate();
@@ -36,6 +37,7 @@ const Login = () => {
     console.log("Logged in:", data.user);
 
     // Redirect to home page
+    refreshSocketConnection(); // Refresh the socket connection after login
     navigate("/", { replace: true });
   };
 

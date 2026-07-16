@@ -2,7 +2,7 @@
 import { useEffect, useState, useRef } from "react";
 import { useNavigate, useLocation, useParams } from "react-router-dom";
 // Import socket
-import socket from "../socket";
+import { socket } from "../socket";
 // Import from components
 import Question from "../components/GameComponents/Question";
 import CodeEditor from "../components/GameComponents/CodeEditor";

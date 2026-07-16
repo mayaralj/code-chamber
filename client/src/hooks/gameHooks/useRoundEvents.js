@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import socket from "../../socket";
+import { socket } from "../../socket";
 
 // Round Timer
 export const useRoundEvents = (firstBeforeEvents) => {
