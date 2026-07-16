@@ -80,7 +80,7 @@ const setUpRoomSockets = (io, socket, { rooms, playersInRooms }) => {
     return {
       code: room.code,
       roomName: room.roomName,
-      host: room.host,
+      host: room.host.username,
       players: buildPlayerList(room),
       maxPlayers: room.maxPlayers,
       isPublic: room.isPublic,
