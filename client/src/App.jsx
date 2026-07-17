@@ -7,6 +7,7 @@ import Join from "./pages/Join";
 import Game from "./pages/Game";
 import Signup from "./pages/Signup";
 import Login from "./pages/Login";
+import Profile from "./pages/Profile";
 // Layouts
 import MainLayout from "./layouts/MainLayout";
 
@@ -21,6 +22,7 @@ const router = createBrowserRouter([
       { path: "/rooms", element: <PublicRooms /> },
       { path: "/signup", element: <Signup /> },
       { path: "/login", element: <Login /> },
+      { path: "/profile", element: <Profile /> },
     ],
   },
   { path: "/room-wait/:code", element: <RoomWait /> },
