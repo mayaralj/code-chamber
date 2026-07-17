@@ -19,6 +19,14 @@ const Login = () => {
     });
   };
 
+  // HAndle google
+  const handleGoogleLogin = async () => {
+    await authClient.signIn.social({
+      provider: "google",
+      callbackURL: "http://localhost:3000/",
+    });
+  };
+
   // Handle Submit
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -88,6 +96,14 @@ const Login = () => {
           </NavLink>
         </p>
       </form>
+      <div className="mt-6">
+        <button
+          className="bg-red-500 text-white font-bold py-2 px-4 rounded hover:bg-red-600 cursor-pointer"
+          onClick={handleGoogleLogin}
+        >
+          Log in with Google
+        </button>
+      </div>
     </main>
   );
 };

@@ -20,6 +20,14 @@ const Signup = () => {
     });
   };
 
+  // HAndle google
+  const handleGoogleSignup = async () => {
+    await authClient.signIn.social({
+      provider: "google",
+      callbackURL: "http://localhost:3000/",
+    });
+  };
+
   // Handle Submit
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -103,6 +111,15 @@ const Signup = () => {
           </NavLink>
         </p>
       </form>
+      {/* Social login options */}
+      <div className="flex flex-col gap-2 mt-4">
+        <button
+          className="bg-red-500 text-white font-bold py-2 px-4 rounded hover:bg-red-600 cursor-pointer"
+          onClick={handleGoogleSignup}
+        >
+          Sign up with Google
+        </button>
+      </div>
     </main>
   );
 };
