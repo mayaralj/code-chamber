@@ -1,9 +1,30 @@
 // Imports
 import { useState, useEffect } from "react";
+import authClient from "../authClient";
+import { refreshSocketConnection } from "../socket";
+import { useNavigate } from "react-router-dom";
 
 const Profile = () => {
+  const navigate = useNavigate();
   // Profile info state
   const [profileInfo, setProfileInfo] = useState(null);
+
+  // Handle logout
+  const handleLogout = async () => {
+    try {
+      const { error } = await authClient.signOut();
+      if (error) {
+        console.error("Logout failed:", error);
+        return;
+      }
+      console.log("Logged out successfully");
+      // Redirect to home page
+      refreshSocketConnection(); // Refresh the socket connection after signup
+      navigate("/", { replace: true });
+    } catch (error) {
+      console.error("Error during logout:", error);
+    }
+  };
 
   // Request profile info from server
   useEffect(() => {
@@ -37,6 +58,14 @@ const Profile = () => {
           <strong>Email:</strong> {profileInfo.email || "Loading..."}
         </p>
       </div>
+
+      {/* Logout button */}
+      <button
+        className="bg-red-500 text-white font-bold py-2 px-4 rounded hover:bg-red-600 mt-6"
+        onClick={handleLogout}
+      >
+        Logout
+      </button>
     </main>
   ) : (
     <main className="bg-gray-800 min-h-screen flex flex-col items-center justify-center">
