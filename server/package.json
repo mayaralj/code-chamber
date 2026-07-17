@@ -13,6 +13,7 @@
   "type": "module",
   "dependencies": {
     "better-auth": "^1.6.23",
+    "cors": "^2.8.6",
     "dotenv": "^17.4.2",
     "express": "^5.2.1",
     "kysely": "^0.29.3",
