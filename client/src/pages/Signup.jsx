@@ -1,10 +1,14 @@
 import { useState } from "react";
-import { NavLink, useNavigate } from "react-router-dom";
+import { NavLink, useNavigate, useSearchParams } from "react-router-dom";
 import authClient from "../authClient";
 import { refreshSocketConnection } from "../socket";
 
 const Signup = () => {
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
+  const [error, setError] = useState(searchParams.get("error") || null);
+  console.log("Error from search params:", error);
+
   // Form state
   const [form, setForm] = useState({
     username: "",
@@ -25,6 +29,7 @@ const Signup = () => {
     await authClient.signIn.social({
       provider: "google",
       callbackURL: "http://localhost:3000/",
+      errorCallbackURL: "http://localhost:3000/signup",
     });
   };
 
@@ -42,6 +47,7 @@ const Signup = () => {
     // Check for error
     if (error) {
       console.error("Signup failed:", error);
+      setError(error.message);
       return;
     }
 
@@ -58,6 +64,20 @@ const Signup = () => {
       <h1 className="text-3xl text-white font-bold mb-6">
         Create your Code Chamber account
       </h1>
+
+      {/* Display error message */}
+      {error === "account_not_linked" && (
+        <p className="mb-4 w-80 rounded bg-red-900 p-3 text-sm text-red-200">
+          An account already exists with this email. Log in with your password,
+          then connect Google from your profile.
+        </p>
+      )}
+
+      {error && error !== "account_not_linked" && (
+        <p className="mb-4 w-80 rounded bg-red-900 p-3 text-sm text-red-200">
+          {error}
+        </p>
+      )}
 
       <form className="flex flex-col gap-4 w-80" onSubmit={handleSubmit}>
         <label className="flex flex-col gap-1 text-white">

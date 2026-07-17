@@ -8,6 +8,15 @@ const Profile = () => {
   const navigate = useNavigate();
   // Profile info state
   const [profileInfo, setProfileInfo] = useState(null);
+  const [googleLinked, setGoogleLinked] = useState(false);
+
+  // Handle link google
+  const handleLinkGoogle = async () => {
+    await authClient.linkSocial({
+      provider: "google",
+      callbackURL: "http://localhost:3000/profile",
+    });
+  };
 
   // Handle logout
   const handleLogout = async () => {
@@ -47,6 +56,26 @@ const Profile = () => {
     fetchProfileInfo();
   }, []);
 
+  // Check if Google is linked
+  useEffect(() => {
+    const loadGoogleStatus = async () => {
+      const { data: accounts, error } = await authClient.listAccounts();
+
+      console.log({ accounts, error });
+
+      if (error) {
+        console.error("Could not load accounts:", error);
+        return;
+      }
+
+      setGoogleLinked(
+        accounts.some((account) => account.providerId === "google"),
+      );
+    };
+
+    loadGoogleStatus();
+  }, []);
+
   return profileInfo ? (
     <main className="bg-gray-800 min-h-screen flex flex-col items-center justify-center">
       <h1 className="text-3xl text-white font-bold mb-6">Profile</h1>
@@ -66,6 +95,16 @@ const Profile = () => {
       >
         Logout
       </button>
+
+      {/* Link Google button */}
+      {!googleLinked && (
+        <button
+          className="bg-blue-500 text-white font-bold py-2 px-4 rounded hover:bg-blue-600 mt-4 cursor-pointer"
+          onClick={handleLinkGoogle}
+        >
+          Link Google Account
+        </button>
+      )}
     </main>
   ) : (
     <main className="bg-gray-800 min-h-screen flex flex-col items-center justify-center">

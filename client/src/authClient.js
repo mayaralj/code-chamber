@@ -5,6 +5,9 @@ import { createAuthClient } from "better-auth/react";
 const authClient = createAuthClient({
   // server URL
   baseURL: "http://localhost:5000",
+  fetchOptions: {
+    credentials: "include",
+  },
 });
 
 export default authClient;
