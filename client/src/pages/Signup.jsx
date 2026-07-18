@@ -33,6 +33,15 @@ const Signup = () => {
     });
   };
 
+  // Handle Github
+  const handleGithubSignup = async () => {
+    await authClient.signIn.social({
+      provider: "github",
+      callbackURL: "http://localhost:3000/",
+      errorCallbackURL: "http://localhost:3000/signup",
+    });
+  };
+
   // Handle Submit
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -69,7 +78,7 @@ const Signup = () => {
       {error === "account_not_linked" && (
         <p className="mb-4 w-80 rounded bg-red-900 p-3 text-sm text-red-200">
           An account already exists with this email. Log in with your password,
-          then connect Google from your profile.
+          then connect your social accounts.
         </p>
       )}
 
@@ -138,6 +147,13 @@ const Signup = () => {
           onClick={handleGoogleSignup}
         >
           Sign up with Google
+        </button>
+
+        <button
+          className="bg-gray-800 text-white font-bold py-2 px-4 rounded border border-gray-600 hover:bg-gray-700 cursor-pointer"
+          onClick={handleGithubSignup}
+        >
+          Sign up with GitHub
         </button>
       </div>
     </main>

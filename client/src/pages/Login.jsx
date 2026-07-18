@@ -28,6 +28,15 @@ const Login = () => {
     });
   };
 
+  // Handle Github
+  const handleGithubLogin = async () => {
+    await authClient.signIn.social({
+      provider: "github",
+      callbackURL: "http://localhost:3000/",
+      errorCallbackURL: "http://localhost:3000/login",
+    });
+  };
+
   // Handle Submit
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -103,6 +112,12 @@ const Login = () => {
           onClick={handleGoogleLogin}
         >
           Log in with Google
+        </button>
+        <button
+          className="bg-gray-800 text-white font-bold py-2 px-4 rounded border border-gray-600 hover:bg-gray-700 cursor-pointer ml-4"
+          onClick={handleGithubLogin}
+        >
+          Log in with GitHub
         </button>
       </div>
     </main>

@@ -9,11 +9,20 @@ const Profile = () => {
   // Profile info state
   const [profileInfo, setProfileInfo] = useState(null);
   const [googleLinked, setGoogleLinked] = useState(false);
+  const [githubLinked, setGithubLinked] = useState(false);
 
   // Handle link google
   const handleLinkGoogle = async () => {
     await authClient.linkSocial({
       provider: "google",
+      callbackURL: "http://localhost:3000/profile",
+    });
+  };
+
+  // Handle link github
+  const handleLinkGithub = async () => {
+    await authClient.linkSocial({
+      provider: "github",
       callbackURL: "http://localhost:3000/profile",
     });
   };
@@ -56,9 +65,9 @@ const Profile = () => {
     fetchProfileInfo();
   }, []);
 
-  // Check if Google is linked
+  // Check Social option linking status
   useEffect(() => {
-    const loadGoogleStatus = async () => {
+    const loadSocialStatus = async () => {
       const { data: accounts, error } = await authClient.listAccounts();
 
       console.log({ accounts, error });
@@ -71,9 +80,13 @@ const Profile = () => {
       setGoogleLinked(
         accounts.some((account) => account.providerId === "google"),
       );
+
+      setGithubLinked(
+        accounts.some((account) => account.providerId === "github"),
+      );
     };
 
-    loadGoogleStatus();
+    loadSocialStatus();
   }, []);
 
   return profileInfo ? (
@@ -103,6 +116,16 @@ const Profile = () => {
           onClick={handleLinkGoogle}
         >
           Link Google Account
+        </button>
+      )}
+
+      {/* Link GitHub button */}
+      {!githubLinked && (
+        <button
+          className="bg-gray-800 text-white font-bold py-2 px-4 rounded border border-gray-600 hover:bg-gray-700 cursor-pointer mt-4"
+          onClick={handleLinkGithub}
+        >
+          Link GitHub Account
         </button>
       )}
     </main>
