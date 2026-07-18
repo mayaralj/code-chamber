@@ -6,13 +6,20 @@ import { useNavigate } from "react-router-dom";
 
 const Profile = () => {
   const navigate = useNavigate();
-  // Profile info state
+  // Profile info state'
   const [profileInfo, setProfileInfo] = useState(null);
-  const [googleLinked, setGoogleLinked] = useState(false);
-  const [githubLinked, setGithubLinked] = useState(false);
-  const [discordLinked, setDiscordLinked] = useState(false);
-  // Linked Count
-  const [linkedCount, setLinkedCount] = useState(0);
+  // Accounts state
+  const [accounts, setAccounts] = useState([]);
+
+  // Load social linking status
+  const refreshAccounts = async () => {
+    const { data: accounts, error } = await authClient.listAccounts();
+    if (error) {
+      console.error("Could not load accounts:", error);
+      return;
+    }
+    setAccounts(accounts || []);
+  };
 
   // Handle link google
   const handleLinkGoogle = async () => {
@@ -31,8 +38,8 @@ const Profile = () => {
       console.error("Failed to unlink Google account:", error);
       return;
     }
-    setGoogleLinked(false);
-    setLinkedCount((prevCount) => prevCount - 1);
+    // Refresh accounts to update the state
+    await refreshAccounts();
   };
 
   // Handle link github
@@ -52,8 +59,8 @@ const Profile = () => {
       console.error("Failed to unlink GitHub account:", error);
       return;
     }
-    setGithubLinked(false);
-    setLinkedCount((prevCount) => prevCount - 1);
+    // Refresh accounts to update the state
+    await refreshAccounts();
   };
 
   // Handle link discord
@@ -73,8 +80,8 @@ const Profile = () => {
       console.error("Failed to unlink Discord account:", error);
       return;
     }
-    setDiscordLinked(false);
-    setLinkedCount((prevCount) => prevCount - 1);
+    // Refresh accounts to update the state
+    await refreshAccounts();
   };
 
   // Handle logout
@@ -117,34 +124,39 @@ const Profile = () => {
 
   // Check Social option linking status
   useEffect(() => {
-    const loadSocialStatus = async () => {
-      const { data: accounts, error } = await authClient.listAccounts();
+    let cancelled = false;
+    authClient.listAccounts().then(({ data: accounts, error }) => {
+      // If the component has unmounted, do not update state
+      if (cancelled) return;
 
-      console.log({ accounts, error });
-
+      // Check for error
       if (error) {
         console.error("Could not load accounts:", error);
         return;
       }
 
-      setGoogleLinked(
-        accounts.some((account) => account.providerId === "google"),
-      );
+      // Update state
+      setAccounts(accounts || []);
+    });
 
-      setGithubLinked(
-        accounts.some((account) => account.providerId === "github"),
-      );
-
-      setDiscordLinked(
-        accounts.some((account) => account.providerId === "discord"),
-      );
-
-      setLinkedCount(accounts.length);
-      console.log("Linked accounts count:", accounts.length);
+    // Cleanup function to set cancelled flag if component unmounts
+    return () => {
+      cancelled = true;
     };
-
-    loadSocialStatus();
   }, []);
+
+  // Determine if each social account is linked
+  const googleLinked = accounts.some(
+    (account) => account.providerId === "google",
+  );
+  const githubLinked = accounts.some(
+    (account) => account.providerId === "github",
+  );
+  const discordLinked = accounts.some(
+    (account) => account.providerId === "discord",
+  );
+  // Count linked accounts
+  const linkedCount = accounts.length;
 
   return profileInfo ? (
     <main className="bg-gray-800 min-h-screen flex flex-col items-center justify-center">
