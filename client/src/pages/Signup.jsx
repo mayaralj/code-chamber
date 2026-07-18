@@ -12,7 +12,6 @@ const Signup = () => {
   // Form state
   const [form, setForm] = useState({
     username: "",
-    email: "",
     password: "",
   });
 
@@ -54,12 +53,16 @@ const Signup = () => {
   // Handle Submit
   const handleSubmit = async (e) => {
     e.preventDefault();
+    const cleanUsername = form.username.trim().toLowerCase();
 
     // Call the signup function from authClient
     const { data, error } = await authClient.signUp.email({
-      name: form.username,
-      email: form.email,
+      name: form.username.trim(),
+      username: form.username.trim(),
       password: form.password,
+
+      // Hide email
+      email: `${cleanUsername}@users.yourapp.invalid`,
     });
 
     // Check for error
@@ -105,18 +108,6 @@ const Signup = () => {
             name="username"
             type="text"
             value={form.username}
-            onChange={handleChange}
-            required
-          />
-        </label>
-
-        <label className="flex flex-col gap-1 text-white">
-          Email
-          <input
-            className="text-white bg-gray-700 border border-gray-600 rounded px-2 ml-2"
-            name="email"
-            type="email"
-            value={form.email}
             onChange={handleChange}
             required
           />

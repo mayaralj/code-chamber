@@ -7,7 +7,7 @@ const Login = () => {
   const navigate = useNavigate();
   // Form state
   const [form, setForm] = useState({
-    email: "",
+    username: "",
     password: "",
   });
 
@@ -50,8 +50,8 @@ const Login = () => {
   const handleSubmit = async (e) => {
     e.preventDefault();
 
-    const { data, error } = await authClient.signIn.email({
-      email: form.email,
+    const { data, error } = await authClient.signIn.username({
+      username: form.username.trim(),
       password: form.password,
     });
 
@@ -77,12 +77,12 @@ const Login = () => {
 
       <form className="flex flex-col gap-4 w-80" onSubmit={handleSubmit}>
         <label className="flex flex-col gap-1 text-white">
-          Email
+          Username
           <input
             className="text-white bg-gray-700 border border-gray-600 rounded px-2 ml-2"
-            name="email"
-            type="email"
-            value={form.email}
+            name="username"
+            type="text"
+            value={form.username}
             onChange={handleChange}
             required
           />

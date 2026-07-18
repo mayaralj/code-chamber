@@ -1,4 +1,5 @@
 import { betterAuth } from "better-auth";
+import { username } from "better-auth/plugins";
 import { Kysely, PostgresDialect } from "kysely";
 import pool from "./db.js";
 import "dotenv/config";
@@ -17,6 +18,14 @@ const auth = betterAuth({
   trustedOrigins: ["http://localhost:3000"],
   emailAndPassword: {
     enabled: true,
+  },
+  plugins: [username()],
+  account: {
+    accountLinking: {
+      enable: true,
+      allowDifferentEmails: true,
+      disableImplicitLinking: true,
+    },
   },
   socialProviders: {
     // Google

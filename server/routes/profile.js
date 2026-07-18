@@ -18,7 +18,6 @@ const profileRouter = () => {
       }
       const profileInfo = {
         username: session.user.name,
-        email: session.user.email,
       };
       console.log("Profile info fetched for user:", profileInfo);
       return res.json(profileInfo);

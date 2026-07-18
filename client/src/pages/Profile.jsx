@@ -26,6 +26,7 @@ const Profile = () => {
     await authClient.linkSocial({
       provider: "google",
       callbackURL: "http://localhost:3000/profile",
+      errorCallbackURL: "http://localhost:3000/profile",
     });
   };
 
@@ -47,6 +48,7 @@ const Profile = () => {
     await authClient.linkSocial({
       provider: "github",
       callbackURL: "http://localhost:3000/profile",
+      errorCallbackURL: "http://localhost:3000/profile",
     });
   };
 
@@ -68,6 +70,7 @@ const Profile = () => {
     await authClient.linkSocial({
       provider: "discord",
       callbackURL: "http://localhost:3000/profile",
+      errorCallbackURL: "http://localhost:3000/profile",
     });
   };
 
@@ -164,9 +167,6 @@ const Profile = () => {
       <div className="bg-gray-700 p-6 rounded shadow-md w-80">
         <p className="text-white mb-2">
           <strong>Username:</strong> {profileInfo.username || "Loading..."}
-        </p>
-        <p className="text-white mb-2">
-          <strong>Email:</strong> {profileInfo.email || "Loading..."}
         </p>
       </div>
 
