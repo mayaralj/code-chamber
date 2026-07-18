@@ -42,6 +42,15 @@ const Signup = () => {
     });
   };
 
+  // Handle Discord
+  const handleDiscordSignup = async () => {
+    await authClient.signIn.social({
+      provider: "discord",
+      callbackURL: "http://localhost:3000/",
+      errorCallbackURL: "http://localhost:3000/signup",
+    });
+  };
+
   // Handle Submit
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -154,6 +163,13 @@ const Signup = () => {
           onClick={handleGithubSignup}
         >
           Sign up with GitHub
+        </button>
+
+        <button
+          className="bg-blue-500 text-white font-bold py-2 px-4 rounded hover:bg-blue-600 cursor-pointer"
+          onClick={handleDiscordSignup}
+        >
+          Sign up with Discord
         </button>
       </div>
     </main>

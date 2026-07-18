@@ -10,6 +10,7 @@ const Profile = () => {
   const [profileInfo, setProfileInfo] = useState(null);
   const [googleLinked, setGoogleLinked] = useState(false);
   const [githubLinked, setGithubLinked] = useState(false);
+  const [discordLinked, setDiscordLinked] = useState(false);
 
   // Handle link google
   const handleLinkGoogle = async () => {
@@ -23,6 +24,14 @@ const Profile = () => {
   const handleLinkGithub = async () => {
     await authClient.linkSocial({
       provider: "github",
+      callbackURL: "http://localhost:3000/profile",
+    });
+  };
+
+  // Handle link discord
+  const handleLinkDiscord = async () => {
+    await authClient.linkSocial({
+      provider: "discord",
       callbackURL: "http://localhost:3000/profile",
     });
   };
@@ -84,6 +93,10 @@ const Profile = () => {
       setGithubLinked(
         accounts.some((account) => account.providerId === "github"),
       );
+
+      setDiscordLinked(
+        accounts.some((account) => account.providerId === "discord"),
+      );
     };
 
     loadSocialStatus();
@@ -126,6 +139,16 @@ const Profile = () => {
           onClick={handleLinkGithub}
         >
           Link GitHub Account
+        </button>
+      )}
+
+      {/* Link Discord button */}
+      {!discordLinked && (
+        <button
+          className="bg-blue-500 text-white font-bold py-2 px-4 rounded hover:bg-blue-600 cursor-pointer mt-4"
+          onClick={handleLinkDiscord}
+        >
+          Link Discord Account
         </button>
       )}
     </main>
