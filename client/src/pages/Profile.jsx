@@ -11,6 +11,8 @@ const Profile = () => {
   const [googleLinked, setGoogleLinked] = useState(false);
   const [githubLinked, setGithubLinked] = useState(false);
   const [discordLinked, setDiscordLinked] = useState(false);
+  // Linked Count
+  const [linkedCount, setLinkedCount] = useState(0);
 
   // Handle link google
   const handleLinkGoogle = async () => {
@@ -18,6 +20,19 @@ const Profile = () => {
       provider: "google",
       callbackURL: "http://localhost:3000/profile",
     });
+  };
+
+  // Handle unlink google
+  const handleUnlinkGoogle = async () => {
+    const { error } = await authClient.unlinkAccount({
+      providerId: "google",
+    });
+    if (error) {
+      console.error("Failed to unlink Google account:", error);
+      return;
+    }
+    setGoogleLinked(false);
+    setLinkedCount((prevCount) => prevCount - 1);
   };
 
   // Handle link github
@@ -28,12 +43,38 @@ const Profile = () => {
     });
   };
 
+  // Handle unlink github
+  const handleUnlinkGithub = async () => {
+    const { error } = await authClient.unlinkAccount({
+      providerId: "github",
+    });
+    if (error) {
+      console.error("Failed to unlink GitHub account:", error);
+      return;
+    }
+    setGithubLinked(false);
+    setLinkedCount((prevCount) => prevCount - 1);
+  };
+
   // Handle link discord
   const handleLinkDiscord = async () => {
     await authClient.linkSocial({
       provider: "discord",
       callbackURL: "http://localhost:3000/profile",
     });
+  };
+
+  // Handle unlink discord
+  const handleUnlinkDiscord = async () => {
+    const { error } = await authClient.unlinkAccount({
+      providerId: "discord",
+    });
+    if (error) {
+      console.error("Failed to unlink Discord account:", error);
+      return;
+    }
+    setDiscordLinked(false);
+    setLinkedCount((prevCount) => prevCount - 1);
   };
 
   // Handle logout
@@ -97,6 +138,9 @@ const Profile = () => {
       setDiscordLinked(
         accounts.some((account) => account.providerId === "discord"),
       );
+
+      setLinkedCount(accounts.length);
+      console.log("Linked accounts count:", accounts.length);
     };
 
     loadSocialStatus();
@@ -150,6 +194,41 @@ const Profile = () => {
         >
           Link Discord Account
         </button>
+      )}
+
+      {/* Unlinked buttons only show when >1 account is linked */}
+      {linkedCount > 1 && (
+        <>
+          {/* Unlink Google button */}
+          {googleLinked && (
+            <button
+              className="bg-red-500 text-white font-bold py-2 px-4 rounded hover:bg-red-600 mt-4 cursor-pointer"
+              onClick={handleUnlinkGoogle}
+            >
+              Unlink Google Account
+            </button>
+          )}
+
+          {/* Unlink GitHub button */}
+          {githubLinked && (
+            <button
+              className="bg-gray-800 text-white font-bold py-2 px-4 rounded border border-gray-600 hover:bg-gray-700 mt-4 cursor-pointer"
+              onClick={handleUnlinkGithub}
+            >
+              Unlink GitHub Account
+            </button>
+          )}
+
+          {/* Unlink Discord button */}
+          {discordLinked && (
+            <button
+              className="bg-blue-500 text-white font-bold py-2 px-4 rounded hover:bg-blue-600 cursor-pointer mt-4"
+              onClick={handleUnlinkDiscord}
+            >
+              Unlink Discord Account
+            </button>
+          )}
+        </>
       )}
     </main>
   ) : (
