@@ -6,6 +6,8 @@ import { useNavigate } from "react-router-dom";
 
 const Profile = () => {
   const navigate = useNavigate();
+  // Is logged in state
+  const [isLoggedIn, setIsLoggedIn] = useState(false);
   // Profile info state'
   const [profileInfo, setProfileInfo] = useState(null);
   // Accounts state
@@ -104,8 +106,33 @@ const Profile = () => {
     }
   };
 
+  // Check if user is logged in
+  useEffect(() => {
+    const checkLoginStatus = async () => {
+      const { data: session, error } = await authClient.getSession();
+      if (error) {
+        console.error("Error checking login status:", error);
+        return;
+      }
+      setIsLoggedIn(!!session?.user);
+      console.log("User is logged in:", !!session?.user);
+    };
+
+    checkLoginStatus();
+    // Redirect to signup if not logged in
+    if (!isLoggedIn) {
+      navigate("/signup", { replace: true });
+    }
+  }, []);
+
   // Request profile info from server
   useEffect(() => {
+    // Ignore if not logged in
+    if (!isLoggedIn) {
+      return;
+    }
+
+    // Fetch profile info from server
     const fetchProfileInfo = async () => {
       try {
         const response = await fetch("/api/profile", {
@@ -115,7 +142,21 @@ const Profile = () => {
           },
           credentials: "include", // Include cookies for session
         });
+
+        //  Check if status code is 401 to redirect
+        if (response.status === 401) {
+          // Redirect to signup page
+          navigate("/signup", { replace: true });
+          return;
+        }
+        // check if response is ok
+        if (!response.ok) {
+          throw new Error(`HTTP error! status: ${response.status}`);
+        }
+
+        // Set profile info state
         const data = await response.json();
+        console.log("Profile info received:", data);
         setProfileInfo(data);
       } catch (error) {
         console.error("Error fetching profile info:", error);
@@ -123,10 +164,14 @@ const Profile = () => {
     };
 
     fetchProfileInfo();
-  }, []);
+  }, [isLoggedIn, navigate]);
 
   // Check Social option linking status
   useEffect(() => {
+    // Ignore if not logged in
+    if (!isLoggedIn) {
+      return;
+    }
     let cancelled = false;
     authClient.listAccounts().then(({ data: accounts, error }) => {
       // If the component has unmounted, do not update state
@@ -146,7 +191,7 @@ const Profile = () => {
     return () => {
       cancelled = true;
     };
-  }, []);
+  }, [isLoggedIn]);
 
   // Determine if each social account is linked
   const googleLinked = accounts.some(
