@@ -17,14 +17,20 @@ const initSocket = (io, info) => {
       if (session?.user) {
         socket.data = {
           id: session.user.id,
-          username: session.user.name,
+          username: session.user.username ?? session.user.name,
+          displayName:
+            session.user.displayUsername ??
+            session.user.username ??
+            session.user.name,
           isGuest: false,
         };
       } else {
+        const guestUsername = `Guest-${Math.floor(1000 + Math.random() * 9000)}`;
         // If no session, assign a guest user with a random ID
         socket.data = {
           id: `guest-${randomUUID()}`,
-          username: `Guest-${Math.floor(1000 + Math.random() * 9000)}`,
+          username: guestUsername.toLowerCase(),
+          displayName: guestUsername,
           isGuest: true,
         };
       }
