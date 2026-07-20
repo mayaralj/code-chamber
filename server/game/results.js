@@ -2,6 +2,7 @@
 import { sleep } from "../utils/timers.js";
 import { buildPlayerList } from "../utils/playerList.js";
 import deleteRoom from "../room/deleteRoom.js";
+import db from "../db.js";
 
 // CONFIG
 const RESULTS_TIMER = 10;
@@ -29,8 +30,37 @@ export const sendResults = async (io, room, code, roundData) => {
   io.to(code).emit("results-timer-finished");
 };
 
+// Helper to update matches_won for winner
+const updateWinnerMatchesWon = async (winner) => {
+  // If no winner, or guest
+  if (!winner || !winner.userId || winner.isGuest) {
+    console.log("No winner to update matches_won for");
+    return;
+  }
+
+  try {
+    // Update matches_won for winner in database
+    await db.query(
+      `UPDATE profile_stats
+      SET matches_won = matches_won + 1,
+          updated_at = NOW()
+      WHERE user_id = $1`,
+      [winner.userId],
+    );
+    console.log(`Updated matches_won for winner ${winner.username}`);
+  } catch (error) {
+    console.error(
+      `Error updating matches_won for winner ${winner.username}:`,
+      error,
+    );
+  }
+};
+
 // Game over helper
 export const gameOver = async (io, rooms, code, roundData, winner) => {
+  // Update matches_won for winner
+  updateWinnerMatchesWon(winner);
+
   // Send game over data
   const gameOverEndsAt = Date.now() + 1000 * GAME_OVER_TIMER;
   io.to(code).emit("game-over", {

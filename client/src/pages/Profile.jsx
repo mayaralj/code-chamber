@@ -242,6 +242,15 @@ const Profile = () => {
           )}
         </>
       )}
+      {/* Display match stats */}
+      <div className="bg-gray-700 p-6 rounded shadow-md w-80 mt-6">
+        <p className="text-white mb-2">
+          <strong>Matches Played:</strong> {profileInfo.matches_played || 0}
+        </p>
+        <p className="text-white mb-2">
+          <strong>Matches Won:</strong> {profileInfo.matches_won || 0}
+        </p>
+      </div>
     </main>
   ) : (
     <main className="bg-gray-800 min-h-screen flex flex-col items-center justify-center">
