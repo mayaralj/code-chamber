@@ -15,6 +15,20 @@ const auth = betterAuth({
     db,
     type: "postgres",
   },
+  databaseHooks: {
+    user: {
+      create: {
+        after: async (user) => {
+          // Create a profile_stats entry for the new user
+          await pool.query(
+            "INSERT INTO profile_stats (user_id) VALUES ($1) ON CONFLICT (user_id) DO NOTHING",
+            [user.id],
+          );
+          console.log("Profile stats entry created for user:", user.id);
+        },
+      },
+    },
+  },
   trustedOrigins: ["http://localhost:3000"],
   emailAndPassword: {
     enabled: true,
@@ -22,7 +36,7 @@ const auth = betterAuth({
   plugins: [username()],
   account: {
     accountLinking: {
-      enable: true,
+      enabled: true,
       allowDifferentEmails: true,
       disableImplicitLinking: true,
     },

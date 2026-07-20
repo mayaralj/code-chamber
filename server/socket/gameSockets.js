@@ -25,7 +25,7 @@ const setUpGameSockets = (io, socket, { rooms, playersInRooms }) => {
     }
 
     // Remove player from room
-    room.players = room.players.filter((p) => p.id !== socket.id);
+    room.players = room.players.filter((p) => p.socketId !== socket.id);
 
     // Leave from socket room
     socket.leave(code);
@@ -66,7 +66,7 @@ const setUpGameSockets = (io, socket, { rooms, playersInRooms }) => {
     }
 
     // Check if its the host
-    if (room.host.id !== socket.id) {
+    if (room.host.socketId !== socket.id) {
       return;
     }
 
@@ -99,7 +99,7 @@ const setUpGameSockets = (io, socket, { rooms, playersInRooms }) => {
       }
 
       // Check if player is valid and not already submitted or judging
-      const player = room.players.find((p) => p.id === socket.id);
+      const player = room.players.find((p) => p.socketId === socket.id);
       if (!player) {
         socket.emit("submit-code-error", { message: "Player not found" });
         return;
@@ -157,13 +157,13 @@ const setUpGameSockets = (io, socket, { rooms, playersInRooms }) => {
       );
 
       // Set in the map
-      roundData.pendingSubmissions.set(player.id, submissionPromise);
+      roundData.pendingSubmissions.set(player.socketId, submissionPromise);
 
       // Wait for submission to finish
       await submissionPromise;
 
       // Delete from the map
-      roundData.pendingSubmissions.delete(player.id);
+      roundData.pendingSubmissions.delete(player.socketId);
 
       // If all players have submitted, stop game timer to send all results
       if (

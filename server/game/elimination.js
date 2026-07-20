@@ -41,7 +41,9 @@ export const eliminatePlayer = (
   );
 
   // Remove player from room
-  room.players = room.players.filter((p) => p.id !== playerEliminated.id);
+  room.players = room.players.filter(
+    (p) => p.socketId !== playerEliminated.socketId,
+  );
   // Remove from round data
   if (!roundData.eliminatedPlayers) {
     roundData.eliminatedPlayers = [];
@@ -49,10 +51,10 @@ export const eliminatePlayer = (
   roundData.eliminatedPlayers.push(playerEliminated);
 
   // Emit to player eliminated that they have been eliminated
-  io.to(playerEliminated.id).emit("player-eliminated");
+  io.to(playerEliminated.socketId).emit("player-eliminated");
 
   // Remove player from socket room
-  io.sockets.sockets.get(playerEliminated.id)?.leave(code);
+  io.sockets.sockets.get(playerEliminated.socketId)?.leave(code);
 
   // Delete the player's gameData
   delete playerEliminated.gameData;

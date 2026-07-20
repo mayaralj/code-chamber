@@ -75,6 +75,17 @@ const setUpRoomSockets = (io, socket, { rooms, playersInRooms }) => {
     broadcastRooms();
   };
 
+  // Helper to build player info relevant to room/game
+  const buildPlayerInfo = (socket) => {
+    const player = {
+      userId: socket.data.id,
+      socketId: socket.id,
+      username: socket.data.displayName ?? socket.data.username,
+      isGuest: socket.data.isGuest,
+    };
+    return player;
+  };
+
   // Helper to build minimal room info
   const buildRoomInfo = (room) => {
     return {
@@ -109,11 +120,13 @@ const setUpRoomSockets = (io, socket, { rooms, playersInRooms }) => {
       return;
     }
 
+    const hostInfo = buildPlayerInfo(socket);
+
     // Store new room in active rooms
     rooms[code] = {
-      host: { id: socket.id, username },
+      host: hostInfo,
       code,
-      players: [{ id: socket.id, username }],
+      players: [hostInfo],
       roomName,
       maxPlayers,
       roundStartTime: null,
@@ -153,10 +166,7 @@ const setUpRoomSockets = (io, socket, { rooms, playersInRooms }) => {
     }
 
     // Push player to room
-    room.players.push({
-      id: socket.id,
-      username,
-    });
+    room.players.push(buildPlayerInfo(socket));
 
     // Put player in the room
     socket.join(code);
@@ -196,7 +206,9 @@ const setUpRoomSockets = (io, socket, { rooms, playersInRooms }) => {
     }
 
     // Check if player is inside the room
-    const playerInRoom = room.players.some((player) => player.id === socket.id);
+    const playerInRoom = room.players.some(
+      (player) => player.socketId === socket.id,
+    );
     if (!playerInRoom) {
       socket.emit("check-room-response", {
         valid: false,

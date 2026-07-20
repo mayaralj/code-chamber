@@ -95,7 +95,7 @@ export const processSubmission = async (
 
   // Mark player as judging
   playerRoundData.judging = true;
-  notifyJudging(io, player.id, room, code);
+  notifyJudging(io, player.socketId, room, code);
 
   // Fetch test cases for the current question
   const { rows: testCases } = await db.query(
@@ -123,7 +123,7 @@ export const processSubmission = async (
   // Update player status
   playerRoundData.judging = false;
   playerRoundData.submitted = true;
-  notifySubmission(io, player.id, room, code);
+  notifySubmission(io, player.socketId, room, code);
 
   // Store results in current round results
   roundData.roundResults.push(result);
@@ -164,7 +164,7 @@ export const forceSubmitPlayer = (
       finish();
     }, timeoutMs);
 
-    pendingCodeRequests.set(player.id, finish);
-    io.to(player.id).emit("request-current-code");
+    pendingCodeRequests.set(player.socketId, finish);
+    io.to(player.socketId).emit("request-current-code");
   });
 };
