@@ -46,7 +46,7 @@ const Home = () => {
         </section>
 
         {/* Ticker */}
-        <div className="relative left-1/2 mb-10 w-screen -translate-x-1/2 overflow-hidden border-y border-[#4b4133] bg-gray-950 py-2">
+        <div className="relative left-1/2 mb-10 w-screen -translate-x-1/2 overflow-hidden border-y border-[#4b4133] bg-gray-950 py-2 select-none pointer-events-none">
           <div className="marquee-track whitespace-nowrap">
             {[0, 1, 2, 3].map((copy) => (
               <span
@@ -88,7 +88,7 @@ const Home = () => {
                   <button
                     key={room.code}
                     onClick={() => navigate("/join")}
-                    className="flex w-full cursor-pointer items-center justify-between border border-[#302b24] bg-[#181818] px-3 py-3 text-left text-xs font-bold text-[#d8c09d] transition-colors duration-200 hover:bg-[#252019]"
+                    className="flex w-full cursor-pointer items-center justify-between border border-[#302b24] bg-[#181818] px-3 py-3 text-left text-sm font-bold text-[#d8c09d] transition-colors duration-200 hover:bg-[#252019]"
                   >
                     <span>{room.code}</span>
                     <span className="text-[#ffd99d]">{room.players}</span>
@@ -108,10 +108,10 @@ const Home = () => {
                       {player.rank}
                     </span>
                     <div>
-                      <p className="text-xs font-bold text-[#e6cfaa]">
+                      <p className="text-sm font-bold text-[#e6cfaa]">
                         {player.name}
                       </p>
-                      <p className="mt-1 text-[10px] text-[#aa977b]">
+                      <p className="mt-1 text-[12px] text-[#aa977b]">
                         {player.rate} SURVIVAL RATE
                       </p>
                     </div>
@@ -122,7 +122,7 @@ const Home = () => {
           </aside>
         </section>
 
-        <section className="mt-18 grid border border-[#4b4133] bg-[#111111] md:grid-cols-3">
+        <section className="mt-18  grid border border-[#4b4133] bg-[#111111] md:grid-cols-3">
           <Stat label="TOTAL_CHAMBERS_RUN" value="12,842" />
           <Stat label="AVERAGE_COMPILE_TIME" value="0.42s" />
           <Stat label="SURVIVAL_RATE" value="16.6%" last />
@@ -157,8 +157,8 @@ const ActionCard = ({
       </span>
     </div>
 
-    <h2 className="mt-7 text-3xl font-black text-[#f1eee7]">{title}</h2>
-    <p className="mt-4 max-w-sm text-sm leading-6 text-[#c7b499]">
+    <h2 className="mt-7 text-4xl font-black text-[#f1eee7]">{title}</h2>
+    <p className="mt-4 max-w-sm text-md leading-6 text-[#c7b499]">
       {description}
     </p>
 
@@ -179,7 +179,7 @@ const ActionCard = ({
 const Panel = ({ title, children }) => (
   <section className="border border-[#4b4133] bg-[#111111] p-5">
     <div className="mb-4 flex items-center justify-between border-b border-[#4b4133] pb-3">
-      <h2 className="text-xs font-bold tracking-wider text-[#d8c09d]">
+      <h2 className="text-md font-bold tracking-wider text-[#d8c09d]">
         {title}
       </h2>
       <span className="text-[#ffd99d]">◉</span>
@@ -193,7 +193,7 @@ const Stat = ({ label, value, last = false }) => (
   <div
     className={`px-5 py-5 ${last ? "" : "border-b border-[#4b4133] md:border-b-0 md:border-r"}`}
   >
-    <p className="text-[10px] font-bold tracking-wider text-[#b39c7e]">
+    <p className="text-[12px] font-bold tracking-wider text-[#b39c7e]">
       {label}
     </p>
     <p className="mt-1 text-3xl font-black text-[#eac18a]">{value}</p>
