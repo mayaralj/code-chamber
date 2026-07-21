@@ -8,7 +8,7 @@ const RoomWait = () => {
   const navigate = useNavigate();
   // Get Info passed from Join or CreateRoom
   const location = useLocation();
-  const { username, roomInfo, isHost } = location.state || {};
+  const { roomInfo, isHost } = location.state || {};
 
   // Game started ref
   const gameStartedRef = useRef(false);
@@ -51,7 +51,6 @@ const RoomWait = () => {
         navigate(`/game/${code}`, {
           replace: true,
           state: {
-            username,
             players: serverPlayers,
             endsAt,
             question,

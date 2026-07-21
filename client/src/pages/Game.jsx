@@ -25,7 +25,6 @@ const Game = () => {
   // Get Info passed from RoomWait
   const location = useLocation();
   const {
-    username,
     players,
     endsAt: initEndsAt,
     question: initQuestion,

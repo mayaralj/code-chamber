@@ -3,8 +3,6 @@ import { useState } from "react";
 import { socket } from "../socket";
 
 const CreateRoom = () => {
-  // Username state
-  const [username, setUsername] = useState("Guest");
   // Room name state
   const [roomName, setRoomName] = useState("");
   // Difficulty state
@@ -18,11 +16,6 @@ const CreateRoom = () => {
 
   // Handle create function
   const handleCreate = () => {
-    // Ensure a real username
-    if (username.trim() === "") {
-      return;
-    }
-
     // Emit create room to server
     socket.emit("create-room", {
       roomName,
@@ -33,13 +26,13 @@ const CreateRoom = () => {
     // Listen for room created event
     socket.once("room-created", ({ roomInfo }) => {
       navigate(`/room-wait/${roomInfo.code}`, {
-        state: { username, roomInfo, isHost: true },
+        state: { roomInfo, isHost: true },
       });
     });
   };
   return (
     // Create room form
-    <div className="relative min-h-screen bg-gray-950 text-white flex flex-col items-center justify-start pt-35 gap-6">
+    <div className="relative min-h-[calc(100vh-72px)] bg-gray-950 text-white flex flex-col items-center justify-start pt-35 gap-6">
       {/* Title */}
       <div className="text-4xl font-bold font-mono">Create Room</div>
       {/* Form Container */}
