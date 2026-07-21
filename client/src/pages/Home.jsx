@@ -34,13 +34,12 @@ const Home = () => {
   return (
     <div className="min-h-screen overflow-x-hidden bg-[#0b0b0b] font-mono text-[#e7c49d]">
       <main className="w-full px-10 pb-20 pt-10">
-        <section className="mb-12">
-          {/* Title */}
-          <h1 className="text-6xl font-black tracking-tight text-[#ffd99d] md:text-7xl">
+        <section className="relative mb-12 overflow-hidden">
+          <h1 className="relative text-6xl font-black tracking-tight text-[#ffedd1] md:text-7xl">
             CODE CHAMBER
           </h1>
-          {/* Subtitle */}
-          <p className="mt-3 text-m font-bold tracking-[0.10em] text-[#c5aa8d]">
+
+          <p className="relative mt-3 text-m font-bold tracking-[0.10em] text-[#fcdca9]">
             RUSSIAN ROULETTE INSPIRED MULTIPLAYER CODING GAME
           </p>
         </section>
