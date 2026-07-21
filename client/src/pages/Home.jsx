@@ -33,7 +33,7 @@ const Home = () => {
 
   return (
     <div className="min-h-screen overflow-x-hidden bg-[#0b0b0b] font-mono text-[#e7c49d]">
-      <main className="w-full px-10 pb-20 pt-20">
+      <main className="w-full px-10 pb-20 pt-10">
         <section className="mb-12">
           {/* Title */}
           <h1 className="text-6xl font-black tracking-tight text-[#ffd99d] md:text-7xl">

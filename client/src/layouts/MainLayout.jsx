@@ -4,11 +4,10 @@ import Navbar from "../components/Navbar";
 const MainLayout = () => {
   return (
     <>
-      <div className="border-b border-[#4b4133]">
-        <Navbar />
-      </div>
-
-      <Outlet />
+      <Navbar />
+      <div className="pt-18">
+        <Outlet />
+      </div>{" "}
     </>
   );
 };
