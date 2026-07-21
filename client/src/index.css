@@ -1,1 +1,13 @@
 @import "tailwindcss";
+
+@keyframes marquee-scroll {
+  to {
+    transform: translateX(-25%);
+  }
+}
+
+.marquee-track {
+  display: flex;
+  width: max-content;
+  animation: marquee-scroll 22s linear infinite;
+}
