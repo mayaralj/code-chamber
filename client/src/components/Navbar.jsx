@@ -7,17 +7,28 @@ const Navbar = () => {
   const navigate = useNavigate();
   const isLogin = location.pathname === "/login";
   const { data: session, isPending } = authClient.useSession();
+
+  // Link class
   const linkClass =
     (path) =>
     ({ isActive }) => {
       const isHighlighted =
         isActive || (path === "/join" && location.pathname === "/lobbies");
-      return isHighlighted ? "text-orange-100" : "hover:text-orange-100";
+
+      return `text-[17px] font-bold tracking-[0.05em] transition-colors duration-200 ${
+        isHighlighted ? "text-[#ffd99d]" : "text-[#ffedd1] hover:text-[#ffd99d]"
+      }`;
     };
+
   return (
-    <nav className="fixed w-full z-50 border-b border-[#4b4133] bg-gray-950 text-white py-4 px-8 flex items-center justify-between">
-      <div className="text-2xl font-bold font-mono">Code Chamber</div>
-      <div className="flex gap-8 px-8">
+    <nav className="fixed z-50 flex w-full items-center justify-between border-b border-[#4b4133] bg-[#0b0b0b] px-10 py-5 font-mono">
+      <button
+        onClick={() => navigate("/")}
+        className="cursor-pointer text-3xl font-black tracking-tighter text-[#ffedd1] transition-colors duration-200 hover:text-[#e7bc76]"
+      >
+        CODE CHAMBER
+      </button>
+      <div className="flex gap-10 px-10">
         <NavLink to="/" className={linkClass("/")}>
           Home
         </NavLink>
