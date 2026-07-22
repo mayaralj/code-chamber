@@ -32,7 +32,7 @@ const Home = () => {
   );
 
   return (
-    <div className="min-h-screen overflow-x-hidden bg-[#0b0b0b] font-mono text-[#e7c49d]">
+    <div className="min-h-screen overflow-x-hidden bg-[#171717] font-mono text-[#e7c49d]">
       <main className="w-full px-10 pb-20 pt-10">
         <section className="relative mb-12 overflow-hidden">
           <h1 className="relative text-6xl font-black tracking-tight text-[#ffedd1] md:text-7xl">
@@ -130,9 +130,6 @@ const Home = () => {
 
       <footer className="flex flex-wrap justify-between gap-4 border-t border-[#4b4133] px-10 py-6 text-[10px] font-bold tracking-wider text-[#a28e73]">
         <span>CODE_CHAMBER.V1.0.0</span>
-        <span>
-          PRIVACY.md &nbsp;&nbsp; TERMS.sh &nbsp;&nbsp; ■ SYSTEM_STATUS
-        </span>
         <span>© 2026 CODE_CHAMBER</span>
       </footer>
     </div>

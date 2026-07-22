@@ -21,7 +21,7 @@ const Navbar = () => {
     };
 
   return (
-    <nav className="fixed h-18 z-50 flex w-full items-center justify-between border-b border-[#4b4133] bg-[#0b0b0b] px-10 py-5 font-mono">
+    <nav className="fixed h-18 z-50 flex w-full items-center justify-between border-b border-[#4b4133] bg-[#0b0b1b] px-10 py-5 font-mono">
       <button
         onClick={() => navigate("/")}
         className="cursor-pointer text-3xl font-black tracking-tighter text-[#ffedd1] transition-colors duration-200 hover:text-[#e7bc76]"
