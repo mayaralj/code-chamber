@@ -28,7 +28,7 @@ const Navbar = () => {
       >
         CODE CHAMBER
       </button>
-      <div className="flex gap-10 px-10">
+      <div className="absolute left-1/2 -translate-x-1/2 flex gap-10">
         <NavLink to="/" className={linkClass("/")}>
           Home
         </NavLink>
