@@ -15,8 +15,11 @@ const Navbar = () => {
       const isHighlighted =
         isActive || (path === "/join" && location.pathname === "/lobbies");
 
+      // If is highlighted add a line under it, and move it slightly up
       return `text-[17px] font-bold tracking-[0.05em] transition-colors duration-200 ${
-        isHighlighted ? "text-[#ffd99d]" : "text-[#ffedd1] hover:text-[#ffd99d]"
+        isHighlighted
+          ? "text-[#ffd99d] border-b-1 b border-[#ffd99d] -mt-1"
+          : "text-[#ffedd1] hover:text-[#ffd99d]"
       }`;
     };
 
