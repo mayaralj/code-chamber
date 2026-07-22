@@ -114,15 +114,17 @@ const Profile = () => {
         console.error("Error checking login status:", error);
         return;
       }
-      setIsLoggedIn(!!session?.user);
-      console.log("User is logged in:", !!session?.user);
+      const loggedIn = !!session?.user;
+      setIsLoggedIn(loggedIn);
+      console.log("User is logged in:", loggedIn);
+
+      // Redirect to signup if not logged in
+      if (!loggedIn) {
+        navigate("/signup", { replace: true });
+      }
     };
 
     checkLoginStatus();
-    // Redirect to signup if not logged in
-    if (!isLoggedIn) {
-      navigate("/signup", { replace: true });
-    }
   }, []);
 
   // Request profile info from server
