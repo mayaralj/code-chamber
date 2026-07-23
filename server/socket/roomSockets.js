@@ -9,6 +9,9 @@ const setUpRoomSockets = (io, socket, { rooms, playersInRooms }) => {
     console.log("Broadcasting rooms list:", publicRooms);
     // Fill up public rooms for testing 30 rooms
     while (publicRooms.length < 30) {
+      const randomDifficulty = ["Easy", "Medium", "Hard"][
+        Math.floor(Math.random() * 3)
+      ];
       publicRooms.push({
         code: `TEST${publicRooms.length + 1}`,
         roomName: `Test Room ${publicRooms.length + 1}`,
@@ -16,7 +19,7 @@ const setUpRoomSockets = (io, socket, { rooms, playersInRooms }) => {
         players: [],
         maxPlayers: 5,
         isPublic: true,
-        difficulty: "medium",
+        difficulty: randomDifficulty,
         isGameStarted: false,
       });
     }
@@ -26,7 +29,7 @@ const setUpRoomSockets = (io, socket, { rooms, playersInRooms }) => {
       code: room.code,
       roomName: room.roomName,
       host: room.host.username,
-      players: room.players,
+      players: buildPlayerList(room),
       maxPlayers: room.maxPlayers,
       isPublic: room.isPublic,
       difficulty: room.difficulty,
