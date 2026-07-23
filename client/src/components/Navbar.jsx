@@ -13,7 +13,10 @@ const Navbar = () => {
     (path) =>
     ({ isActive }) => {
       const isHighlighted =
-        isActive || (path === "/join" && location.pathname === "/lobbies");
+        isActive ||
+        (path === "/join" && location.pathname === "/lobbies") ||
+        (path == "/signup" && location.pathname === "/login") ||
+        (path == "/login" && location.pathname === "/signup");
 
       // If is highlighted add a line under it, and move it slightly up
       return `text-[17px] font-bold tracking-[0.05em] transition-colors duration-200 ${
