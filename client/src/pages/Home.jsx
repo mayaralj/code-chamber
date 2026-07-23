@@ -32,7 +32,7 @@ const Home = () => {
   );
 
   return (
-    <div className="min-h-screen overflow-x-hidden bg-[#0b0b0b] font-mono text-[#e7c49d]">
+    <div className="min-h-screen overflow-x-hidden bg-[#1c1c1c] font-mono text-[#e7c49d]">
       <main className="w-full px-10 pb-20 pt-10">
         <section className="relative mb-12 overflow-hidden">
           <h1 className="relative text-6xl font-black tracking-tight text-[#ffedd1] md:text-7xl">
@@ -64,7 +64,7 @@ const Home = () => {
           <ActionCard
             title="CREATE CHAMBER"
             tag="V.1.0_READY"
-            description="Host a private instance. Define the stack. Set the stakes. Invite five rivals to the execution environment."
+            description="Host a Room Of Your Choice. Set the Difficulty. Invite Your Friends. Survive the Challenge."
             buttonText="START INSTANCE"
             primary
             onClick={() => navigate("/create")}
@@ -127,8 +127,7 @@ const Home = () => {
           <Stat label="SURVIVAL_RATE" value="16.6%" last />
         </section>
       </main>
-
-      <footer className="flex flex-wrap justify-between gap-4 border-t border-[#4b4133] px-10 py-6 text-[10px] font-bold tracking-wider text-[#a28e73]">
+      <footer className="flex flex-wrap bg-[#06060d] justify-between gap-4 border-t border-[#4b4133] px-10 py-6 text-[10px] font-bold tracking-wider text-[#a28e73]">
         <span>CODE_CHAMBER.V1.0.0</span>
         <span>© 2026 CODE_CHAMBER</span>
       </footer>
