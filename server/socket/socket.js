@@ -42,10 +42,6 @@ const initSocket = (io, info) => {
 
   io.on("connection", (socket) => {
     totalConnections++;
-    console.log("A user connected: ", {
-      id: socket.id,
-      username: socket.data.username,
-    });
     console.log("Total connections: " + totalConnections);
 
     // Room handlers

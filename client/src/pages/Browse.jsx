@@ -8,6 +8,8 @@ const Browse = () => {
   const [error, setError] = useState({ code: "", message: "" });
   const [search, setSearch] = useState("");
   const [difficultyFilter, setDifficultyFilter] = useState("ALL");
+  const [maxPlayerCountFilter, setMaxPlayerCountFilter] = useState("ALL");
+  const [inProgressFilter, setInProgressFilter] = useState("ALL");
   const [showPrivateModal, setShowPrivateModal] = useState(false);
   const [privateCode, setPrivateCode] = useState("");
   const [visibleRoomCount, setVisibleRoomCount] = useState(9);
@@ -78,7 +80,20 @@ const Browse = () => {
       difficultyFilter === "ALL" ||
       room.difficulty.toLowerCase() === difficultyFilter.toLowerCase();
 
-    return matchesSearch && matchesDifficulty;
+    const matchesMaxPlayerCount =
+      maxPlayerCountFilter === "ALL" ||
+      room.maxPlayers === parseInt(maxPlayerCountFilter);
+
+    const matchesInProgress =
+      inProgressFilter === "ALL" ||
+      room.isGameStarted === (inProgressFilter === "IN_PROGRESS");
+
+    return (
+      matchesSearch &&
+      matchesDifficulty &&
+      matchesMaxPlayerCount &&
+      matchesInProgress
+    );
   });
 
   // Display list of public rooms with option to click and join
@@ -134,34 +149,65 @@ const Browse = () => {
             <option value="Medium">MEDIUM</option>
             <option value="Hard">HARD</option>
           </select>
+          <select
+            value={maxPlayerCountFilter}
+            onChange={(e) => setMaxPlayerCountFilter(e.target.value)}
+            className="cursor-pointer border border-[#4b4133] bg-[#111111] px-4 py-4 text-sm font-bold tracking-wider text-[#e7c49d] outline-none focus:border-[#d8b77f]"
+          >
+            <option value="ALL">ALL PLAYER COUNTS</option>
+            <option value="2">2 PLAYERS</option>
+            <option value="3">3 PLAYERS</option>
+            <option value="4">4 PLAYERS</option>
+            <option value="5">5 PLAYERS</option>
+            <option value="6">6 PLAYERS</option>
+          </select>
+          <select
+            value={inProgressFilter}
+            onChange={(e) => setInProgressFilter(e.target.value)}
+            className="cursor-pointer border border-[#4b4133] bg-[#111111] px-4 py-4 text-sm font-bold tracking-wider text-[#e7c49d] outline-none focus:border-[#d8b77f]"
+          >
+            <option value="ALL">ALL GAMES</option>
+            <option value="IN_PROGRESS">IN PROGRESS</option>
+            <option value="NOT_IN_PROGRESS">NOT IN PROGRESS</option>
+          </select>
         </section>
 
         <section className="mt-10 grid gap-7 md:grid-cols-2 xl:grid-cols-3">
           {filteredRooms.slice(0, visibleRoomCount).map((room) => {
             const isFull = room.players.length >= room.maxPlayers;
+            const gameStarted = room.isGameStarted;
+            console.log(gameStarted);
 
             return (
               <article
                 key={room.code}
                 className={`border p-7 ${
-                  isFull
+                  gameStarted
                     ? "border-[#2f2c27] bg-[#151515] opacity-55"
-                    : "border-[#4b4133] bg-[#191919]"
+                    : isFull
+                      ? "border-[#2f2c27] bg-[#151515] opacity-55"
+                      : "border-[#4b4133] bg-[#191919]"
                 }`}
               >
                 <div className="flex items-start justify-between">
                   <h2 className="text-xl font-black text-[#ffdd9d]">
-                    #{room.code}
+                    {room.roomName}
                   </h2>
 
                   <span
-                    className={`px-2 py-1 text-[10px] font-bold ${
-                      isFull
-                        ? "bg-[#30302d] text-[#8e8477]"
-                        : "bg-[#eab308] text-[#2b210c]"
+                    className={`px-2 py-1 text-[12px] font-bold ${
+                      gameStarted
+                        ? "bg-[#2f2c27] text-[#8e8477]"
+                        : isFull
+                          ? "bg-[#30302d] text-[#8e8477]"
+                          : "bg-[#546b5a] text-[#080812] font-bold"
                     }`}
                   >
-                    {isFull ? "ROOM FULL" : "JOINABLE"}
+                    {gameStarted
+                      ? "IN PROGRESS"
+                      : isFull
+                        ? "ROOM FULL"
+                        : "JOINABLE"}
                   </span>
                 </div>
 
@@ -187,12 +233,16 @@ const Browse = () => {
                   disabled={isFull}
                   onClick={() => handleJoin(room.code)}
                   className={`mt-9 w-full border py-4 text-sm font-bold tracking-wider transition-colors ${
-                    isFull
+                    isFull || gameStarted
                       ? "cursor-not-allowed border-[#30302d] bg-[#292929] text-[#81786b]"
                       : "cursor-pointer border-[#ffdd9d] bg-[#ffdd9d] text-[#251b0f] hover:bg-[#e7bc76]"
                   }`}
                 >
-                  {isFull ? "FULL" : "JOIN ROOM  ›"}
+                  {gameStarted
+                    ? "IN PROGRESS"
+                    : isFull
+                      ? "FULL"
+                      : "JOIN ROOM  ›"}
                 </button>
 
                 {error.code === room.code && (

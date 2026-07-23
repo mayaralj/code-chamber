@@ -3,8 +3,6 @@ export const buildPlayerList = (room) => {
   const gameStarted = room.isGameStarted;
   const currentRound = room.currentRound;
 
-  console.log(room.players);
-
   // Build a list of all players with needed data
   const playerList = room.players.map((p) => ({
     username: p.username,

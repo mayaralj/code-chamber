@@ -6,21 +6,22 @@ const setUpRoomSockets = (io, socket, { rooms, playersInRooms }) => {
     let publicRooms = Object.values(rooms).filter(
       (room) => room.isPublic && !room.isGameStarted,
     );
-    console.log("Broadcasting rooms list:", publicRooms);
     // Fill up public rooms for testing 30 rooms
     while (publicRooms.length < 30) {
       const randomDifficulty = ["Easy", "Medium", "Hard"][
         Math.floor(Math.random() * 3)
       ];
+      const randomMaxPlayers = [2, 3, 4, 5, 6][Math.floor(Math.random() * 5)];
+      const randomGameStarted = [true, false][Math.floor(Math.random() * 2)];
       publicRooms.push({
         code: `TEST${publicRooms.length + 1}`,
         roomName: `Test Room ${publicRooms.length + 1}`,
         host: { username: "TestHost" },
         players: [],
-        maxPlayers: 5,
+        maxPlayers: randomMaxPlayers,
         isPublic: true,
         difficulty: randomDifficulty,
-        isGameStarted: false,
+        isGameStarted: randomGameStarted,
       });
     }
 
@@ -33,6 +34,7 @@ const setUpRoomSockets = (io, socket, { rooms, playersInRooms }) => {
       maxPlayers: room.maxPlayers,
       isPublic: room.isPublic,
       difficulty: room.difficulty,
+      isGameStarted: room.isGameStarted,
     }));
 
     // Broadcast only to clients in public rooms page
