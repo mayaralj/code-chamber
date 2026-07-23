@@ -1,7 +1,7 @@
 import { createBrowserRouter, RouterProvider } from "react-router-dom";
 import Home from "./pages/Home";
 import CreateRoom from "./pages/CreateRoom";
-import PublicRooms from "./pages/PublicRooms";
+import Browse from "./pages/Browse";
 import RoomWait from "./pages/RoomWait";
 import Game from "./pages/Game";
 import Signup from "./pages/Signup";
@@ -17,7 +17,7 @@ const router = createBrowserRouter([
     children: [
       { index: true, element: <Home /> },
       { path: "/create", element: <CreateRoom /> },
-      { path: "/browse", element: <PublicRooms /> },
+      { path: "/browse", element: <Browse /> },
       { path: "/signup", element: <Signup /> },
       { path: "/login", element: <Login /> },
       { path: "/profile", element: <Profile /> },
