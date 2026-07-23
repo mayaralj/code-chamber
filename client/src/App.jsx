@@ -3,7 +3,6 @@ import Home from "./pages/Home";
 import CreateRoom from "./pages/CreateRoom";
 import PublicRooms from "./pages/PublicRooms";
 import RoomWait from "./pages/RoomWait";
-import Join from "./pages/Join";
 import Game from "./pages/Game";
 import Signup from "./pages/Signup";
 import Login from "./pages/Login";
@@ -18,8 +17,7 @@ const router = createBrowserRouter([
     children: [
       { index: true, element: <Home /> },
       { path: "/create", element: <CreateRoom /> },
-      { path: "/join", element: <Join /> },
-      { path: "/rooms", element: <PublicRooms /> },
+      { path: "/browse", element: <PublicRooms /> },
       { path: "/signup", element: <Signup /> },
       { path: "/login", element: <Login /> },
       { path: "/profile", element: <Profile /> },

@@ -8,18 +8,18 @@ const setUpRoomSockets = (io, socket, { rooms, playersInRooms }) => {
     );
     console.log("Broadcasting rooms list:", publicRooms);
     // Fill up public rooms for testing 30 rooms
-    // while (publicRooms.length < 30) {
-    //   publicRooms.push({
-    //     code: `TEST${publicRooms.length + 1}`,
-    //     roomName: `Test Room ${publicRooms.length + 1}`,
-    //     host: { username: "TestHost" },
-    //     players: [],
-    //     maxPlayers: 5,
-    //     isPublic: true,
-    //     difficulty: "medium",
-    //     isGameStarted: false,
-    //   });
-    // }
+    while (publicRooms.length < 30) {
+      publicRooms.push({
+        code: `TEST${publicRooms.length + 1}`,
+        roomName: `Test Room ${publicRooms.length + 1}`,
+        host: { username: "TestHost" },
+        players: [],
+        maxPlayers: 5,
+        isPublic: true,
+        difficulty: "medium",
+        isGameStarted: false,
+      });
+    }
 
     // Build rooms object with only necessary info for public rooms page
     publicRooms = publicRooms.map((room) => ({

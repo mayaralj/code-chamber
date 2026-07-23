@@ -14,7 +14,6 @@ const Navbar = () => {
     ({ isActive }) => {
       const isHighlighted =
         isActive ||
-        (path === "/join" && location.pathname === "/lobbies") ||
         (path == "/signup" && location.pathname === "/login") ||
         (path == "/login" && location.pathname === "/signup");
 
@@ -41,8 +40,8 @@ const Navbar = () => {
         <NavLink to="/create" className={linkClass("/create")}>
           Create
         </NavLink>
-        <NavLink to="/join" className={linkClass("/join")}>
-          Join
+        <NavLink to="/browse" className={linkClass("/browse")}>
+          Browse
         </NavLink>
         {isPending ? null : session ? (
           <>

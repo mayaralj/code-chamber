@@ -35,10 +35,10 @@ const CreateRoom = () => {
       <div className="mx-auto w-full max-w-[610px]">
         <div className="mb-16 text-center">
           <h1 className="text-4xl font-black tracking-[0.18em] text-[#ffdd9d]">
-            CREATE ROOM
+            CREATE CHAMBER
           </h1>
           <p className="mx-auto mt-4 max-w-md text-sm font-bold tracking-[0.12em] text-[#c7b499]">
-            ESTABLISH A NEW EXECUTION SPACE FOR TACTICAL CODE CHALLENGES.
+            CREATE A NEW EXECUTION SPACE FOR CODE CHALLENGES.
           </p>
         </div>
 

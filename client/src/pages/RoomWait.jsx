@@ -98,7 +98,7 @@ const RoomWait = () => {
       navigate("/create", { replace: true });
       return;
     }
-    navigate("/rooms", { replace: true });
+    navigate("/browse", { replace: true });
   };
 
   return (

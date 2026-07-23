@@ -64,7 +64,7 @@ const Join = () => {
         {/* Browse Public Rooms Button */}
         <button
           className="cursor-pointer bg-orange-50 text-gray-900 font-bold w-64 px-12 py-5 rounded hover:bg-orange-100"
-          onClick={() => navigate("/rooms")}
+          onClick={() => navigate("/browse")}
         >
           Browse Public Rooms
         </button>
