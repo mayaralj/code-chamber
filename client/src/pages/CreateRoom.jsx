@@ -31,60 +31,110 @@ const CreateRoom = () => {
     });
   };
   return (
-    // Create room form
-    <div className="relative min-h-[calc(100vh-72px)] bg-gray-950 text-white flex flex-col items-center justify-start pt-35 gap-6">
-      {/* Title */}
-      <div className="text-4xl font-bold font-mono">Create Room</div>
-      {/* Form Container */}
-      <div className="bg-gray-800 pt-10 pb-10 pl-12 pr-12 rounded-xl flex flex-col gap-8">
-        {/* Input for room name */}
-        <input
-          type="text"
-          value={roomName}
-          onChange={(e) => setRoomName(e.target.value)}
-          placeholder="Room Name (4-20 characters)"
-          className="bg-gray-700 text-white placeholder:text-gray-500 border border-gray-600 px-3 py-2 rounded focus:outline-none focus:ring-1 focus:ring-orange-100 w-96"
-        />
+    <div className="min-h-[calc(100vh-72px)] bg-[#0b0b0b] px-6 py-20 font-mono text-[#e7c49d]">
+      <div className="mx-auto w-full max-w-[610px]">
+        <div className="mb-16 text-center">
+          <h1 className="text-4xl font-black tracking-[0.18em] text-[#ffdd9d]">
+            CREATE ROOM
+          </h1>
+          <p className="mx-auto mt-4 max-w-md text-sm font-bold tracking-[0.12em] text-[#c7b499]">
+            ESTABLISH A NEW EXECUTION SPACE FOR TACTICAL CODE CHALLENGES.
+          </p>
+        </div>
 
-        {/* Selector for game difficulty */}
-        <select
-          value={difficulty}
-          onChange={(e) => setDifficulty(e.target.value)}
-          className="bg-gray-700 text-white border border-gray-600 px-3 py-2 rounded focus:outline-none focus:ring-1 focus:ring-orange-100"
-        >
-          <option value="Easy">Easy</option>
-          <option value="Medium">Medium</option>
-          <option value="Hard">Hard</option>
-        </select>
+        <div className="space-y-10">
+          <label className="block">
+            <span className="mb-3 block text-xs font-bold tracking-wider text-[#d8c09d]">
+              ROOM NAME
+            </span>
+            <input
+              type="text"
+              value={roomName}
+              onChange={(e) => setRoomName(e.target.value)}
+              placeholder="ENTER IDENTIFIER..."
+              className="w-full border border-[#4b4133] bg-[#111111] px-4 py-4 text-[#f1eee7] outline-none placeholder:text-[#4e483e] focus:border-[#d8b77f] focus:ring-1 focus:ring-[#d8b77f]"
+            />
+          </label>
 
-        {/* Selector for number of max players */}
-        <select
-          value={maxPlayers}
-          onChange={(e) => setMaxPlayers(parseInt(e.target.value))}
-          className="bg-gray-700 text-white border border-gray-600 px-3 py-2 rounded focus:outline-none focus:ring-1 focus:ring-orange-100"
-        >
-          <option value="2">2 Players</option>
-          <option value="4">4 Players</option>
-          <option value="6">6 Players</option>
-        </select>
+          <div className="grid gap-10 sm:grid-cols-2">
+            <label className="block">
+              <span className="mb-3 block text-xs font-bold tracking-wider text-[#d8c09d]">
+                DIFFICULTY
+              </span>
+              <select
+                value={difficulty}
+                onChange={(e) => setDifficulty(e.target.value)}
+                className="w-full cursor-pointer border border-[#4b4133] bg-[#111111] px-4 py-4 text-[#e7c49d] outline-none focus:border-[#d8b77f] focus:ring-1 focus:ring-[#d8b77f]"
+              >
+                <option value="Easy">EASY</option>
+                <option value="Medium">MEDIUM</option>
+                <option value="Hard">HARD</option>
+              </select>
+            </label>
 
-        {/* Selector if public or private room */}
-        <select
-          value={isPublic ? "public" : "private"}
-          onChange={(e) => setIsPublic(e.target.value === "public")}
-          className="bg-gray-700 text-white border border-gray-600 px-3 py-2 rounded focus:outline-none focus:ring-1 focus:ring-orange-100"
-        >
-          <option value="public">Public</option>
-          <option value="private">Private</option>
-        </select>
+            <label className="block">
+              <span className="mb-3 block text-xs font-bold tracking-wider text-[#d8c09d]">
+                MAX PLAYERS
+              </span>
+              <select
+                value={maxPlayers}
+                onChange={(e) => setMaxPlayers(parseInt(e.target.value))}
+                className="w-full cursor-pointer border border-[#4b4133] bg-[#111111] px-4 py-4 text-[#e7c49d] outline-none focus:border-[#d8b77f] focus:ring-1 focus:ring-[#d8b77f]"
+              >
+                <option value="2">2 PLAYERS</option>
+                <option value="3">3 PLAYERS</option>
+                <option value="4">4 PLAYERS</option>
+                <option value="5">5 PLAYERS</option>
+                <option value="6">6 PLAYERS</option>
+              </select>
+            </label>
+          </div>
 
-        {/* Create Button */}
-        <button
-          className="bg-orange-100 cursor-pointer hover:bg-orange-200 text-gray-800 text-2xl font-bold py-1 px-4 rounded self-center"
-          onClick={handleCreate}
-        >
-          Create Room
-        </button>
+          <fieldset>
+            <legend className="mb-3 text-xs font-bold tracking-wider text-[#d8c09d]">
+              VISIBILITY
+            </legend>
+
+            <div className="grid grid-cols-2 gap-4">
+              <button
+                type="button"
+                onClick={() => setIsPublic(true)}
+                className={`cursor-pointer border py-4 text-sm font-bold transition-colors duration-200 ${
+                  isPublic
+                    ? "border-[#d8b77f] bg-[#211d17] text-[#ffdd9d]"
+                    : "border-[#4b4133] bg-[#111111] text-[#a9977e] hover:border-[#8b7658]"
+                }`}
+              >
+                PUBLIC
+              </button>
+
+              <button
+                type="button"
+                onClick={() => setIsPublic(false)}
+                className={`cursor-pointer border py-4 text-sm font-bold transition-colors duration-200 ${
+                  !isPublic
+                    ? "border-[#d8b77f] bg-[#211d17] text-[#ffdd9d]"
+                    : "border-[#4b4133] bg-[#111111] text-[#a9977e] hover:border-[#8b7658]"
+                }`}
+              >
+                PRIVATE
+              </button>
+            </div>
+          </fieldset>
+
+          <div className="pt-5">
+            <button
+              className="w-full cursor-pointer border border-[#ffdd9d] bg-[#ffdd9d] py-5 text-3xl font-black tracking-[0.12em] text-[#251b0f] transition-colors duration-200 hover:bg-[#e7bc76]"
+              onClick={handleCreate}
+            >
+              CREATE ROOM
+            </button>
+
+            <p className="mt-7 text-center text-[10px] font-bold tracking-[0.18em] text-[#564b3c]">
+              STANDARD LOBBY PROTOCOL ACTIVE
+            </p>
+          </div>
+        </div>
       </div>
     </div>
   );
