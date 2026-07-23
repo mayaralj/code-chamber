@@ -219,7 +219,9 @@ const Browse = () => {
                     valueClass={
                       room.difficulty.toLowerCase() === "hard"
                         ? "text-[#e6aaa1]"
-                        : "text-[#e7c49d]"
+                        : room.difficulty.toLowerCase() === "medium"
+                          ? "text-[#dea566]"
+                          : "text-[#e7c49d]"
                     }
                   />
                   <RoomDetail

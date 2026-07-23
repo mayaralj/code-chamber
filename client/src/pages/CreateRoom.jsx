@@ -127,7 +127,7 @@ const CreateRoom = () => {
               className="w-full cursor-pointer border border-[#ffdd9d] bg-[#ffdd9d] py-5 text-3xl font-black tracking-[0.12em] text-[#251b0f] transition-colors duration-200 hover:bg-[#e7bc76]"
               onClick={handleCreate}
             >
-              CREATE ROOM
+              CREATE CHAMBER ›
             </button>
 
             <p className="mt-7 text-center text-[10px] font-bold tracking-[0.18em] text-[#564b3c]">
