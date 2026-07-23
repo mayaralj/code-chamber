@@ -10,6 +10,7 @@ const Browse = () => {
   const [difficultyFilter, setDifficultyFilter] = useState("ALL");
   const [showPrivateModal, setShowPrivateModal] = useState(false);
   const [privateCode, setPrivateCode] = useState("");
+  const [visibleRoomCount, setVisibleRoomCount] = useState(9);
 
   // Notify server that user is on public rooms page
   useEffect(() => {
@@ -68,6 +69,18 @@ const Browse = () => {
     });
   };
 
+  const filteredRooms = rooms.filter((room) => {
+    const matchesSearch = room.roomName
+      .toLowerCase()
+      .includes(search.toLowerCase());
+
+    const matchesDifficulty =
+      difficultyFilter === "ALL" ||
+      room.difficulty.toLowerCase() === difficultyFilter.toLowerCase();
+
+    return matchesSearch && matchesDifficulty;
+  });
+
   // Display list of public rooms with option to click and join
   return (
     <div className="min-h-[calc(100vh-72px)] bg-[#0b0b0b] px-10 py-14 font-mono text-[#e7c49d] [background-image:radial-gradient(#5b4e3e_0.6px,transparent_0.6px)] [background-size:20px_20px]">
@@ -124,86 +137,70 @@ const Browse = () => {
         </section>
 
         <section className="mt-10 grid gap-7 md:grid-cols-2 xl:grid-cols-3">
-          {rooms
-            .filter((room) => {
-              const matchesSearch = room.roomName
-                .toLowerCase()
-                .includes(search.toLowerCase());
+          {filteredRooms.slice(0, visibleRoomCount).map((room) => {
+            const isFull = room.players.length >= room.maxPlayers;
 
-              const matchesDifficulty =
-                difficultyFilter === "ALL" ||
-                room.difficulty.toLowerCase() ===
-                  difficultyFilter.toLowerCase();
+            return (
+              <article
+                key={room.code}
+                className={`border p-7 ${
+                  isFull
+                    ? "border-[#2f2c27] bg-[#151515] opacity-55"
+                    : "border-[#4b4133] bg-[#191919]"
+                }`}
+              >
+                <div className="flex items-start justify-between">
+                  <h2 className="text-xl font-black text-[#ffdd9d]">
+                    #{room.code}
+                  </h2>
 
-              return matchesSearch && matchesDifficulty;
-            })
-            .map((room) => {
-              const isFull = room.players.length >= room.maxPlayers;
-
-              return (
-                <article
-                  key={room.code}
-                  className={`border p-7 ${
-                    isFull
-                      ? "border-[#2f2c27] bg-[#151515] opacity-55"
-                      : "border-[#4b4133] bg-[#191919]"
-                  }`}
-                >
-                  <div className="flex items-start justify-between">
-                    <h2 className="text-xl font-black text-[#ffdd9d]">
-                      #{room.code}
-                    </h2>
-
-                    <span
-                      className={`px-2 py-1 text-[10px] font-bold ${
-                        isFull
-                          ? "bg-[#30302d] text-[#8e8477]"
-                          : "bg-[#eab308] text-[#2b210c]"
-                      }`}
-                    >
-                      {isFull ? "ROOM FULL" : "JOINABLE"}
-                    </span>
-                  </div>
-
-                  <div className="mt-7 space-y-5 text-sm">
-                    <RoomDetail
-                      label="HOST"
-                      value={room.host || "ROOT_ADMIN"}
-                    />
-                    <RoomDetail
-                      label="DIFFICULTY"
-                      value={room.difficulty.toUpperCase()}
-                      valueClass={
-                        room.difficulty.toLowerCase() === "hard"
-                          ? "text-[#e6aaa1]"
-                          : "text-[#e7c49d]"
-                      }
-                    />
-                    <RoomDetail
-                      label="PLAYERS"
-                      value={`${room.players.length}/${room.maxPlayers}`}
-                      valueClass="text-[#ffdd9d]"
-                    />
-                  </div>
-
-                  <button
-                    disabled={isFull}
-                    onClick={() => handleJoin(room.code)}
-                    className={`mt-9 w-full border py-4 text-sm font-bold tracking-wider transition-colors ${
+                  <span
+                    className={`px-2 py-1 text-[10px] font-bold ${
                       isFull
-                        ? "cursor-not-allowed border-[#30302d] bg-[#292929] text-[#81786b]"
-                        : "cursor-pointer border-[#ffdd9d] bg-[#ffdd9d] text-[#251b0f] hover:bg-[#e7bc76]"
+                        ? "bg-[#30302d] text-[#8e8477]"
+                        : "bg-[#eab308] text-[#2b210c]"
                     }`}
                   >
-                    {isFull ? "FULL" : "JOIN ROOM  ›"}
-                  </button>
+                    {isFull ? "ROOM FULL" : "JOINABLE"}
+                  </span>
+                </div>
 
-                  {error.code === room.code && (
-                    <p className="mt-3 text-sm text-red-400">{error.message}</p>
-                  )}
-                </article>
-              );
-            })}
+                <div className="mt-7 space-y-5 text-sm">
+                  <RoomDetail label="HOST" value={room.host || "ROOT_ADMIN"} />
+                  <RoomDetail
+                    label="DIFFICULTY"
+                    value={room.difficulty.toUpperCase()}
+                    valueClass={
+                      room.difficulty.toLowerCase() === "hard"
+                        ? "text-[#e6aaa1]"
+                        : "text-[#e7c49d]"
+                    }
+                  />
+                  <RoomDetail
+                    label="PLAYERS"
+                    value={`${room.players.length}/${room.maxPlayers}`}
+                    valueClass="text-[#ffdd9d]"
+                  />
+                </div>
+
+                <button
+                  disabled={isFull}
+                  onClick={() => handleJoin(room.code)}
+                  className={`mt-9 w-full border py-4 text-sm font-bold tracking-wider transition-colors ${
+                    isFull
+                      ? "cursor-not-allowed border-[#30302d] bg-[#292929] text-[#81786b]"
+                      : "cursor-pointer border-[#ffdd9d] bg-[#ffdd9d] text-[#251b0f] hover:bg-[#e7bc76]"
+                  }`}
+                >
+                  {isFull ? "FULL" : "JOIN ROOM  ›"}
+                </button>
+
+                {error.code === room.code && (
+                  <p className="mt-3 text-sm text-red-400">{error.message}</p>
+                )}
+              </article>
+            );
+          })}
         </section>
 
         {rooms.length === 0 && (
@@ -212,9 +209,22 @@ const Browse = () => {
           </p>
         )}
 
-        <button className="mx-auto mt-16 block cursor-pointer border border-[#8b7658] px-12 py-4 text-sm font-bold tracking-wider text-[#d8c09d] transition-colors hover:border-[#ffd99d] hover:text-[#ffd99d]">
-          VIEW MORE CHAMBERS
-        </button>
+        {/* Add View more chamber button only available when there are more rooms to show */}
+        {visibleRoomCount < filteredRooms.length && (
+          <button
+            className="mx-auto mt-16 block cursor-pointer border border-[#8b7658] px-12 py-4 text-sm font-bold tracking-wider text-[#d8c09d] transition-colors hover:border-[#ffd99d] hover:text-[#ffd99d]"
+            onClick={() =>
+              setVisibleRoomCount((prev) => {
+                const newCount = prev + 9;
+                return newCount > filteredRooms.length
+                  ? filteredRooms.length
+                  : newCount;
+              })
+            }
+          >
+            VIEW MORE CHAMBERS
+          </button>
+        )}
       </div>
 
       {showPrivateModal && (
