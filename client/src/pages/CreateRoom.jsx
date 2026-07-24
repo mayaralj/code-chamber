@@ -26,7 +26,7 @@ const CreateRoom = () => {
     // Listen for room created event
     socket.once("room-created", ({ roomInfo }) => {
       navigate(`/room-wait/${roomInfo.code}`, {
-        state: { roomInfo, isHost: true },
+        state: { roomInfo },
       });
     });
   };

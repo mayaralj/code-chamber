@@ -6,6 +6,7 @@ export const buildPlayerList = (room) => {
   // Build a list of all players with needed data
   const playerList = room.players.map((p) => ({
     username: p.username,
+    displayName: p.displayName,
     ...(gameStarted && {
       judging: p?.gameData?.roundData?.[currentRound]?.judging,
       submitted: p?.gameData?.roundData?.[currentRound]?.submitted,

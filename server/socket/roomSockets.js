@@ -87,7 +87,8 @@ const setUpRoomSockets = (io, socket, { rooms, playersInRooms }) => {
     const player = {
       userId: socket.data.id,
       socketId: socket.id,
-      username: socket.data.displayName ?? socket.data.username,
+      username: socket.data.username,
+      displayName: socket.data.displayName,
       isGuest: socket.data.isGuest,
     };
     return player;

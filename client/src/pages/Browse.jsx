@@ -58,7 +58,7 @@ const Browse = () => {
       setError({ code: "", message: "" });
       // Navigate to room wait with the room code and players list
       navigate(`/room-wait/${code}`, {
-        state: { username: "Mayar", isHost: false, roomInfo }, // Temp username
+        state: { roomInfo }, // Temp username
       });
     });
 
