@@ -41,6 +41,14 @@ const initSocket = (io, info) => {
   });
 
   io.on("connection", (socket) => {
+    // Send to client right away
+    socket.emit("user-data", {
+      id: socket.data.id,
+      username: socket.data.username,
+      displayName: socket.data.displayName,
+      isGuest: socket.data.isGuest,
+    });
+
     totalConnections++;
     console.log("Total connections: " + totalConnections);
 
