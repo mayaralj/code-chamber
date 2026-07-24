@@ -66,6 +66,7 @@ const startRound = async (io, socket, code, rooms) => {
   } else {
     // Emit to each client that new round is starting and send updated player list
     io.to(code).emit("new-round", {
+      currentRound: curRound,
       newEndsAt: roundData.endsAt,
       question: roundData.question,
       beforeRoundEvents: roundEvents?.beforeRound,

@@ -35,7 +35,7 @@ const Game = () => {
   // Countdown Timer
   const { timeLeft, timerFinished } = useCountdownTimer(initEndsAt);
   // Round Timer
-  const { roundTimeLeft } = useRoundTimer();
+  const { roundTimeLeft, currentRound } = useRoundTimer();
   // Question
   const { question, starterCode } = useGameQuestion(initQuestion);
   // Code Submission
@@ -172,7 +172,11 @@ const Game = () => {
 
       {/* Show timer until ready */}
       {(!timerFinished || !editorReady) && (
-        <Timer timeLeft={timeLeft} beforeRoundEvents={beforeRoundEvents} />
+        <Timer
+          timeLeft={timeLeft}
+          currentRound={currentRound}
+          beforeRoundEvents={beforeRoundEvents}
+        />
       )}
     </>
   );

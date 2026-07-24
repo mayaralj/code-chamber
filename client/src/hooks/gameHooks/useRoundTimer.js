@@ -8,11 +8,14 @@ import { playAnyTimer } from "../../utils/timers.js";
 export const useRoundTimer = () => {
   const [roundTimeLeft, setRoundTimeLeft] = useState(0);
   const [roundTimerFinished, setRoundTimerFinished] = useState(false);
+  const [currentRound, setCurrentRound] = useState(1); // Set 1 initially, will be updated on new round event
   const roundTimerCleanupRef = useRef(null);
 
   // Handle new round start by resetting states
   useEffect(() => {
-    const handleNewRound = () => {
+    // Handle new round event
+    const handleNewRound = ({ currentRound }) => {
+      setCurrentRound(currentRound);
       setRoundTimeLeft(0);
       setRoundTimerFinished(false);
     };
@@ -55,5 +58,5 @@ export const useRoundTimer = () => {
     };
   }, []);
 
-  return { roundTimeLeft };
+  return { roundTimeLeft, currentRound };
 };
