@@ -1,4 +1,8 @@
-import { createBrowserRouter, RouterProvider } from "react-router-dom";
+import {
+  createBrowserRouter,
+  RouterProvider,
+  Navigate,
+} from "react-router-dom";
 import Home from "./pages/Home";
 import CreateRoom from "./pages/CreateRoom";
 import Browse from "./pages/Browse";
@@ -26,7 +30,7 @@ const router = createBrowserRouter([
   { path: "/room-wait/:code", element: <RoomWait /> },
   { path: "/game/:code", element: <Game /> },
   // 404 Route
-  { path: "*", element: <Home /> }, // will be not found page later
+  { path: "*", element: <Navigate to="/" replace /> }, // will be not found page later
 ]);
 
 const App = () => {
