@@ -102,17 +102,12 @@ const RoomWait = () => {
   };
 
   return (
-    <div className="min-h-screen bg-[#0b0b0b] px-6 py-20 font-mono text-[#e7c49d] [background-image:radial-gradient(#5b4e3e_0.55px,transparent_0.55px)] [background-size:20px_20px]">
+    <div className="h-screen bg-[#0b0b0b] px-6 py-20 font-mono text-[#e7c49d] [background-image:radial-gradient(#5b4e3e_0.55px,transparent_0.55px)] [background-size:20px_20px]">
       <main className="mx-auto w-full max-w-[680px]">
         <section className="text-center">
           <h1 className="text-4xl font-black tracking-tight text-[#f1eee7] md:text-5xl">
             WAITING FOR CHAMBER INITIALIZATION
           </h1>
-
-          <p className="mt-3 text-xs font-bold tracking-[0.14em] text-[#a9977e]">
-            <span className="mr-2 inline-block h-2 w-2 bg-[#ffdd9d]" />
-            SYNCING WITH CENTRAL MATRIX...
-          </p>
         </section>
 
         <section className="mt-12 grid grid-cols-2 gap-4 md:grid-cols-4">
@@ -152,7 +147,7 @@ const RoomWait = () => {
                 <div className="flex items-center gap-4">
                   {/* Host indicator */}
                   <div className="flex h-10 w-10 items-center justify-center border border-[#8b7658] text-lg text-[#ffdd9d]">
-                    {roomInfo.host.username === otherPlayer.username ? (
+                    {roomInfo.host === otherPlayer.username ? (
                       <Crown className="h-4 w-4" />
                     ) : index === 1 ? (
                       "‹›"
@@ -163,10 +158,10 @@ const RoomWait = () => {
 
                   <div>
                     <p className="text-lg text-[#f1eee7]">
-                      {otherPlayer.username}
+                      {otherPlayer.displayName}
                     </p>
                     <p className="mt-1 text-[10px] font-bold tracking-wider text-[#9e8968]">
-                      PLAYER_{String(index + 1).padStart(2, "0")}
+                      {otherPlayer.username}
                     </p>
                   </div>
                 </div>
@@ -186,7 +181,7 @@ const RoomWait = () => {
               >
                 <div className="flex items-center gap-4">
                   <div className="flex h-10 w-10 items-center justify-center border border-dashed border-[#4b4133] text-lg">
-                    <LoaderCircle className="h-4 w-4 animate-spin text-[#8b7658]" />
+                    <LoaderCircle className="h-4 w-4 animate-[spin_3s_linear_infinite] text-[#8b7658]" />
                   </div>
 
                   <p className="italic">Waiting for Player...</p>
