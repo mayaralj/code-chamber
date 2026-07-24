@@ -102,15 +102,15 @@ const RoomWait = () => {
   };
 
   return (
-    <div className="h-screen bg-[#0b0b0b] px-6 py-20 font-mono text-[#e7c49d] [background-image:radial-gradient(#5b4e3e_0.55px,transparent_0.55px)] [background-size:20px_20px]">
-      <main className="mx-auto w-full max-w-[680px]">
+    <div className="h-dvh overflow-hidden bg-[#0b0b0b] px-4 py-20 font-mono text-[#e7c49d] [background-image:radial-gradient(#5b4e3e_0.55px,transparent_0.55px)] [background-size:20px_20px] sm:px-6">
+      <main className="mx-auto grid h-full w-full max-w-[680px] grid-rows-[auto_auto_minmax(0,1fr)_auto] gap-6">
         <section className="text-center">
-          <h1 className="text-4xl font-black tracking-tight text-[#f1eee7] md:text-5xl">
+          <h1 className="text-2xl font-black tracking-tight text-[#f1eee7] sm:text-4xl md:text-5xl">
             WAITING FOR CHAMBER INITIALIZATION
           </h1>
         </section>
 
-        <section className="mt-12 grid grid-cols-2 gap-4 md:grid-cols-4">
+        <section className="grid grid-cols-2 gap-3 md:grid-cols-4">
           <InfoCard
             label="ROOM NAME"
             value={roomInfo?.roomName || "#UNKNOWN"}
@@ -118,9 +118,7 @@ const RoomWait = () => {
           <InfoCard label="ROOM CODE" value={roomInfo?.code || code} />
           <InfoCard
             label="DIFFICULTY"
-            value={
-              roomInfo?.difficulty ? roomInfo.difficulty.toUpperCase() : "EASY"
-            }
+            value={roomInfo?.difficulty?.toUpperCase() || "EASY"}
             accent
           />
           <InfoCard
@@ -130,7 +128,7 @@ const RoomWait = () => {
           />
         </section>
 
-        <section className="mt-12">
+        <section className="flex min-h-0 flex-col">
           <div className="flex items-center gap-4">
             <h2 className="text-xs font-bold tracking-[0.14em] text-[#d8c09d]">
               ACTIVE_PARTICIPANTS
@@ -138,36 +136,38 @@ const RoomWait = () => {
             <div className="h-px flex-1 bg-[#39342c]" />
           </div>
 
-          <div className="mt-6 space-y-3">
+          <div
+            className="mt-4 grid min-h-0 flex-1 gap-2"
+            style={{
+              gridTemplateRows: `repeat(${roomInfo?.maxPlayers || 1}, minmax(0, 1fr))`,
+            }}
+          >
             {players.map((otherPlayer, index) => (
               <article
                 key={otherPlayer.username}
-                className="flex items-center justify-between border border-[#4b4133] bg-[#1a1a1a] px-4 py-4"
+                className="flex min-h-0 items-center justify-between border border-[#4b4133] bg-[#1a1a1a] px-3 py-2 sm:px-4"
               >
-                <div className="flex items-center gap-4">
-                  {/* Host indicator */}
-                  <div className="flex h-10 w-10 items-center justify-center border border-[#8b7658] text-lg text-[#ffdd9d]">
+                <div className="flex min-w-0 items-center gap-3">
+                  <div className="flex h-8 w-8 shrink-0 items-center justify-center border border-[#8b7658] text-[#ffdd9d] sm:h-10 sm:w-10">
                     {roomInfo.host === otherPlayer.username ? (
                       <Crown className="h-4 w-4" />
-                    ) : index === 1 ? (
-                      "‹›"
                     ) : (
                       "◉"
                     )}
                   </div>
 
-                  <div>
-                    <p className="text-lg text-[#f1eee7]">
+                  <div className="min-w-0">
+                    <p className="truncate text-sm text-[#f1eee7] sm:text-lg">
                       {otherPlayer.displayName}
                     </p>
-                    <p className="mt-1 text-[10px] font-bold tracking-wider text-[#9e8968]">
+                    <p className="truncate text-[9px] font-bold tracking-wider text-[#9e8968] sm:text-[10px]">
                       {otherPlayer.username}
                     </p>
                   </div>
                 </div>
 
-                <span className="text-xs font-bold tracking-wider text-[#ffdd9d]">
-                  <span className="mr-2 inline-block h-2 w-2 bg-[#ffdd9d]" />
+                <span className="ml-3 shrink-0">
+                  <span className="inline-block h-2 w-2 bg-[#ffdd9d]" />
                 </span>
               </article>
             ))}
@@ -177,14 +177,15 @@ const RoomWait = () => {
             }).map((_, index) => (
               <article
                 key={`empty-${index}`}
-                className="flex items-center justify-between border border-dashed border-[#39342c] px-4 py-4 text-[#665c50]"
+                className="flex min-h-0 items-center border border-dashed border-[#39342c] px-3 py-2 text-[#665c50] sm:px-4"
               >
-                <div className="flex items-center gap-4">
-                  <div className="flex h-10 w-10 items-center justify-center border border-dashed border-[#4b4133] text-lg">
+                <div className="flex min-w-0 items-center gap-3">
+                  <div className="flex h-8 w-8 shrink-0 items-center justify-center border border-dashed border-[#4b4133] sm:h-10 sm:w-10">
                     <LoaderCircle className="h-4 w-4 animate-[spin_3s_linear_infinite] text-[#8b7658]" />
                   </div>
-
-                  <p className="italic">Waiting for Player...</p>
+                  <p className="truncate text-sm italic sm:text-base">
+                    Waiting for Player...
+                  </p>
                 </div>
               </article>
             ))}
@@ -192,14 +193,14 @@ const RoomWait = () => {
         </section>
 
         <section
-          className={`mt-14 grid gap-4 ${
-            isHost && players.length > 0 ? "sm:grid-cols-2" : "sm:grid-cols-1"
+          className={`grid gap-3 ${
+            isHost && players.length > 0 ? "grid-cols-2" : "grid-cols-1"
           }`}
         >
           {isHost && players.length > 0 && (
             <button
               onClick={handleStart}
-              className="cursor-pointer border border-[#ffdd9d] bg-[#ffdd9d] py-5 text-2xl font-black tracking-[0.1em] text-[#251b0f] transition-colors duration-200 hover:bg-[#e7bc76]"
+              className="cursor-pointer border border-[#ffdd9d] bg-[#ffdd9d] py-3 text-sm font-black tracking-[0.1em] text-[#251b0f] sm:py-5 sm:text-2xl"
             >
               START GAME
             </button>
@@ -207,7 +208,7 @@ const RoomWait = () => {
 
           <button
             onClick={handleLeave}
-            className="cursor-pointer border border-[#d8b77f] bg-transparent py-5 text-2xl font-black tracking-[0.1em] text-[#e7c49d] transition-colors duration-200 hover:bg-[#211d17] hover:text-[#ffdd9d]"
+            className="cursor-pointer border border-[#d8b77f] bg-transparent py-3 text-sm font-black tracking-[0.1em] text-[#e7c49d] sm:py-5 sm:text-2xl"
           >
             LEAVE ROOM
           </button>
