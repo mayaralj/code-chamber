@@ -7,23 +7,23 @@ const setUpRoomSockets = (io, socket, { rooms, playersInRooms }) => {
       (room) => room.isPublic && !room.isGameStarted,
     );
     // Fill up public rooms for testing 30 rooms
-    while (publicRooms.length < 30) {
-      const randomDifficulty = ["Easy", "Medium", "Hard"][
-        Math.floor(Math.random() * 3)
-      ];
-      const randomMaxPlayers = [2, 3, 4, 5, 6][Math.floor(Math.random() * 5)];
-      const randomGameStarted = [true, false][Math.floor(Math.random() * 2)];
-      publicRooms.push({
-        code: `TEST${publicRooms.length + 1}`,
-        roomName: `Test Room ${publicRooms.length + 1}`,
-        host: { username: "TestHost" },
-        players: [],
-        maxPlayers: randomMaxPlayers,
-        isPublic: true,
-        difficulty: randomDifficulty,
-        isGameStarted: randomGameStarted,
-      });
-    }
+    // while (publicRooms.length < 30) {
+    //   const randomDifficulty = ["Easy", "Medium", "Hard"][
+    //     Math.floor(Math.random() * 3)
+    //   ];
+    //   const randomMaxPlayers = [2, 3, 4, 5, 6][Math.floor(Math.random() * 5)];
+    //   const randomGameStarted = [true, false][Math.floor(Math.random() * 2)];
+    //   publicRooms.push({
+    //     code: `TEST${publicRooms.length + 1}`,
+    //     roomName: `Test Room ${publicRooms.length + 1}`,
+    //     host: { username: "TestHost" },
+    //     players: [],
+    //     maxPlayers: randomMaxPlayers,
+    //     isPublic: true,
+    //     difficulty: randomDifficulty,
+    //     isGameStarted: randomGameStarted,
+    //   });
+    // }
 
     // Build rooms object with only necessary info for public rooms page
     publicRooms = publicRooms.map((room) => ({
@@ -54,13 +54,15 @@ const setUpRoomSockets = (io, socket, { rooms, playersInRooms }) => {
     }
 
     // Remove player from room
-    room.players = room.players.filter((player) => player.id !== socket.id);
+    room.players = room.players.filter(
+      (player) => player.socketId !== socket.id,
+    );
 
     // Remove from room in socket.io and from playersInRooms mapping
     socket.leave(code);
     delete playersInRooms[socket.id];
 
-    if (!room.host || room.host.id === socket.id) {
+    if (!room.host || room.host.socketId === socket.id) {
       // Kick everyone when host leaves and delete room
       io.to(code).emit("host-left", { message: "Host left the room" });
       delete rooms[code];

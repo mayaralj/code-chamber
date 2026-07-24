@@ -62,6 +62,7 @@ const RoomWait = () => {
 
     // Listen for host left
     socket.on("host-left", () => {
+      console.log("Host left, redirecting to home");
       navigate("/", { replace: true });
     });
 
@@ -102,50 +103,135 @@ const RoomWait = () => {
   };
 
   return (
-    <div className="min-h-screen bg-gray-950 text-white flex flex-col items-center justify-center gap-8 p-8">
-      <h1 className="text-4xl font-bold mb-3 -mt-16">Waiting for Game</h1>
-      {/* Display Room name */}
-      <p className="text-lg">Room Name: {roomInfo?.roomName}</p>
-      {/* Display Room Code */}
-      <p className="text-lg">Room Code: {roomInfo?.code}</p>
-      {/* Display Game difficulty */}
-      <p className="text-lg">
-        Game Difficulty:{" "}
-        {roomInfo?.difficulty.charAt(0).toUpperCase() + // Keep capitalized first letter
-          roomInfo?.difficulty.slice(1)}
-      </p>
-      {/* Display player count out of max players */}
-      <p className="text-lg">
-        Players: {players.length}/{roomInfo?.maxPlayers}
-      </p>
+    <div className="min-h-screen bg-[#0b0b0b] px-6 py-20 font-mono text-[#e7c49d] [background-image:radial-gradient(#5b4e3e_0.55px,transparent_0.55px)] [background-size:20px_20px]">
+      <main className="mx-auto w-full max-w-[680px]">
+        <section className="text-center">
+          <h1 className="text-4xl font-black tracking-tight text-[#f1eee7] md:text-5xl">
+            WAITING FOR CHAMBER INITIALIZATION
+          </h1>
 
-      {/* Display players in current room */}
-      <div className="flex flex-col gap-4">
-        {players.map((player) => (
-          <div key={player.username} className="bg-gray-800 p-4 rounded-lg">
-            <p className="text-xl font-bold">{player.username}</p>
+          <p className="mt-3 text-xs font-bold tracking-[0.14em] text-[#a9977e]">
+            <span className="mr-2 inline-block h-2 w-2 bg-[#ffdd9d]" />
+            SYNCING WITH CENTRAL MATRIX...
+          </p>
+        </section>
+
+        <section className="mt-12 grid grid-cols-2 gap-4 md:grid-cols-4">
+          <InfoCard
+            label="ROOM NAME"
+            value={roomInfo?.roomName || "#UNKNOWN"}
+          />
+          <InfoCard label="ROOM CODE" value={roomInfo?.code || code} />
+          <InfoCard
+            label="DIFFICULTY"
+            value={
+              roomInfo?.difficulty ? roomInfo.difficulty.toUpperCase() : "EASY"
+            }
+            accent
+          />
+          <InfoCard
+            label="PLAYERS"
+            value={`${players.length} / ${roomInfo?.maxPlayers || 0}`}
+            accent
+          />
+        </section>
+
+        <section className="mt-12">
+          <div className="flex items-center gap-4">
+            <h2 className="text-xs font-bold tracking-[0.14em] text-[#d8c09d]">
+              ACTIVE_PARTICIPANTS
+            </h2>
+            <div className="h-px flex-1 bg-[#39342c]" />
           </div>
-        ))}
-      </div>
 
-      {/* If host show a start game button */}
-      {isHost && players.length > 0 && (
-        <button
-          onClick={handleStart}
-          className="cursor-pointer bg-orange-50 text-gray-900 font-bold px-12 py-3 rounded hover:bg-orange-100"
+          <div className="mt-6 space-y-3">
+            {players.map((player, index) => (
+              <article
+                key={player.username}
+                className="flex items-center justify-between border border-[#4b4133] bg-[#1a1a1a] px-4 py-4"
+              >
+                <div className="flex items-center gap-4">
+                  <div className="flex h-10 w-10 items-center justify-center border border-[#8b7658] text-lg text-[#ffdd9d]">
+                    {index === 0 ? "⌘" : index === 1 ? "‹›" : "◉"}
+                  </div>
+
+                  <div>
+                    <p className="text-lg text-[#f1eee7]">{player.username}</p>
+                    <p className="mt-1 text-[10px] font-bold tracking-wider text-[#9e8968]">
+                      OPERATOR_LVL_{String(index + 1).padStart(2, "0")}
+                    </p>
+                  </div>
+                </div>
+
+                <span className="text-xs font-bold tracking-wider text-[#ffdd9d]">
+                  <span className="mr-2 inline-block h-2 w-2 bg-[#ffdd9d]" />
+                  READY
+                </span>
+              </article>
+            ))}
+
+            {Array.from({
+              length: Math.max(0, (roomInfo?.maxPlayers || 0) - players.length),
+            }).map((_, index) => (
+              <article
+                key={`empty-${index}`}
+                className="flex items-center justify-between border border-dashed border-[#39342c] px-4 py-4 text-[#665c50]"
+              >
+                <div className="flex items-center gap-4">
+                  <div className="flex h-10 w-10 items-center justify-center border border-dashed border-[#4b4133] text-lg">
+                    ♧
+                  </div>
+
+                  <p className="italic">Waiting for connection...</p>
+                </div>
+
+                <span className="text-xs font-bold tracking-wider">
+                  PENDING
+                </span>
+              </article>
+            ))}
+          </div>
+        </section>
+
+        <section
+          className={`mt-14 grid gap-4 ${
+            isHost && players.length > 0 ? "sm:grid-cols-2" : "sm:grid-cols-1"
+          }`}
         >
-          Start Game
-        </button>
-      )}
-      {/* Show a leave room button */}
-      <button
-        onClick={handleLeave}
-        className="cursor-pointer bg-red-700 text-white font-bold px-12 py-3 rounded hover:bg-red-600"
-      >
-        Leave Room
-      </button>
+          {isHost && players.length > 0 && (
+            <button
+              onClick={handleStart}
+              className="cursor-pointer border border-[#ffdd9d] bg-[#ffdd9d] py-5 text-2xl font-black tracking-[0.1em] text-[#251b0f] transition-colors duration-200 hover:bg-[#e7bc76]"
+            >
+              START GAME
+            </button>
+          )}
+
+          <button
+            onClick={handleLeave}
+            className="cursor-pointer border border-[#d8b77f] bg-transparent py-5 text-2xl font-black tracking-[0.1em] text-[#e7c49d] transition-colors duration-200 hover:bg-[#211d17] hover:text-[#ffdd9d]"
+          >
+            LEAVE ROOM
+          </button>
+        </section>
+      </main>
     </div>
   );
 };
+
+const InfoCard = ({ label, value, accent = false }) => (
+  <article className="border border-[#4b4133] bg-[#1a1a1a] px-4 py-4">
+    <p className="text-[10px] font-bold tracking-[0.14em] text-[#a9977e]">
+      {label}
+    </p>
+    <p
+      className={`mt-2 text-lg font-bold ${
+        accent ? "text-[#ffdd9d]" : "text-[#f1eee7]"
+      }`}
+    >
+      {value}
+    </p>
+  </article>
+);
 
 export default RoomWait;
