@@ -1,6 +1,8 @@
 import { useNavigate, useLocation, useParams } from "react-router-dom";
 import { socket } from "../socket";
 import { useState, useEffect, useRef } from "react";
+import { LoaderCircle, Crown } from "lucide-react";
+import usePlayer from "../hooks/usePlayer.js";
 
 const RoomWait = () => {
   // Code
@@ -8,7 +10,9 @@ const RoomWait = () => {
   const navigate = useNavigate();
   // Get Info passed from Join or CreateRoom
   const location = useLocation();
-  const { roomInfo, isHost } = location.state || {};
+  const { roomInfo } = location.state || {};
+  const { player } = usePlayer();
+  const isHost = roomInfo?.host === player?.username;
 
   // Game started ref
   const gameStartedRef = useRef(false);
@@ -94,11 +98,6 @@ const RoomWait = () => {
   // Handle leave room by emitting leave room event and navigating back to home
   const handleLeave = () => {
     socket.emit("leave-room", { code });
-    // Redirect host back to create room and other players back to rooms page
-    if (isHost) {
-      navigate("/create", { replace: true });
-      return;
-    }
     navigate("/browse", { replace: true });
   };
 
@@ -145,27 +144,35 @@ const RoomWait = () => {
           </div>
 
           <div className="mt-6 space-y-3">
-            {players.map((player, index) => (
+            {players.map((otherPlayer, index) => (
               <article
-                key={player.username}
+                key={otherPlayer.username}
                 className="flex items-center justify-between border border-[#4b4133] bg-[#1a1a1a] px-4 py-4"
               >
                 <div className="flex items-center gap-4">
+                  {/* Host indicator */}
                   <div className="flex h-10 w-10 items-center justify-center border border-[#8b7658] text-lg text-[#ffdd9d]">
-                    {index === 0 ? "⌘" : index === 1 ? "‹›" : "◉"}
+                    {roomInfo.host.username === otherPlayer.username ? (
+                      <Crown className="h-4 w-4" />
+                    ) : index === 1 ? (
+                      "‹›"
+                    ) : (
+                      "◉"
+                    )}
                   </div>
 
                   <div>
-                    <p className="text-lg text-[#f1eee7]">{player.username}</p>
+                    <p className="text-lg text-[#f1eee7]">
+                      {otherPlayer.username}
+                    </p>
                     <p className="mt-1 text-[10px] font-bold tracking-wider text-[#9e8968]">
-                      OPERATOR_LVL_{String(index + 1).padStart(2, "0")}
+                      PLAYER_{String(index + 1).padStart(2, "0")}
                     </p>
                   </div>
                 </div>
 
                 <span className="text-xs font-bold tracking-wider text-[#ffdd9d]">
                   <span className="mr-2 inline-block h-2 w-2 bg-[#ffdd9d]" />
-                  READY
                 </span>
               </article>
             ))}
@@ -179,15 +186,11 @@ const RoomWait = () => {
               >
                 <div className="flex items-center gap-4">
                   <div className="flex h-10 w-10 items-center justify-center border border-dashed border-[#4b4133] text-lg">
-                    ♧
+                    <LoaderCircle className="h-4 w-4 animate-spin text-[#8b7658]" />
                   </div>
 
-                  <p className="italic">Waiting for connection...</p>
+                  <p className="italic">Waiting for Player...</p>
                 </div>
-
-                <span className="text-xs font-bold tracking-wider">
-                  PENDING
-                </span>
               </article>
             ))}
           </div>
