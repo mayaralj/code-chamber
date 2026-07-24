@@ -76,17 +76,17 @@ const Home = () => {
             tag="SCANNING_ACTIVE"
             description="Enter the lobby. Navigate active servers. Accept the challenge. Survival is the only metric for success."
             buttonText="SCAN SERVERS"
-            onClick={() => navigate("/join")}
+            onClick={() => navigate("/browse")}
           />
 
           {/* Active Chambers card */}
           <aside className="space-y-4">
-            <Panel title="ACTIVE_CHAMBERS">
+            <Panel title="GLOBAL_RANKING">
               <div className="space-y-2">
                 {activeChambers.map((room) => (
                   <button
                     key={room.code}
-                    onClick={() => navigate("/join")}
+                    onClick={() => navigate("/browse")}
                     className="flex w-full cursor-pointer items-center justify-between border border-[#302b24] bg-[#181818] px-3 py-3 text-left text-sm font-bold text-[#d8c09d] transition-colors duration-200 hover:bg-[#252019]"
                   >
                     <span>{room.code}</span>
@@ -96,7 +96,7 @@ const Home = () => {
               </div>
             </Panel>
 
-            <Panel title="GLOBAL_RANKING">
+            <Panel title="GAME_STATS">
               <div className="space-y-1">
                 {rankings.map((player) => (
                   <div
