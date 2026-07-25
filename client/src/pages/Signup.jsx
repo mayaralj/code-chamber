@@ -9,6 +9,24 @@ const Signup = () => {
   const [error, setError] = useState(searchParams.get("error") || null);
   console.log("Error from search params:", error);
 
+  // Check if user is already logged in
+  const checkLoggedIn = async () => {
+    const { data: session, error } = await authClient.getSession();
+    if (error) {
+      console.error("Error checking login status:", error);
+      return;
+    }
+    if (session?.user) {
+      console.log("User is already logged in:", session.user);
+      navigate("/profile", { replace: true });
+    }
+  };
+
+  // Call checkLoggedIn on component mount
+  useState(() => {
+    checkLoggedIn();
+  }, []);
+
   // Form state
   const [form, setForm] = useState({
     username: "",
@@ -29,7 +47,7 @@ const Signup = () => {
     await authClient.signIn.social({
       provider,
       callbackURL: `${APP_URL}/`,
-      //newUserCallbackURL: `${APP_URL}/choose-username`,
+      newUserCallbackURL: `${APP_URL}/choose-username`,
       errorCallbackURL: `${APP_URL}/signup`,
     });
   };

@@ -11,6 +11,24 @@ const Login = () => {
     password: "",
   });
 
+  // Check if user is already logged in
+  const checkLoggedIn = async () => {
+    const { data: session, error } = await authClient.getSession();
+    if (error) {
+      console.error("Error checking login status:", error);
+      return;
+    }
+    if (session?.user) {
+      console.log("User is already logged in:", session.user);
+      navigate("/profile", { replace: true });
+    }
+  };
+
+  // Call checkLoggedIn on component mount
+  useState(() => {
+    checkLoggedIn();
+  }, []);
+
   // Handle form change
   const handleChange = (e) => {
     setForm({
@@ -25,7 +43,7 @@ const Login = () => {
     await authClient.signIn.social({
       provider,
       callbackURL: `${APP_URL}/`,
-      //newUserCallbackURL: `${APP_URL}/choose-username`,
+      newUserCallbackURL: `${APP_URL}/choose-username`,
       errorCallbackURL: `${APP_URL}/signup`,
     });
   };
