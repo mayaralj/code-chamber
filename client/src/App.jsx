@@ -15,6 +15,8 @@ import Profile from "./pages/Profile";
 import ChooseUsername from "./pages/ChooseUsername";
 
 import RequireUsername from "./components/RequireUsername";
+import RequireSocket from "./components/RequireSocket";
+import RequireLogin from "./components/RequireLogin";
 import MainLayout from "./layouts/MainLayout";
 
 const router = createBrowserRouter([
@@ -22,21 +24,33 @@ const router = createBrowserRouter([
     path: "/",
     element: <MainLayout />,
     children: [
-      // anyone can access these
+      // Anyone allowed
       { index: true, element: <Home /> },
       { path: "signup", element: <Signup /> },
       { path: "login", element: <Login /> },
-      { path: "choose-username", element: <ChooseUsername /> },
 
-      // need to be logged in and have a username to access these
+      // Must be logged in
       {
-        element: <RequireUsername />,
+        element: <RequireLogin />,
         children: [
-          { path: "create", element: <CreateRoom /> },
-          { path: "browse", element: <Browse /> },
           { path: "profile", element: <Profile /> },
-          { path: "room-wait/:code", element: <RoomWait /> },
-          { path: "game/:code", element: <Game /> },
+          { path: "choose-username", element: <ChooseUsername /> },
+        ],
+      },
+
+      // Need a socket connection
+      {
+        element: <RequireSocket />,
+        children: [
+          {
+            element: <RequireUsername />,
+            children: [
+              { path: "create", element: <CreateRoom /> },
+              { path: "browse", element: <Browse /> },
+              { path: "room-wait/:code", element: <RoomWait /> },
+              { path: "game/:code", element: <Game /> },
+            ],
+          },
         ],
       },
     ],
