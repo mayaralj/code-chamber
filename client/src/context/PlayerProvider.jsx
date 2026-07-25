@@ -4,41 +4,64 @@ import PlayerContext from "./PlayerContext";
 
 const PlayerProvider = ({ children }) => {
   const [player, setPlayer] = useState(null);
+  const [connectionStatus, setConnectionStatus] = useState("connecting");
+
+  // Retry connection helper
+  const retryConnection = () => {
+    setConnectionStatus("connecting");
+    if (!socket.connected) {
+      socket.connect();
+    }
+  };
 
   useEffect(() => {
     const setIdentity = (identity) => {
       console.log("Received identity:", identity);
       setPlayer(identity);
+      setConnectionStatus("connected");
     };
 
     const onConnect = () => {
       console.log("Connected:", socket.id);
+      setPlayer(null);
+      setConnectionStatus("connecting");
     };
 
     const onConnectError = (error) => {
       console.error("Socket connection error:", error.message);
+      if (!socket.active) {
+        setPlayer(null);
+        setConnectionStatus("error");
+      }
     };
 
-    // 1. Add listeners first
+    const onDisconnect = (reason) => {
+      console.warn("Socket disconnected:", reason);
+      setPlayer(null);
+      setConnectionStatus("disconnected");
+    };
+
+    // Add Listeners for socket events
     socket.on("user-data", setIdentity);
     socket.on("connect", onConnect);
     socket.on("connect_error", onConnectError);
+    socket.on("disconnect", onDisconnect);
 
-    // 2. Then start the connection
+    // Attempt to connect the socket
     socket.connect();
 
     return () => {
       socket.off("user-data", setIdentity);
       socket.off("connect", onConnect);
       socket.off("connect_error", onConnectError);
-
-      // Optional: only if this provider is the sole socket owner
-      // socket.disconnect();
+      socket.off("disconnect", onDisconnect);
     };
   }, []);
 
   return (
-    <PlayerContext.Provider value={{ player, setPlayer }}>
+    <PlayerContext.Provider
+      value={{ player, connectionStatus, retryConnection }}
+    >
       {children}
     </PlayerContext.Provider>
   );
