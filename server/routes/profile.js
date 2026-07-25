@@ -32,7 +32,8 @@ const profileRouter = () => {
 
       // Build profile info and return it
       const profileInfo = {
-        username: session.user.name,
+        displayName: session.user.name,
+        username: session.user.username,
         matches_played: profileStats.matches_played,
         matches_won: profileStats.matches_won,
       };

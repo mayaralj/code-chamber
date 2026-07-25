@@ -240,10 +240,6 @@ const setUpRoomSockets = (io, socket, { rooms, playersInRooms }) => {
 
   // Handle disconnection
   socket.on("disconnect", () => {
-    console.log("A user disconnected: ", {
-      id: socket.id,
-      username: socket.data.username,
-    });
     leaveRoom(socket, playersInRooms[socket.id]);
   });
 };

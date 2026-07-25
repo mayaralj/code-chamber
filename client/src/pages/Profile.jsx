@@ -176,7 +176,11 @@ const Profile = () => {
       <h1 className="text-3xl text-white font-bold mb-6">Profile</h1>
       <div className="bg-gray-700 p-6 rounded shadow-md w-80">
         <p className="text-white mb-2">
-          <strong>Username:</strong> {profileInfo.username || "Loading..."}
+          <strong>Username:</strong> {profileInfo.username}
+        </p>
+        <p className="text-white mb-2">
+          <strong>Display Name:</strong> {profileInfo.displayName}
+          {/* Add Space */}
         </p>
       </div>
 

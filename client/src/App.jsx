@@ -11,6 +11,7 @@ import Game from "./pages/Game";
 import Signup from "./pages/Signup";
 import Login from "./pages/Login";
 import Profile from "./pages/Profile";
+import ChooseUsername from "./pages/ChooseUsername";
 // Layouts
 import MainLayout from "./layouts/MainLayout";
 
@@ -25,6 +26,7 @@ const router = createBrowserRouter([
       { path: "/signup", element: <Signup /> },
       { path: "/login", element: <Login /> },
       { path: "/profile", element: <Profile /> },
+      { path: "/choose-username", element: <ChooseUsername /> },
     ],
   },
   { path: "/room-wait/:code", element: <RoomWait /> },
