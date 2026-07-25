@@ -119,6 +119,12 @@ const setUpRoomSockets = (io, socket, { rooms, playersInRooms }) => {
       return;
     }
 
+    // Check if room name is valid
+    if (!roomName || roomName.trim() === "") {
+      socket.emit("room-create-error", { message: "Room name is required" });
+      return;
+    }
+
     // Create a random code
     let code = Math.random().toString(36).substring(2, 6).toUpperCase();
     // Ensure code is unique

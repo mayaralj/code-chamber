@@ -23,6 +23,7 @@ const CreateRoom = () => {
       isPublic,
       difficulty,
     });
+
     // Listen for room created event
     socket.once("room-created", ({ roomInfo }) => {
       navigate(`/room-wait/${roomInfo.code}`, {
