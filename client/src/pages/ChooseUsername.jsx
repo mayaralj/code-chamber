@@ -41,11 +41,11 @@ const ChooseUsername = () => {
 
     try {
       await refreshSocketConnection(); // Refresh the socket connection after setting username
-      navigate("/profile", { replace: true });
     } catch (error) {
       setError("Username saved but failed to refresh socket connection.");
-      return;
+      console.warn("Socket refresh failed but it will keep retrying", error);
     }
+    navigate("/profile", { replace: true });
   };
 
   return (

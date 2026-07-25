@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { NavLink, useNavigate, useSearchParams } from "react-router-dom";
 import authClient from "../authClient";
 import { refreshSocketConnection } from "../socket";
@@ -23,7 +23,7 @@ const Signup = () => {
   };
 
   // Call checkLoggedIn on component mount
-  useState(() => {
+  useEffect(() => {
     checkLoggedIn();
   }, []);
 
@@ -83,14 +83,13 @@ const Signup = () => {
     // Redirect to home page
     try {
       await refreshSocketConnection(); // Refresh the socket connection after signup
-      navigate("/", { replace: true });
     } catch (error) {
       console.error(
         "Signup success but failed to refresh socket connection:",
         error,
       );
-      navigate("/", { replace: true });
     }
+    navigate("/", { replace: true });
   };
 
   return (

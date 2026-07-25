@@ -6,8 +6,6 @@ import { useNavigate } from "react-router-dom";
 
 const Profile = () => {
   const navigate = useNavigate();
-  // Is logged in state
-  const [isLoggedIn, setIsLoggedIn] = useState(false);
   // Profile info state'
   const [profileInfo, setProfileInfo] = useState(null);
   // Accounts state
@@ -61,42 +59,15 @@ const Profile = () => {
         return;
       }
       console.log("Logged out successfully");
-      // Redirect to home page
-      await refreshSocketConnection(); // Refresh the socket connection after signup
-      navigate("/", { replace: true });
+      await refreshSocketConnection();
     } catch (error) {
       console.error("Error during logout:", error);
     }
+    navigate("/", { replace: true });
   };
-
-  // Check if user is logged in
-  useEffect(() => {
-    const checkLoginStatus = async () => {
-      const { data: session, error } = await authClient.getSession();
-      if (error) {
-        console.error("Error checking login status:", error);
-        return;
-      }
-      const loggedIn = !!session?.user;
-      setIsLoggedIn(loggedIn);
-      console.log("User is logged in:", loggedIn);
-
-      // Redirect to signup if not logged in
-      if (!loggedIn) {
-        navigate("/signup", { replace: true });
-      }
-    };
-
-    checkLoginStatus();
-  }, []);
 
   // Request profile info from server
   useEffect(() => {
-    // Ignore if not logged in
-    if (!isLoggedIn) {
-      return;
-    }
-
     // Fetch profile info from server
     const fetchProfileInfo = async () => {
       try {
@@ -128,15 +99,11 @@ const Profile = () => {
       }
     };
 
-    fetchProfileInfo();
-  }, [isLoggedIn, navigate]);
+    fetchProfileInfo().catch(console.error);
+  }, [navigate]);
 
   // Check Social option linking status
   useEffect(() => {
-    // Ignore if not logged in
-    if (!isLoggedIn) {
-      return;
-    }
     let cancelled = false;
     authClient.listAccounts().then(({ data: accounts, error }) => {
       // If the component has unmounted, do not update state
@@ -156,7 +123,7 @@ const Profile = () => {
     return () => {
       cancelled = true;
     };
-  }, [isLoggedIn]);
+  }, []);
 
   // Determine if each social account is linked
   const googleLinked = accounts.some(
@@ -171,105 +138,103 @@ const Profile = () => {
   // Count linked accounts
   const linkedCount = accounts.length;
 
-  return profileInfo ? (
-    <main className="bg-gray-800 min-h-screen flex flex-col items-center justify-center">
-      <h1 className="text-3xl text-white font-bold mb-6">Profile</h1>
-      <div className="bg-gray-700 p-6 rounded shadow-md w-80">
-        <p className="text-white mb-2">
-          <strong>Username:</strong> {profileInfo.username}
-        </p>
-        <p className="text-white mb-2">
-          <strong>Display Name:</strong> {profileInfo.displayName}
-          {/* Add Space */}
-        </p>
-      </div>
+  return (
+    profileInfo && (
+      <main className="bg-gray-800 min-h-screen flex flex-col items-center justify-center">
+        <h1 className="text-3xl text-white font-bold mb-6">Profile</h1>
+        <div className="bg-gray-700 p-6 rounded shadow-md w-80">
+          <p className="text-white mb-2">
+            <strong>Username:</strong> {profileInfo.username}
+          </p>
+          <p className="text-white mb-2">
+            <strong>Display Name:</strong> {profileInfo.displayName}
+            {/* Add Space */}
+          </p>
+        </div>
 
-      {/* Logout button */}
-      <button
-        className="bg-red-500 text-white font-bold py-2 px-4 rounded hover:bg-red-600 mt-6 cursor-pointer"
-        onClick={handleLogout}
-      >
-        Logout
-      </button>
-
-      {/* Link Google button */}
-      {!googleLinked && (
+        {/* Logout button */}
         <button
-          className="bg-blue-500 text-white font-bold py-2 px-4 rounded hover:bg-blue-600 mt-4 cursor-pointer"
-          onClick={handleGoogleLink}
+          className="bg-red-500 text-white font-bold py-2 px-4 rounded hover:bg-red-600 mt-6 cursor-pointer"
+          onClick={handleLogout}
         >
-          Link Google Account
+          Logout
         </button>
-      )}
 
-      {/* Link GitHub button */}
-      {!githubLinked && (
-        <button
-          className="bg-gray-800 text-white font-bold py-2 px-4 rounded border border-gray-600 hover:bg-gray-700 cursor-pointer mt-4"
-          onClick={handleGithubLink}
-        >
-          Link GitHub Account
-        </button>
-      )}
+        {/* Link Google button */}
+        {!googleLinked && (
+          <button
+            className="bg-blue-500 text-white font-bold py-2 px-4 rounded hover:bg-blue-600 mt-4 cursor-pointer"
+            onClick={handleGoogleLink}
+          >
+            Link Google Account
+          </button>
+        )}
 
-      {/* Link Discord button */}
-      {!discordLinked && (
-        <button
-          className="bg-blue-500 text-white font-bold py-2 px-4 rounded hover:bg-blue-600 cursor-pointer mt-4"
-          onClick={handleDiscordLink}
-        >
-          Link Discord Account
-        </button>
-      )}
+        {/* Link GitHub button */}
+        {!githubLinked && (
+          <button
+            className="bg-gray-800 text-white font-bold py-2 px-4 rounded border border-gray-600 hover:bg-gray-700 cursor-pointer mt-4"
+            onClick={handleGithubLink}
+          >
+            Link GitHub Account
+          </button>
+        )}
 
-      {/* Unlinked buttons only show when >1 account is linked */}
-      {linkedCount > 1 && (
-        <>
-          {/* Unlink Google button */}
-          {googleLinked && (
-            <button
-              className="bg-red-500 text-white font-bold py-2 px-4 rounded hover:bg-red-600 mt-4 cursor-pointer"
-              onClick={handleGoogleUnlink}
-            >
-              Unlink Google Account
-            </button>
-          )}
+        {/* Link Discord button */}
+        {!discordLinked && (
+          <button
+            className="bg-blue-500 text-white font-bold py-2 px-4 rounded hover:bg-blue-600 cursor-pointer mt-4"
+            onClick={handleDiscordLink}
+          >
+            Link Discord Account
+          </button>
+        )}
 
-          {/* Unlink GitHub button */}
-          {githubLinked && (
-            <button
-              className="bg-gray-800 text-white font-bold py-2 px-4 rounded border border-gray-600 hover:bg-gray-700 mt-4 cursor-pointer"
-              onClick={handleGithubUnlink}
-            >
-              Unlink GitHub Account
-            </button>
-          )}
+        {/* Unlinked buttons only show when >1 account is linked */}
+        {linkedCount > 1 && (
+          <>
+            {/* Unlink Google button */}
+            {googleLinked && (
+              <button
+                className="bg-red-500 text-white font-bold py-2 px-4 rounded hover:bg-red-600 mt-4 cursor-pointer"
+                onClick={handleGoogleUnlink}
+              >
+                Unlink Google Account
+              </button>
+            )}
 
-          {/* Unlink Discord button */}
-          {discordLinked && (
-            <button
-              className="bg-blue-500 text-white font-bold py-2 px-4 rounded hover:bg-blue-600 cursor-pointer mt-4"
-              onClick={handleDiscordUnlink}
-            >
-              Unlink Discord Account
-            </button>
-          )}
-        </>
-      )}
-      {/* Display match stats */}
-      <div className="bg-gray-700 p-6 rounded shadow-md w-80 mt-6">
-        <p className="text-white mb-2">
-          <strong>Matches Played:</strong> {profileInfo.matches_played || 0}
-        </p>
-        <p className="text-white mb-2">
-          <strong>Matches Won:</strong> {profileInfo.matches_won || 0}
-        </p>
-      </div>
-    </main>
-  ) : (
-    <main className="bg-gray-800 min-h-screen flex flex-col items-center justify-center">
-      <h1 className="text-3xl text-white font-bold mb-6">Loading Profile...</h1>
-    </main>
+            {/* Unlink GitHub button */}
+            {githubLinked && (
+              <button
+                className="bg-gray-800 text-white font-bold py-2 px-4 rounded border border-gray-600 hover:bg-gray-700 mt-4 cursor-pointer"
+                onClick={handleGithubUnlink}
+              >
+                Unlink GitHub Account
+              </button>
+            )}
+
+            {/* Unlink Discord button */}
+            {discordLinked && (
+              <button
+                className="bg-blue-500 text-white font-bold py-2 px-4 rounded hover:bg-blue-600 cursor-pointer mt-4"
+                onClick={handleDiscordUnlink}
+              >
+                Unlink Discord Account
+              </button>
+            )}
+          </>
+        )}
+        {/* Display match stats */}
+        <div className="bg-gray-700 p-6 rounded shadow-md w-80 mt-6">
+          <p className="text-white mb-2">
+            <strong>Matches Played:</strong> {profileInfo.matches_played || 0}
+          </p>
+          <p className="text-white mb-2">
+            <strong>Matches Won:</strong> {profileInfo.matches_won || 0}
+          </p>
+        </div>
+      </main>
+    )
   );
 };
 
