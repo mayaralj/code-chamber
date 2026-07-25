@@ -111,6 +111,13 @@ const setUpRoomSockets = (io, socket, { rooms, playersInRooms }) => {
   socket.on("create-room", ({ roomName, maxPlayers, isPublic, difficulty }) => {
     // Get host username
     const username = socket.data.username;
+    if (!username) {
+      console.log("Username is required to create a room");
+      socket.emit("room-create-error", {
+        message: "Username is Required to Create a Room",
+      });
+      return;
+    }
 
     // Create a random code
     let code = Math.random().toString(36).substring(2, 6).toUpperCase();
@@ -159,6 +166,12 @@ const setUpRoomSockets = (io, socket, { rooms, playersInRooms }) => {
   socket.on("join-room", ({ code }) => {
     // Get username from socket data
     const username = socket.data.username;
+    if (!username) {
+      socket.emit("room-join-error", {
+        message: "Username is Required to Join a Room",
+      });
+      return;
+    }
 
     // Check if room exists
     const room = rooms[code];

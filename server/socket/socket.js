@@ -17,11 +17,8 @@ const initSocket = (io, info) => {
       if (session?.user) {
         socket.data = {
           id: session.user.id,
-          username: session.user.username ?? session.user.name,
-          displayName:
-            session.user.displayUsername ??
-            session.user.username ??
-            session.user.name,
+          username: session.user.username,
+          displayName: session.user.displayUsername ?? session.user.name,
           isGuest: false,
         };
       } else {

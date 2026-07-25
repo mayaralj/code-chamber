@@ -23,6 +23,10 @@ const ChooseUsername = () => {
   // Handle form submission
   const handleSubmit = async (e) => {
     e.preventDefault();
+    if (!username.trim()) {
+      setError("Username cannot be empty.");
+      return;
+    }
     const { error } = await authClient.updateUser({
       username: username.trim().toLowerCase(),
       displayUsername: username.trim(),
