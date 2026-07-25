@@ -67,10 +67,6 @@ const initSocket = (io, info) => {
     // Handle disconnection
     socket.on("disconnect", () => {
       totalConnections--;
-      console.log("A user disconnected: ", {
-        id: socket.id,
-        username: socket.data.username,
-      });
       console.log("Total connections: " + totalConnections);
     });
   });

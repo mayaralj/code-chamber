@@ -23,32 +23,20 @@ const Signup = () => {
     });
   };
 
-  // HAndle google
-  const handleGoogleSignup = async () => {
+  // Sign up with social
+  const APP_URL = "http://localhost:3000";
+  const signUpWithSocial = async (provider) => {
     await authClient.signIn.social({
-      provider: "google",
-      callbackURL: "http://localhost:3000/",
-      errorCallbackURL: "http://localhost:3000/signup",
+      provider,
+      callbackURL: `${APP_URL}/`,
+      //newUserCallbackURL: `${APP_URL}/choose-username`,
+      errorCallbackURL: `${APP_URL}/signup`,
     });
   };
 
-  // Handle Github
-  const handleGithubSignup = async () => {
-    await authClient.signIn.social({
-      provider: "github",
-      callbackURL: "http://localhost:3000/",
-      errorCallbackURL: "http://localhost:3000/signup",
-    });
-  };
-
-  // Handle Discord
-  const handleDiscordSignup = async () => {
-    await authClient.signIn.social({
-      provider: "discord",
-      callbackURL: "http://localhost:3000/",
-      errorCallbackURL: "http://localhost:3000/signup",
-    });
-  };
+  const handleGoogleSignup = () => signUpWithSocial("google");
+  const handleGithubSignup = () => signUpWithSocial("github");
+  const handleDiscordSignup = () => signUpWithSocial("discord");
 
   // Handle Submit
   const handleSubmit = async (e) => {

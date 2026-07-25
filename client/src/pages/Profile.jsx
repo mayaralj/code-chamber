@@ -23,71 +23,34 @@ const Profile = () => {
     setAccounts(accounts || []);
   };
 
-  // Handle link google
-  const handleLinkGoogle = async () => {
+  // Link social account
+  const APP_URL = "http://localhost:3000";
+  const linkSocial = async (provider) => {
     await authClient.linkSocial({
-      provider: "google",
-      callbackURL: "http://localhost:3000/profile",
-      errorCallbackURL: "http://localhost:3000/profile",
+      provider,
+      callbackURL: `${APP_URL}/`,
+      errorCallbackURL: `${APP_URL}/signup`,
     });
   };
 
-  // Handle unlink google
-  const handleUnlinkGoogle = async () => {
-    const { error } = await authClient.unlinkAccount({
-      providerId: "google",
-    });
+  const handleGoogleLink = () => linkSocial("google");
+  const handleGithubLink = () => linkSocial("github");
+  const handleDiscordLink = () => linkSocial("discord");
+
+  // Unlink social account
+  const unlinkSocial = async (providerId) => {
+    const { error } = await authClient.unlinkAccount({ providerId });
     if (error) {
-      console.error("Failed to unlink Google account:", error);
+      console.error(`Failed to unlink ${providerId} account:`, error);
       return;
     }
     // Refresh accounts to update the state
     await refreshAccounts();
   };
 
-  // Handle link github
-  const handleLinkGithub = async () => {
-    await authClient.linkSocial({
-      provider: "github",
-      callbackURL: "http://localhost:3000/profile",
-      errorCallbackURL: "http://localhost:3000/profile",
-    });
-  };
-
-  // Handle unlink github
-  const handleUnlinkGithub = async () => {
-    const { error } = await authClient.unlinkAccount({
-      providerId: "github",
-    });
-    if (error) {
-      console.error("Failed to unlink GitHub account:", error);
-      return;
-    }
-    // Refresh accounts to update the state
-    await refreshAccounts();
-  };
-
-  // Handle link discord
-  const handleLinkDiscord = async () => {
-    await authClient.linkSocial({
-      provider: "discord",
-      callbackURL: "http://localhost:3000/profile",
-      errorCallbackURL: "http://localhost:3000/profile",
-    });
-  };
-
-  // Handle unlink discord
-  const handleUnlinkDiscord = async () => {
-    const { error } = await authClient.unlinkAccount({
-      providerId: "discord",
-    });
-    if (error) {
-      console.error("Failed to unlink Discord account:", error);
-      return;
-    }
-    // Refresh accounts to update the state
-    await refreshAccounts();
-  };
+  const handleGoogleUnlink = () => unlinkSocial("google");
+  const handleGithubUnlink = () => unlinkSocial("github");
+  const handleDiscordUnlink = () => unlinkSocial("discord");
 
   // Handle logout
   const handleLogout = async () => {
@@ -229,7 +192,7 @@ const Profile = () => {
       {!googleLinked && (
         <button
           className="bg-blue-500 text-white font-bold py-2 px-4 rounded hover:bg-blue-600 mt-4 cursor-pointer"
-          onClick={handleLinkGoogle}
+          onClick={handleGoogleLink}
         >
           Link Google Account
         </button>
@@ -239,7 +202,7 @@ const Profile = () => {
       {!githubLinked && (
         <button
           className="bg-gray-800 text-white font-bold py-2 px-4 rounded border border-gray-600 hover:bg-gray-700 cursor-pointer mt-4"
-          onClick={handleLinkGithub}
+          onClick={handleGithubLink}
         >
           Link GitHub Account
         </button>
@@ -249,7 +212,7 @@ const Profile = () => {
       {!discordLinked && (
         <button
           className="bg-blue-500 text-white font-bold py-2 px-4 rounded hover:bg-blue-600 cursor-pointer mt-4"
-          onClick={handleLinkDiscord}
+          onClick={handleDiscordLink}
         >
           Link Discord Account
         </button>
@@ -262,7 +225,7 @@ const Profile = () => {
           {googleLinked && (
             <button
               className="bg-red-500 text-white font-bold py-2 px-4 rounded hover:bg-red-600 mt-4 cursor-pointer"
-              onClick={handleUnlinkGoogle}
+              onClick={handleGoogleUnlink}
             >
               Unlink Google Account
             </button>
@@ -272,7 +235,7 @@ const Profile = () => {
           {githubLinked && (
             <button
               className="bg-gray-800 text-white font-bold py-2 px-4 rounded border border-gray-600 hover:bg-gray-700 mt-4 cursor-pointer"
-              onClick={handleUnlinkGithub}
+              onClick={handleGithubUnlink}
             >
               Unlink GitHub Account
             </button>
@@ -282,7 +245,7 @@ const Profile = () => {
           {discordLinked && (
             <button
               className="bg-blue-500 text-white font-bold py-2 px-4 rounded hover:bg-blue-600 cursor-pointer mt-4"
-              onClick={handleUnlinkDiscord}
+              onClick={handleDiscordUnlink}
             >
               Unlink Discord Account
             </button>
