@@ -69,9 +69,17 @@ const Login = () => {
     // Successful login
     console.log("Logged in:", data.user);
 
-    // Redirect to home page
-    refreshSocketConnection(); // Refresh the socket connection after login
-    navigate("/", { replace: true });
+    // Redirect to home page\
+    try {
+      await refreshSocketConnection(); // Refresh the socket connection after login
+      navigate("/", { replace: true });
+    } catch (error) {
+      console.error(
+        "Login success but failed to refresh socket connection:",
+        error,
+      );
+      navigate("/", { replace: true });
+    }
   };
 
   return (

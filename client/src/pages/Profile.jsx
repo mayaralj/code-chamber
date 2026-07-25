@@ -62,7 +62,7 @@ const Profile = () => {
       }
       console.log("Logged out successfully");
       // Redirect to home page
-      refreshSocketConnection(); // Refresh the socket connection after signup
+      await refreshSocketConnection(); // Refresh the socket connection after signup
       navigate("/", { replace: true });
     } catch (error) {
       console.error("Error during logout:", error);

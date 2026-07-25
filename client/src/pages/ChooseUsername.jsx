@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { useNavigate, Navigate } from "react-router-dom";
 import authClient from "../authClient";
+import { refreshSocketConnection } from "../socket";
 
 const ChooseUsername = () => {
   const { data: session, isPending } = authClient.useSession();
@@ -38,7 +39,13 @@ const ChooseUsername = () => {
       return;
     }
 
-    navigate("/profile", { replace: true });
+    try {
+      await refreshSocketConnection(); // Refresh the socket connection after setting username
+      navigate("/profile", { replace: true });
+    } catch (error) {
+      setError("Username saved but failed to refresh socket connection.");
+      return;
+    }
   };
 
   return (

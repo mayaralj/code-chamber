@@ -81,8 +81,16 @@ const Signup = () => {
     console.log("Account created:", data.user);
 
     // Redirect to home page
-    refreshSocketConnection(); // Refresh the socket connection after signup
-    navigate("/", { replace: true });
+    try {
+      await refreshSocketConnection(); // Refresh the socket connection after signup
+      navigate("/", { replace: true });
+    } catch (error) {
+      console.error(
+        "Signup success but failed to refresh socket connection:",
+        error,
+      );
+      navigate("/", { replace: true });
+    }
   };
 
   return (

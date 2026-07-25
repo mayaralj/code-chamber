@@ -7,6 +7,26 @@ export const socket = io("http://localhost:5000", {
 });
 
 export const refreshSocketConnection = () => {
-  socket.disconnect();
-  socket.connect();
+  new Promise((resolve, reject) => {
+    const handleConnect = () => {
+      cleanup();
+      resolve();
+    };
+
+    const handleError = (error) => {
+      cleanup();
+      reject(error);
+    };
+
+    const cleanup = () => {
+      socket.off("connect", handleConnect);
+      socket.off("connect_error", handleError);
+    };
+
+    socket.once("connect", handleConnect);
+    socket.once("connect_error", handleError);
+
+    socket.disconnect();
+    socket.connect();
+  });
 };
