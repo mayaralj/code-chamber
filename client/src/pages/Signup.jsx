@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { NavLink, useNavigate, useSearchParams } from "react-router-dom";
 import authClient from "../authClient";
 import { refreshSocketConnection } from "../socket";
@@ -8,24 +8,6 @@ const Signup = () => {
   const [searchParams] = useSearchParams();
   const [error, setError] = useState(searchParams.get("error") || null);
   console.log("Error from search params:", error);
-
-  // Check if user is already logged in
-  const checkLoggedIn = async () => {
-    const { data: session, error } = await authClient.getSession();
-    if (error) {
-      console.error("Error checking login status:", error);
-      return;
-    }
-    if (session?.user) {
-      console.log("User is already logged in:", session.user);
-      navigate("/profile", { replace: true });
-    }
-  };
-
-  // Call checkLoggedIn on component mount
-  useEffect(() => {
-    checkLoggedIn();
-  }, []);
 
   // Form state
   const [form, setForm] = useState({
@@ -46,7 +28,7 @@ const Signup = () => {
   const signUpWithSocial = async (provider) => {
     await authClient.signIn.social({
       provider,
-      callbackURL: `${APP_URL}/`,
+      callbackURL: `${APP_URL}/profile`,
       newUserCallbackURL: `${APP_URL}/choose-username`,
       errorCallbackURL: `${APP_URL}/signup`,
     });
@@ -89,7 +71,7 @@ const Signup = () => {
         error,
       );
     }
-    navigate("/", { replace: true });
+    navigate("/profile", { replace: true });
   };
 
   return (
