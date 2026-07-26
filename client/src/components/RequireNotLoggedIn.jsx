@@ -8,8 +8,8 @@ const RequireNotLoggedIn = () => {
 
   if (isPending) {
     return (
-      <main className="bg-gray-800 min-h-screen flex items-center justify-center">
-        <h1 className="text-3xl text-white font-bold">Loading...</h1>
+      <main className="flex min-h-screen items-center justify-center bg-[#0b0b0b] font-mono text-sm tracking-[0.16em] text-[#d9bd8f]">
+        LOADING...
       </main>
     );
   }
