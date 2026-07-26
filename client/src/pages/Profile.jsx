@@ -1,74 +1,107 @@
-// Imports
-import { useState, useEffect } from "react";
+import { useEffect, useState } from "react";
+import {
+  FaDiscord,
+  FaGithub,
+  FaGoogle,
+  FaLink,
+  FaShieldAlt,
+  FaSignOutAlt,
+} from "react-icons/fa";
+import { Link, useNavigate, useSearchParams } from "react-router-dom";
 import authClient from "../authClient";
 import { refreshSocketConnection } from "../socket";
-import { useNavigate } from "react-router-dom";
+
+// REturn the modified error message so users can better understand it
+const returnProperErrorMessage = (error) => {
+  if (!error) return "";
+
+  switch (error) {
+    case "account_already_linked_to_different_user":
+      return "This Social Account is Already Connected to Another User.";
+  }
+  return "";
+};
 
 const Profile = () => {
   const navigate = useNavigate();
-  // Profile info state'
-  const [profileInfo, setProfileInfo] = useState(null);
-  // Accounts state
-  const [accounts, setAccounts] = useState([]);
+  const [searchParams] = useSearchParams();
 
-  // Load social linking status
+  const [profileInfo, setProfileInfo] = useState(null);
+  const [accounts, setAccounts] = useState([]);
+  const [errorMessage, setErrorMessage] = useState("");
+  const [isLoggingOut, setIsLoggingOut] = useState(false);
+
+  const oauthError = searchParams.get("error");
+  const oauthErrorMessage = returnProperErrorMessage(oauthError);
+
   const refreshAccounts = async () => {
-    const { data: accounts, error } = await authClient.listAccounts();
+    const { data, error } = await authClient.listAccounts();
+
     if (error) {
       console.error("Could not load accounts:", error);
+      setErrorMessage(error.message || "Could not load linked accounts.");
       return;
     }
-    setAccounts(accounts || []);
+
+    setAccounts(data || []);
   };
 
-  // Link social account
-  const APP_URL = "http://localhost:3000";
   const linkSocial = async (provider) => {
-    await authClient.linkSocial({
+    const appUrl = window.location.origin;
+    setErrorMessage("");
+
+    const { error } = await authClient.linkSocial({
       provider,
-      callbackURL: `${APP_URL}/`,
-      errorCallbackURL: `${APP_URL}/signup`,
+      callbackURL: `${appUrl}/profile`,
+      errorCallbackURL: `${appUrl}/profile`,
     });
+
+    if (error) {
+      console.error(`Could not link ${provider}:`, error);
+      setErrorMessage(error.message || `Could not link ${provider}.`);
+    }
   };
 
-  const handleGoogleLink = () => linkSocial("google");
-  const handleGithubLink = () => linkSocial("github");
-  const handleDiscordLink = () => linkSocial("discord");
-
-  // Unlink social account
   const unlinkSocial = async (providerId) => {
+    setErrorMessage("");
+
     const { error } = await authClient.unlinkAccount({ providerId });
+
     if (error) {
-      console.error(`Failed to unlink ${providerId} account:`, error);
+      console.error(`Could not unlink ${providerId}:`, error);
+      setErrorMessage(error.message || `Could not unlink ${providerId}.`);
       return;
     }
-    // Refresh accounts to update the state
+
     await refreshAccounts();
   };
 
-  const handleGoogleUnlink = () => unlinkSocial("google");
-  const handleGithubUnlink = () => unlinkSocial("github");
-  const handleDiscordUnlink = () => unlinkSocial("discord");
-
-  // Handle logout
   const handleLogout = async () => {
+    setIsLoggingOut(true);
+    setErrorMessage("");
+
     try {
       const { error } = await authClient.signOut();
+
       if (error) {
         console.error("Logout failed:", error);
+        setErrorMessage(error.message || "Logout failed.");
+        setIsLoggingOut(false);
         return;
       }
-      console.log("Logged out successfully");
+
       await refreshSocketConnection();
+      navigate("/", { replace: true });
     } catch (error) {
       console.error("Error during logout:", error);
+      setErrorMessage("Logout failed.");
+      setIsLoggingOut(false);
     }
-    navigate("/", { replace: true });
   };
 
-  // Request profile info from server
   useEffect(() => {
-    // Fetch profile info from server
+    let cancelled = false;
+
     const fetchProfileInfo = async () => {
       try {
         const response = await fetch("/api/profile", {
@@ -76,165 +109,252 @@ const Profile = () => {
           headers: {
             "Content-Type": "application/json",
           },
-          credentials: "include", // Include cookies for session
+          credentials: "include",
         });
 
-        //  Check if status code is 401 to redirect
         if (response.status === 401) {
-          // Redirect to signup page
-          navigate("/signup", { replace: true });
+          navigate("/login", { replace: true });
           return;
         }
-        // check if response is ok
+
         if (!response.ok) {
-          throw new Error(`HTTP error! status: ${response.status}`);
+          throw new Error(`HTTP error: ${response.status}`);
         }
 
-        // Set profile info state
         const data = await response.json();
-        console.log("Profile info received:", data);
-        setProfileInfo(data);
+
+        if (!cancelled) {
+          setProfileInfo(data);
+        }
       } catch (error) {
         console.error("Error fetching profile info:", error);
+
+        if (!cancelled) {
+          setErrorMessage("Could not load profile data.");
+        }
       }
     };
 
-    fetchProfileInfo().catch(console.error);
+    fetchProfileInfo();
+
+    return () => {
+      cancelled = true;
+    };
   }, [navigate]);
 
-  // Check Social option linking status
   useEffect(() => {
     let cancelled = false;
-    authClient.listAccounts().then(({ data: accounts, error }) => {
-      // If the component has unmounted, do not update state
+
+    authClient.listAccounts().then(({ data, error }) => {
       if (cancelled) return;
 
-      // Check for error
       if (error) {
         console.error("Could not load accounts:", error);
+        setErrorMessage(error.message || "Could not load linked accounts.");
         return;
       }
 
-      // Update state
-      setAccounts(accounts || []);
+      setAccounts(data || []);
     });
 
-    // Cleanup function to set cancelled flag if component unmounts
     return () => {
       cancelled = true;
     };
   }, []);
 
-  // Determine if each social account is linked
+  if (!profileInfo) {
+    return (
+      <main className="flex min-h-screen items-center justify-center bg-[#0b0b0b] font-mono text-sm tracking-[0.16em] text-[#d9bd8f]">
+        LOADING PROFILE...
+      </main>
+    );
+  }
+
   const googleLinked = accounts.some(
     (account) => account.providerId === "google",
   );
+
   const githubLinked = accounts.some(
     (account) => account.providerId === "github",
   );
+
   const discordLinked = accounts.some(
     (account) => account.providerId === "discord",
   );
-  // Count linked accounts
+
   const linkedCount = accounts.length;
+  const hasUsername = Boolean(profileInfo.username?.trim());
+
+  const socialAccounts = [
+    {
+      provider: "google",
+      label: "Google Account",
+      Icon: FaGoogle,
+      linked: googleLinked,
+    },
+    {
+      provider: "github",
+      label: "GitHub Account",
+      Icon: FaGithub,
+      linked: githubLinked,
+    },
+    {
+      provider: "discord",
+      label: "Discord Account",
+      Icon: FaDiscord,
+      linked: discordLinked,
+    },
+  ];
+
+  const visibleError = oauthErrorMessage || errorMessage;
 
   return (
-    profileInfo && (
-      <main className="bg-gray-800 min-h-screen flex flex-col items-center justify-center">
-        <h1 className="text-3xl text-white font-bold mb-6">Profile</h1>
-        <div className="bg-gray-700 p-6 rounded shadow-md w-80">
-          <p className="text-white mb-2">
-            <strong>Username:</strong> {profileInfo.username}
+    <main className="relative min-h-screen overflow-hidden bg-[#0b0b0b] px-5 py-12 text-[#e8d9c0]">
+      <div
+        className="pointer-events-none absolute inset-0 opacity-40"
+        style={{
+          backgroundImage: "radial-gradient(#7c7468 1px, transparent 1px)",
+          backgroundSize: "24px 24px",
+        }}
+      />
+
+      <section className="relative mx-auto w-full max-w-[470px]">
+        <header className="mb-12 text-center">
+          <h1 className="font-mono text-4xl font-black tracking-[0.14em] text-[#ffd89a]">
+            PROFILE
+          </h1>
+          <div className="mx-auto mt-4 h-1 w-12 bg-[#ffd89a]" />
+        </header>
+
+        {!hasUsername && (
+          <Link
+            to="/choose-username"
+            className="mb-6 block cursor-pointer border border-[#d99a6c] bg-[#2a1b16] px-5 py-4 text-center font-mono text-sm font-black tracking-[0.1em] text-[#ffd0aa] transition hover:bg-[#3a241b]"
+          >
+            NEED USERNAME TO PLAY
+          </Link>
+        )}
+
+        {visibleError && (
+          <p className="mb-6 border border-red-900 bg-red-950/40 px-4 py-3 font-mono text-xs text-red-300">
+            ERROR: {visibleError}
           </p>
-          <p className="text-white mb-2">
-            <strong>Display Name:</strong> {profileInfo.displayName}
-            {/* Add Space */}
-          </p>
+        )}
+
+        <section className="border border-[#5d5549] bg-[#0e0e0e]/95 p-7">
+          <div className="mb-6 flex items-center justify-between">
+            <h2 className="font-mono text-xs font-bold tracking-[0.17em] text-[#d9bd8f]">
+              ACCOUNT DETAILS
+            </h2>
+            <FaShieldAlt className="text-[#b9a282]" size={14} />
+          </div>
+
+          <div className="space-y-5 font-mono">
+            <div>
+              <p className="mb-1 text-sm text-[#c6baa5]">Username:</p>
+              <p className="text-lg font-bold text-[#ffd89a]">
+                {hasUsername ? profileInfo.username : "NOT ASSIGNED"}
+              </p>
+            </div>
+
+            <div>
+              <p className="mb-1 text-sm text-[#c6baa5]">Display Name:</p>
+              <p className="text-lg font-bold text-[#e8d9c0]">
+                {profileInfo.displayName || "UNAVAILABLE"}
+              </p>
+            </div>
+          </div>
+        </section>
+
+        <section className="mt-7">
+          <h2 className="mb-5 px-1 font-mono text-xs font-bold tracking-[0.17em] text-[#d9bd8f]">
+            LINKED ACCOUNTS
+          </h2>
+
+          <div className="space-y-3">
+            {socialAccounts.map(({ provider, label, Icon, linked }) => (
+              <div
+                key={provider}
+                className="flex items-center gap-4 border border-[#5d5549] bg-[#242322] px-5 py-4"
+              >
+                <Icon className="text-[#e8d9c0]" size={20} />
+
+                <span className="flex-1 font-mono text-sm font-bold text-[#e8d9c0]">
+                  {label}
+                </span>
+
+                {linked ? (
+                  <button
+                    className="flex cursor-pointer items-center gap-2 font-mono text-xs font-bold tracking-wider text-[#b9a282] transition hover:text-red-300 disabled:cursor-not-allowed disabled:opacity-40"
+                    type="button"
+                    onClick={() => unlinkSocial(provider)}
+                    disabled={linkedCount <= 1}
+                    title={
+                      linkedCount <= 1
+                        ? "You must keep at least one login method."
+                        : `Unlink ${label}`
+                    }
+                  >
+                    <FaLink size={15} />
+                    UNLINK
+                  </button>
+                ) : (
+                  <button
+                    className="flex cursor-pointer items-center gap-2 font-mono text-xs font-bold tracking-wider text-[#ffd89a] transition hover:text-[#ffe4b4]"
+                    type="button"
+                    onClick={() => linkSocial(provider)}
+                  >
+                    <FaLink size={15} />
+                    LINK
+                  </button>
+                )}
+              </div>
+            ))}
+          </div>
+        </section>
+
+        <section className="mt-7 border border-[#5d5549] bg-[#0e0e0e]/95 p-7">
+          <div className="mb-6 flex items-center justify-between">
+            <h2 className="font-mono text-xs font-bold tracking-[0.17em] text-[#d9bd8f]">
+              GAME STATISTICS
+            </h2>
+            <span className="text-[#b9a282]">▥</span>
+          </div>
+
+          <div className="grid grid-cols-2">
+            <div>
+              <p className="mb-2 font-mono text-sm text-[#c6baa5]">Played</p>
+              <p className="font-mono text-3xl font-black text-[#ffd89a]">
+                {profileInfo.matches_played || 0}
+              </p>
+            </div>
+
+            <div className="border-l border-[#5d5549] pl-7">
+              <p className="mb-2 font-mono text-sm text-[#c6baa5]">Won</p>
+              <p className="font-mono text-3xl font-black text-[#ffd89a]">
+                {profileInfo.matches_won || 0}
+              </p>
+            </div>
+          </div>
+        </section>
+
+        <div className="mt-10 text-center">
+          <button
+            className="inline-flex cursor-pointer items-center gap-3 border border-[#c9847c] px-8 py-3 font-mono text-sm font-bold tracking-[0.14em] text-[#e6aaa2] transition hover:bg-[#301c1b] disabled:cursor-not-allowed disabled:opacity-50"
+            type="button"
+            onClick={handleLogout}
+            disabled={isLoggingOut}
+          >
+            <FaSignOutAlt size={15} />
+            {isLoggingOut ? "LOGGING OUT..." : "LOGOUT"}
+          </button>
         </div>
 
-        {/* Logout button */}
-        <button
-          className="bg-red-500 text-white font-bold py-2 px-4 rounded hover:bg-red-600 mt-6 cursor-pointer"
-          onClick={handleLogout}
-        >
-          Logout
-        </button>
-
-        {/* Link Google button */}
-        {!googleLinked && (
-          <button
-            className="bg-blue-500 text-white font-bold py-2 px-4 rounded hover:bg-blue-600 mt-4 cursor-pointer"
-            onClick={handleGoogleLink}
-          >
-            Link Google Account
-          </button>
-        )}
-
-        {/* Link GitHub button */}
-        {!githubLinked && (
-          <button
-            className="bg-gray-800 text-white font-bold py-2 px-4 rounded border border-gray-600 hover:bg-gray-700 cursor-pointer mt-4"
-            onClick={handleGithubLink}
-          >
-            Link GitHub Account
-          </button>
-        )}
-
-        {/* Link Discord button */}
-        {!discordLinked && (
-          <button
-            className="bg-blue-500 text-white font-bold py-2 px-4 rounded hover:bg-blue-600 cursor-pointer mt-4"
-            onClick={handleDiscordLink}
-          >
-            Link Discord Account
-          </button>
-        )}
-
-        {/* Unlinked buttons only show when >1 account is linked */}
-        {linkedCount > 1 && (
-          <>
-            {/* Unlink Google button */}
-            {googleLinked && (
-              <button
-                className="bg-red-500 text-white font-bold py-2 px-4 rounded hover:bg-red-600 mt-4 cursor-pointer"
-                onClick={handleGoogleUnlink}
-              >
-                Unlink Google Account
-              </button>
-            )}
-
-            {/* Unlink GitHub button */}
-            {githubLinked && (
-              <button
-                className="bg-gray-800 text-white font-bold py-2 px-4 rounded border border-gray-600 hover:bg-gray-700 mt-4 cursor-pointer"
-                onClick={handleGithubUnlink}
-              >
-                Unlink GitHub Account
-              </button>
-            )}
-
-            {/* Unlink Discord button */}
-            {discordLinked && (
-              <button
-                className="bg-blue-500 text-white font-bold py-2 px-4 rounded hover:bg-blue-600 cursor-pointer mt-4"
-                onClick={handleDiscordUnlink}
-              >
-                Unlink Discord Account
-              </button>
-            )}
-          </>
-        )}
-        {/* Display match stats */}
-        <div className="bg-gray-700 p-6 rounded shadow-md w-80 mt-6">
-          <p className="text-white mb-2">
-            <strong>Matches Played:</strong> {profileInfo.matches_played || 0}
-          </p>
-          <p className="text-white mb-2">
-            <strong>Matches Won:</strong> {profileInfo.matches_won || 0}
-          </p>
-        </div>
-      </main>
-    )
+        <footer className="mt-9 text-center font-mono text-xs tracking-[0.1em] text-[#504c45]">
+          CODE_CHAMBER.v1.0.0 // SESSION_SECURE
+        </footer>
+      </section>
+    </main>
   );
 };
 
