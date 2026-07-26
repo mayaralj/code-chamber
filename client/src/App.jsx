@@ -15,6 +15,7 @@ import Profile from "./pages/Profile";
 import ChooseUsername from "./pages/ChooseUsername";
 
 import RequireUsername from "./components/RequireUsername";
+import RequireNoUsername from "./components/RequireNoUsername";
 import RequireSocket from "./components/RequireSocket";
 import RequireLogin from "./components/RequireLogin";
 import RequireNotLoggedIn from "./components/RequireNotLoggedIn";
@@ -42,7 +43,12 @@ const router = createBrowserRouter([
         element: <RequireLogin />,
         children: [
           { path: "profile", element: <Profile /> },
-          { path: "choose-username", element: <ChooseUsername /> },
+          {
+            element: <RequireNoUsername />,
+            children: [
+              { path: "choose-username", element: <ChooseUsername /> },
+            ],
+          },
         ],
       },
 

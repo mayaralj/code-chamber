@@ -4,22 +4,9 @@ import authClient from "../authClient";
 import { refreshSocketConnection } from "../socket";
 
 const ChooseUsername = () => {
-  const { data: session, isPending } = authClient.useSession();
   const navigate = useNavigate();
   const [username, setUsername] = useState("");
   const [error, setError] = useState(null);
-
-  if (isPending) {
-    return <div>Loading...</div>;
-  }
-
-  if (!session || !session.user) {
-    return <Navigate to="/login" replace />;
-  }
-
-  if (session.user.username) {
-    return <Navigate to="/profile" replace />;
-  }
 
   // Handle form submission
   const handleSubmit = async (e) => {
