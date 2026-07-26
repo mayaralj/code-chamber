@@ -10,6 +10,10 @@ import startGame from "../game/startGame.js";
 const setUpGameSockets = (io, socket, { rooms, playersInRooms }) => {
   // Game leave
   const gameLeave = (code) => {
+    // Means just a regular disconnection
+    if (!code) {
+      return;
+    }
     // Check if room is valid
     const room = rooms[code];
     if (!room) {

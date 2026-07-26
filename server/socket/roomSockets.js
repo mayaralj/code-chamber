@@ -43,6 +43,10 @@ const setUpRoomSockets = (io, socket, { rooms, playersInRooms }) => {
 
   // Room leave helper
   const leaveRoom = (socket, code) => {
+    // Means just a regular disconnection
+    if (!code) {
+      return;
+    }
     const room = rooms[code];
     if (!room) {
       return;
