@@ -44,6 +44,7 @@ const router = createBrowserRouter([
         children: [
           { path: "profile", element: <Profile /> },
           {
+            // Must be logged in and have no username
             element: <RequireNoUsername />,
             children: [
               { path: "choose-username", element: <ChooseUsername /> },
@@ -57,6 +58,7 @@ const router = createBrowserRouter([
         element: <RequireSocket />,
         children: [
           {
+            // Need a socket connection and a username to play
             element: <RequireUsername />,
             children: [
               { path: "create", element: <CreateRoom /> },
