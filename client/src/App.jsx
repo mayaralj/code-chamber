@@ -17,6 +17,7 @@ import ChooseUsername from "./pages/ChooseUsername";
 import RequireUsername from "./components/RequireUsername";
 import RequireSocket from "./components/RequireSocket";
 import RequireLogin from "./components/RequireLogin";
+import RequireNotLoggedIn from "./components/RequireNotLoggedIn";
 import MainLayout from "./layouts/MainLayout";
 
 const router = createBrowserRouter([
@@ -26,8 +27,15 @@ const router = createBrowserRouter([
     children: [
       // Anyone allowed
       { index: true, element: <Home /> },
-      { path: "signup", element: <Signup /> },
-      { path: "login", element: <Login /> },
+
+      // Must not be logged in
+      {
+        element: <RequireNotLoggedIn />,
+        children: [
+          { path: "signup", element: <Signup /> },
+          { path: "login", element: <Login /> },
+        ],
+      },
 
       // Must be logged in
       {

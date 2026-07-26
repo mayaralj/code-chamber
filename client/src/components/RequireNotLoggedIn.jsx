@@ -2,7 +2,7 @@
 import { Navigate, Outlet, useLocation } from "react-router-dom";
 import authClient from "../authClient";
 
-const RequireLogin = () => {
+const RequireNotLoggedIn = () => {
   const { data: session, isPending, error } = authClient.useSession();
   const location = useLocation();
 
@@ -14,11 +14,13 @@ const RequireLogin = () => {
     );
   }
 
-  if (error || !session?.user) {
-    return <Navigate to="/login" replace state={{ from: location.pathname }} />;
+  if (error || session?.user) {
+    return (
+      <Navigate to="/profile" replace state={{ from: location.pathname }} />
+    );
   }
 
   return <Outlet />;
 };
 
-export default RequireLogin;
+export default RequireNotLoggedIn;
