@@ -55,6 +55,7 @@ const router = createBrowserRouter([
 
       // Need a socket connection
       {
+        path: "/",
         element: <RequireSocket />,
         children: [
           {
@@ -63,10 +64,24 @@ const router = createBrowserRouter([
             children: [
               { path: "create", element: <CreateRoom /> },
               { path: "browse", element: <Browse /> },
-              { path: "room-wait/:code", element: <RoomWait /> },
-              { path: "game/:code", element: <Game /> },
             ],
           },
+        ],
+      },
+    ],
+  },
+
+  // Outside of main layout
+  {
+    path: "/",
+    element: <RequireSocket />,
+    children: [
+      {
+        // Need a socket connection and a username to play
+        element: <RequireUsername />,
+        children: [
+          { path: "room-wait/:code", element: <RoomWait /> },
+          { path: "game/:code", element: <Game /> },
         ],
       },
     ],
