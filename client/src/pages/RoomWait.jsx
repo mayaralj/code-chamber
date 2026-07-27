@@ -20,6 +20,9 @@ const RoomWait = () => {
   // Players state to track current players in this room
   const [players, setPlayers] = useState(roomInfo?.players || []);
 
+  // Game starting state
+  const [gameStarting, setGameStarting] = useState(false);
+
   // Check with server if user is supposed to be in this room
   useEffect(() => {
     socket.emit("check-room", { code });
@@ -44,6 +47,11 @@ const RoomWait = () => {
     // Listen for player leave
     socket.on("player-left", ({ players }) => {
       setPlayers(players);
+    });
+
+    // Listen for game starting
+    socket.on("game-starting", () => {
+      setGameStarting(true);
     });
 
     // Listen for game started
@@ -76,6 +84,7 @@ const RoomWait = () => {
       socket.off("player-left");
       socket.off("game-started");
       socket.off("host-left");
+      socket.off("game-starting");
       if (!gameStartedRef.current) {
         socket.emit("leave-room", { code });
       }
@@ -102,7 +111,22 @@ const RoomWait = () => {
   };
 
   return (
-    <div className="h-dvh overflow-hidden bg-[#0b0b0b] px-4 py-20 font-mono text-[#e7c49d] [background-image:radial-gradient(#5b4e3e_0.55px,transparent_0.55px)] [background-size:20px_20px] sm:px-6">
+    <div className="relative h-dvh overflow-hidden bg-[#0b0b0b] px-4 py-20 font-mono text-[#e7c49d] [background-image:radial-gradient(#5b4e3e_0.55px,transparent_0.55px)] [background-size:20px_20px] sm:px-6">
+      {gameStarting && (
+        <div className="absolute inset-0 z-50 flex items-center justify-center bg-[#0b0b0b]/90 px-6 backdrop-blur-sm">
+          <div className="w-full max-w-md border border-[#ffdd9d] bg-[#151515] p-8 text-center shadow-[0_0_50px_rgba(255,221,157,0.12)]">
+            <LoaderCircle className="mx-auto h-12 w-12 animate-spin text-[#ffdd9d]" />
+
+            <h2 className="mt-6 text-2xl font-black tracking-[0.12em] text-[#f1eee7]">
+              GAME STARTING
+            </h2>
+
+            <p className="mt-3 text-sm tracking-[0.08em] text-[#b8a181]">
+              INITIALIZING CHAMBER, PLEASE WAIT...
+            </p>
+          </div>
+        </div>
+      )}
       <main className="mx-auto grid h-full w-full max-w-[680px] grid-rows-[auto_auto_minmax(0,1fr)_auto] gap-6">
         <section className="text-center">
           <h1 className="text-2xl font-black tracking-tight text-[#f1eee7] sm:text-4xl md:text-5xl">
@@ -200,6 +224,7 @@ const RoomWait = () => {
           {isHost && players.length > 0 && (
             <button
               onClick={handleStart}
+              disabled={gameStarting}
               className="cursor-pointer border border-[#ffdd9d] bg-[#ffdd9d] py-3 text-sm font-black tracking-[0.1em] text-[#251b0f] sm:py-5 sm:text-2xl"
             >
               START GAME
@@ -208,6 +233,7 @@ const RoomWait = () => {
 
           <button
             onClick={handleLeave}
+            disabled={gameStarting}
             className="cursor-pointer border border-[#d8b77f] bg-transparent py-3 text-sm font-black tracking-[0.1em] text-[#e7c49d] sm:py-5 sm:text-2xl"
           >
             LEAVE ROOM
