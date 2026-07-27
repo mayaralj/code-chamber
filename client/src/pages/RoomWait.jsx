@@ -143,12 +143,15 @@ const RoomWait = () => {
           <InfoCard
             label="DIFFICULTY"
             value={roomInfo?.difficulty?.toUpperCase() || "EASY"}
-            accent
           />
           <InfoCard
             label="PLAYERS"
             value={`${players.length} / ${roomInfo?.maxPlayers || 0}`}
-            accent
+            accent={
+              players.length === roomInfo?.maxPlayers
+                ? "text-[#e6aaa1]"
+                : "text-[#ffdd9d]"
+            }
           />
         </section>
 
@@ -244,8 +247,8 @@ const RoomWait = () => {
   );
 };
 
-const InfoCard = ({ label, value, accent = false }) => (
-  <article className="border border-[#4b4133] bg-[#1a1a1a] px-4 py-4">
+const InfoCard = ({ label, value, accent }) => (
+  <article className={`border border-[#4b4133] bg-[#1a1a1a] px-4 py-4`}>
     <p className="text-[10px] font-bold tracking-[0.14em] text-[#a9977e]">
       {label}
     </p>
@@ -258,7 +261,7 @@ const InfoCard = ({ label, value, accent = false }) => (
             : value.toLowerCase() == "easy"
               ? "text-[#e7c49d]"
               : accent
-                ? "text-[#ffdd9d]"
+                ? accent
                 : "text-[#f1eee7]"
       }`}
     >
