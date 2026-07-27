@@ -26,6 +26,7 @@ const ChooseUsername = () => {
     const { error } = await authClient.updateUser({
       username: cleanUsername.toLowerCase(),
       displayUsername: cleanUsername,
+      name: cleanUsername,
     });
 
     if (error) {
