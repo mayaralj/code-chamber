@@ -410,7 +410,7 @@ const Profile = () => {
             <span className="text-[#b9a282]">▥</span>
           </div>
 
-          <div className="grid grid-cols-2">
+          <div className="grid grid-cols-3">
             <div>
               <p className="mb-2 font-mono text-sm text-[#c6baa5]">Played</p>
               <p className="font-mono text-3xl font-black text-[#ffd89a]">
@@ -422,6 +422,15 @@ const Profile = () => {
               <p className="mb-2 font-mono text-sm text-[#c6baa5]">Won</p>
               <p className="font-mono text-3xl font-black text-[#ffd89a]">
                 {profileInfo.matches_won || 0}
+              </p>
+            </div>
+
+            <div className="border-l border-[#5d5549] pl-7">
+              <p className="mb-2 font-mono text-sm text-[#c6baa5]">Win Rate</p>
+              <p className="font-mono text-3xl font-black text-[#ffd89a]">
+                {profileInfo.matches_won && profileInfo.matches_played
+                  ? `${Math.round((profileInfo.matches_won / profileInfo.matches_played) * 100)}%`
+                  : "0%"}
               </p>
             </div>
           </div>
