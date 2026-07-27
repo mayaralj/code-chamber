@@ -30,6 +30,9 @@ const Profile = () => {
   const [accounts, setAccounts] = useState([]);
   const [errorMessage, setErrorMessage] = useState("");
   const [isLoggingOut, setIsLoggingOut] = useState(false);
+  const [isEditingDisplayName, setIsEditingDisplayName] = useState(false);
+  const [displayNameInput, setDisplayNameInput] = useState("");
+  const [isSavingDisplayName, setIsSavingDisplayName] = useState(false);
 
   const oauthError = searchParams.get("error");
   const oauthErrorMessage = returnProperErrorMessage(oauthError);
@@ -97,6 +100,38 @@ const Profile = () => {
       setErrorMessage("Logout failed.");
       setIsLoggingOut(false);
     }
+  };
+
+  // Handle displayname change
+  const handleDisplayNameChange = async () => {
+    const cleanDisplayName = displayNameInput.trim();
+
+    if (!cleanDisplayName) {
+      setErrorMessage("Display name cannot be empty.");
+      return;
+    }
+
+    setErrorMessage("");
+    setIsSavingDisplayName(true);
+
+    const { error } = await authClient.updateUser({
+      displayUsername: cleanDisplayName,
+      name: cleanDisplayName,
+    });
+
+    if (error) {
+      setErrorMessage(error.message || "Could not update display name.");
+      setIsSavingDisplayName(false);
+      return;
+    }
+
+    setProfileInfo((currentProfile) => ({
+      ...currentProfile,
+      displayName: cleanDisplayName,
+    }));
+
+    setIsEditingDisplayName(false);
+    setIsSavingDisplayName(false);
   };
 
   useEffect(() => {
@@ -258,10 +293,64 @@ const Profile = () => {
             </div>
 
             <div>
-              <p className="mb-1 text-sm text-[#c6baa5]">Display Name:</p>
-              <p className="text-lg font-bold text-[#e8d9c0]">
-                {profileInfo.displayName || "UNAVAILABLE"}
-              </p>
+              <div className="mb-1 flex items-center justify-between">
+                <p className="text-sm text-[#c6baa5]">Display Name:</p>
+
+                {!isEditingDisplayName && (
+                  <button
+                    className="cursor-pointer font-mono text-xs font-bold tracking-wider text-[#ffd89a] transition hover:text-[#ffe4b4]"
+                    type="button"
+                    onClick={() => {
+                      setDisplayNameInput(profileInfo.displayName || "");
+                      setIsEditingDisplayName(true);
+                    }}
+                  >
+                    EDIT
+                  </button>
+                )}
+              </div>
+
+              {isEditingDisplayName ? (
+                <div className="flex gap-2">
+                  <form
+                    className="flex gap-2 w-full"
+                    onSubmit={(e) => {
+                      e.preventDefault();
+                      handleDisplayNameChange();
+                    }}
+                  >
+                    <input
+                      className="min-w-0 flex-1 border border-[#645a4b] bg-[#222120] px-3 py-2 font-mono text-sm text-[#f0ece5] outline-none focus:border-[#ffd89a]"
+                      type="text"
+                      value={displayNameInput}
+                      onChange={(e) => setDisplayNameInput(e.target.value)}
+                      maxLength={24}
+                      autoFocus
+                    />
+
+                    <button
+                      className="cursor-pointer border border-[#ffd89a] px-3 font-mono text-xs font-bold text-[#ffd89a] transition hover:bg-[#ffd89a] hover:text-[#241d14] disabled:cursor-not-allowed disabled:opacity-50"
+                      type="submit"
+                      disabled={isSavingDisplayName}
+                    >
+                      {isSavingDisplayName ? "..." : "SAVE"}
+                    </button>
+
+                    <button
+                      className="cursor-pointer border border-[#5d5549] px-3 font-mono text-xs font-bold text-[#c6baa5] transition hover:border-[#c6baa5] disabled:cursor-not-allowed disabled:opacity-50"
+                      type="button"
+                      onClick={() => setIsEditingDisplayName(false)}
+                      disabled={isSavingDisplayName}
+                    >
+                      CANCEL
+                    </button>
+                  </form>
+                </div>
+              ) : (
+                <p className="text-lg font-bold text-[#e8d9c0]">
+                  {profileInfo.displayName || "UNAVAILABLE"}
+                </p>
+              )}
             </div>
           </div>
         </section>
