@@ -225,7 +225,15 @@ const InfoCard = ({ label, value, accent = false }) => (
     </p>
     <p
       className={`mt-2 text-lg font-bold ${
-        accent ? "text-[#ffdd9d]" : "text-[#f1eee7]"
+        value.toLowerCase() == "hard"
+          ? "text-[#e6aaa1]"
+          : value.toLowerCase() == "medium"
+            ? "text-[#dea566]"
+            : value.toLowerCase() == "easy"
+              ? "text-[#e7c49d]"
+              : accent
+                ? "text-[#ffdd9d]"
+                : "text-[#f1eee7]"
       }`}
     >
       {value}
