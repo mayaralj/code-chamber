@@ -37,6 +37,7 @@ const profileRouter = () => {
         matches_played: profileStats.matches_played,
         matches_won: profileStats.matches_won,
       };
+      console.log("Profile info fetched for user:", profileInfo);
       return res.json(profileInfo);
     } catch (error) {
       console.error("Error fetching profile info:", error);

@@ -1,71 +1,118 @@
 import { useState } from "react";
-import { useNavigate, Navigate } from "react-router-dom";
+import { useNavigate } from "react-router-dom";
 import authClient from "../authClient";
 import { refreshSocketConnection } from "../socket";
 
 const ChooseUsername = () => {
   const navigate = useNavigate();
-  const [username, setUsername] = useState("");
-  const [error, setError] = useState(null);
 
-  // Handle form submission
+  const [username, setUsername] = useState("");
+  const [error, setError] = useState("");
+  const [isSubmitting, setIsSubmitting] = useState(false);
+
   const handleSubmit = async (e) => {
     e.preventDefault();
-    if (!username.trim()) {
+
+    const cleanUsername = username.trim();
+
+    if (!cleanUsername) {
       setError("Username cannot be empty.");
       return;
     }
+
+    setError("");
+    setIsSubmitting(true);
+
     const { error } = await authClient.updateUser({
-      username: username.trim().toLowerCase(),
-      displayUsername: username.trim(),
+      username: cleanUsername.toLowerCase(),
+      displayUsername: cleanUsername,
     });
 
     if (error) {
       console.error("Failed to set username:", error);
-      setError(error.message);
+      setError(error.message || "Could not save username.");
+      setIsSubmitting(false);
       return;
     }
 
     try {
-      await refreshSocketConnection(); // Refresh the socket connection after setting username
-    } catch (error) {
-      setError("Username saved but failed to refresh socket connection.");
-      console.warn("Socket refresh failed but it will keep retrying", error);
+      await refreshSocketConnection();
+    } catch (socketError) {
+      console.warn(
+        "Username saved but socket refresh failed. It will retry.",
+        socketError,
+      );
     }
+
     navigate("/profile", { replace: true });
   };
 
   return (
-    <main className="bg-gray-800 min-h-screen flex flex-col items-center justify-center">
-      <div className="bg-gray-700 p-8 rounded shadow-md w-full max-w-md">
-        <h1 className="text-3xl text-white font-bold mb-6">
-          Choose a Username
-        </h1>
-        {error && (
-          <p className="mb-4 w-full rounded bg-red-900 p-3 text-sm text-red-200">
-            {error}
+    <main className="relative flex min-h-[calc(100vh-72px)] justify-center overflow-hidden bg-[#0b0b0b] px-5 py-32 text-[#e8d9c0]">
+      <div
+        className="pointer-events-none absolute inset-0 opacity-35"
+        style={{
+          backgroundImage: "radial-gradient(#7c7468 1px, transparent 1px)",
+          backgroundSize: "24px 24px",
+        }}
+      />
+
+      <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_center,transparent_20%,rgba(0,0,0,0.72)_100%)]" />
+
+      <section className="relative w-full max-w-[465px]">
+        <header className="mb-14 text-center">
+          <h1 className="font-mono text-6xl font-black leading-[0.9] tracking-[-0.08em] text-[#ffd89a] sm:text-7xl">
+            CODE
+            <br />
+            CHAMBER
+          </h1>
+        </header>
+
+        <div className="border border-[#aa936f] bg-[#0d0d0d]/95 px-10 py-11 shadow-[0_0_60px_rgba(0,0,0,0.55)]">
+          <p className="mb-9 font-mono text-sm text-[#c7baa4]">
+            Username Must Be Entered To Play The Game.
           </p>
-        )}
-        <form className="flex flex-col gap-4" onSubmit={handleSubmit}>
-          <label className="flex flex-col gap-1 text-white">
-            Username
-            <input
-              className="text-white bg-gray-700 border border-gray-600 rounded px-2 ml-2"
-              name="username"
-              type="text"
-              value={username}
-              onChange={(e) => setUsername(e.target.value)}
-              required
-            />
-          </label>
-          <button
-            className="bg-blue-500 text-white font-bold py-2 px-4 rounded hover:bg-blue-600 cursor-pointer"
-            type="submit"
-          >
-            Set Username
-          </button>
-        </form>
-      </div>
+
+          <form onSubmit={handleSubmit}>
+            <label className="block">
+              <span className="mb-4 block font-mono text-xs font-bold tracking-[0.14em] text-[#d9c8ad]">
+                USERNAME INPUT
+              </span>
+
+              <input
+                className="w-full border-b border-[#665b4a] bg-transparent px-0 py-3 font-mono text-base tracking-[0.1em] text-[#f0ece5] outline-none placeholder:text-[#514d46] focus:border-[#ffd89a]"
+                name="username"
+                type="text"
+                placeholder="USER_ID"
+                value={username}
+                onChange={(e) => setUsername(e.target.value)}
+                autoComplete="username"
+                autoFocus
+                required
+              />
+            </label>
+
+            {error && (
+              <p className="mt-5 border border-red-900 bg-red-950/40 px-3 py-2 font-mono text-xs text-red-300">
+                ERROR: {error}
+              </p>
+            )}
+
+            <button
+              className="mt-10 flex w-full cursor-pointer items-center justify-center gap-4 bg-[#ffd89a] px-5 py-5 font-mono text-sm font-bold tracking-[0.14em] text-[#241d14] transition hover:bg-[#ffe4b4] disabled:cursor-not-allowed disabled:opacity-60"
+              type="submit"
+              disabled={isSubmitting}
+            >
+              {isSubmitting ? "CONFIRMING..." : "CONFIRM IDENTITY"}
+              {!isSubmitting && <span className="text-xl leading-none">→</span>}
+            </button>
+          </form>
+        </div>
+
+        <footer className="mt-10 text-center font-mono text-xs tracking-[0.18em] text-[#555047]">
+          SECURITY PROTOCOL V4.0.2
+        </footer>
+      </section>
     </main>
   );
 };

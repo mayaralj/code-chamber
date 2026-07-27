@@ -102,7 +102,7 @@ const Signup = () => {
 
         <div className="border border-[#5d5549] bg-[#0e0e0e]/95 px-10 py-11 shadow-[0_0_40px_rgba(0,0,0,0.35)]">
           <p className="mb-2 font-mono text-xs font-bold tracking-[0.22em] text-[#d9bd8f]">
-            NEW CODER
+            WELCOME CODER
           </p>
 
           <h1 className="mb-10 font-mono text-3xl font-black tracking-[-0.08em] text-[#f0ece5]">
