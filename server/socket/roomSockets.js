@@ -123,6 +123,15 @@ const setUpRoomSockets = (io, socket, { rooms, playersInRooms }) => {
       return;
     }
 
+    // Check if player is already in a room
+    if (playersInRooms[socket.id]) {
+      console.log("Player is already in a room, cannot create another");
+      socket.emit("room-create-error", {
+        message: "You are already in a room, cannot create another",
+      });
+      return;
+    }
+
     // Check if room name is valid
     if (!roomName || roomName.trim() === "") {
       socket.emit("room-create-error", { message: "Room name is required" });
