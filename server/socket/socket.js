@@ -50,16 +50,10 @@ const initSocket = (io, info) => {
     console.log("Total connections: " + totalConnections);
 
     // Room handlers
-    setUpRoomSockets(io, socket, {
-      rooms: info.rooms,
-      playersInRooms: info.playersInRooms,
-    });
+    setUpRoomSockets(io, socket);
 
     // Game handlers
-    setUpGameSockets(io, socket, {
-      rooms: info.rooms,
-      playersInRooms: info.playersInRooms,
-    });
+    setUpGameSockets(io, socket);
 
     // Handle disconnection
     socket.on("disconnect", () => {

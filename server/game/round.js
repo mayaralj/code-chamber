@@ -9,6 +9,7 @@ import {
 import { determinePlayerEliminated, eliminatePlayer } from "./elimination.js";
 import checkRoom from "../room/checkRoom.js";
 import { sendResults, gameOver } from "./results.js";
+import { rooms, playersInRooms } from "../index.js";
 
 // Config
 // Timers (s)
@@ -46,7 +47,7 @@ const beforeRound = (room) => {
 };
 
 // Start round
-const startRound = async (io, socket, code, rooms, playersInRooms) => {
+const startRound = async (io, socket, code) => {
   // Before Round
   const [curRound, roundData] = beforeRound(rooms[code]);
   const roundEvents = roundData?.roundEvents;

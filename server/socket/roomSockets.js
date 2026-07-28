@@ -1,6 +1,7 @@
 import { buildPlayerList } from "../utils/playerList.js";
+import { rooms, playersInRooms } from "../index.js";
 
-const setUpRoomSockets = (io, socket, { rooms, playersInRooms }) => {
+const setUpRoomSockets = (io, socket) => {
   // BRoadcast rooms helper
   const broadcastRooms = () => {
     let publicRooms = Object.values(rooms).filter(

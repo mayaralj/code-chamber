@@ -7,7 +7,10 @@ import { buildPlayerList } from "../utils/playerList.js";
 // Import round manager
 import startGame from "../game/startGame.js";
 
-const setUpGameSockets = (io, socket, { rooms, playersInRooms }) => {
+// Import rooms and playersInRooms from index.js
+import { rooms, playersInRooms } from "../index.js";
+
+const setUpGameSockets = (io, socket) => {
   // Game leave
   const gameLeave = (code) => {
     // Means just a regular disconnection
@@ -97,7 +100,7 @@ const setUpGameSockets = (io, socket, { rooms, playersInRooms }) => {
     // Emit that game is starting
     io.to(code).emit("game-starting");
 
-    startGame(io, socket, code, rooms, playersInRooms);
+    startGame(io, socket, code);
   });
 
   // Listen for code submission
@@ -161,7 +164,6 @@ const setUpGameSockets = (io, socket, { rooms, playersInRooms }) => {
       // Store submission promise
       const submissionPromise = processSubmission(
         io,
-        room,
         code,
         player,
         codeInput,
@@ -209,12 +211,13 @@ const setUpGameSockets = (io, socket, { rooms, playersInRooms }) => {
     const pendingCodeRequests = room.pendingCodeRequests;
     // Find the resolver for this socket
     const resolver = pendingCodeRequests.get(socket.id);
+    if (!resolver) {
+      return;
+    }
 
     // Resolve the promise with the code input and language
-    if (resolver) {
-      resolver({ codeInput, language });
-      pendingCodeRequests.delete(socket.id);
-    }
+    resolver({ codeInput, language });
+    pendingCodeRequests.delete(socket.id);
   });
 
   // on game leave room

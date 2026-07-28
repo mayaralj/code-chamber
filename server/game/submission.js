@@ -1,6 +1,7 @@
 import db from "../db.js";
 import runCode from "../executor/executor.js";
 import { buildPlayerList } from "../utils/playerList.js";
+import { rooms } from "../index.js";
 
 // Helper to notify players of code judging
 export const notifyJudging = (io, socketId, room, code) => {
@@ -65,13 +66,17 @@ export const calculateScore = (result, averageExecutionTime) => {
 // Helper to process player submission
 export const processSubmission = async (
   io,
-  room,
   code,
   player,
   codeInput,
   language,
   submitTime,
 ) => {
+  const room = rooms[code];
+  if (!room) {
+    console.error(`Room ${code} not found`);
+    return;
+  }
   // Ensure player hasnt been submitted or being processed
   const playerRoundData = player?.gameData?.roundData?.[room.currentRound];
   if (

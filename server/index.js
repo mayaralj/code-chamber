@@ -10,8 +10,8 @@ import db from "./db.js";
 const PORT = process.env.PORT || 5000;
 
 // Rooms and players in rooms
-const rooms = {};
-const playersInRooms = {};
+export const rooms = {};
+export const playersInRooms = {};
 
 // Server startup function
 const serverStartup = async () => {
@@ -42,7 +42,7 @@ const serverStartup = async () => {
     const { server, io } = createServer(app);
 
     // Socket initialization
-    initSocket(io, { rooms, playersInRooms, ...data });
+    initSocket(io, { ...data });
 
     // Start the server
     server.listen(PORT, () => {
