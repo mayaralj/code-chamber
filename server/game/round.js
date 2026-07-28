@@ -77,7 +77,7 @@ const startRound = async (io, socket, code) => {
 
   // Wait for countdown to finish before sending question
   await sleep(COUNTDOWN_TIMER * 1000);
-  if (!checkRoom(io, rooms, code)) {
+  if (!checkRoom(io, code)) {
     return;
   }
 
@@ -111,7 +111,7 @@ const startRound = async (io, socket, code) => {
 
   // Wait for round timer to finish or be cancelled
   await roundTimerPromise;
-  if (!checkRoom(io, rooms, code)) {
+  if (!checkRoom(io, code)) {
     return;
   }
   // Clear the cancel function from the room
@@ -143,7 +143,7 @@ const startRound = async (io, socket, code) => {
   );
 
   // Check if room still exists
-  if (!checkRoom(io, rooms, code)) {
+  if (!checkRoom(io, code)) {
     return;
   }
 
@@ -153,7 +153,6 @@ const startRound = async (io, socket, code) => {
       console.log(`Force submitting player ${player.username} in room ${code}`);
       return processSubmission(
         io,
-        rooms[code],
         code,
         player,
         codeInput,
@@ -164,7 +163,7 @@ const startRound = async (io, socket, code) => {
   );
 
   // Check if room still exists
-  if (!checkRoom(io, rooms, code)) {
+  if (!checkRoom(io, code)) {
     return;
   }
 
@@ -179,7 +178,7 @@ const startRound = async (io, socket, code) => {
   );
 
   // Check room
-  if (!checkRoom(io, rooms, code)) {
+  if (!checkRoom(io, code)) {
     return;
   }
 
@@ -234,14 +233,7 @@ const startRound = async (io, socket, code) => {
       roundData.missedPlayer = playerEliminated;
     } else {
       // Eliminate player if bullet did not miss
-      eliminatePlayer(
-        io,
-        rooms[code],
-        code,
-        roundData,
-        playerEliminated,
-        playersInRooms,
-      );
+      eliminatePlayer(io, code, roundData, playerEliminated);
     }
   }
 
@@ -252,16 +244,16 @@ const startRound = async (io, socket, code) => {
       `Game over in room ${code}, winner: ${rooms[code].players[0].username}`,
     );
     const winner = rooms[code].players[0];
-    await gameOver(io, rooms, code, roundData, winner, playersInRooms);
+    await gameOver(io, code, roundData, winner);
     // Game is over, return
     return;
   }
 
   // Send results
-  await sendResults(io, rooms[code], code, roundData);
+  await sendResults(io, code, roundData);
 
   // Check if room still exists
-  if (!checkRoom(io, rooms, code)) {
+  if (!checkRoom(io, code)) {
     return;
   }
 };

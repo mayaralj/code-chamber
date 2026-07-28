@@ -1,3 +1,5 @@
+import { rooms, playersInRooms } from "../index.js";
+
 // Helper to determine player eliminated
 export const determinePlayerEliminated = (roundData, ignorePlayer) => {
   // For each player, find their total score and have a chance to be eliminated based on score
@@ -29,17 +31,15 @@ export const determinePlayerEliminated = (roundData, ignorePlayer) => {
 };
 
 // Helper to eliminate player from room
-export const eliminatePlayer = (
-  io,
-  room,
-  code,
-  roundData,
-  playerEliminated,
-  playersInRooms,
-) => {
+export const eliminatePlayer = (io, code, roundData, playerEliminated) => {
   console.log(
     `Eliminating player ${playerEliminated.username} from room ${code}`,
   );
+  const room = rooms[code];
+  if (!room) {
+    console.error(`Room ${code} not found`);
+    return;
+  }
 
   // Remove player from room
   room.players = room.players.filter(

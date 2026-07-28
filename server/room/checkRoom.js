@@ -1,12 +1,11 @@
-import deleteRoom from "./deleteRoom.js";
+import { rooms } from "../index.js";
 
 // Helper to check if room exists and delete it if not
-const checkRoom = (io, rooms, code) => {
+const checkRoom = (io, code) => {
   if (rooms[code]) {
     return true;
   }
 
-  deleteRoom(io, rooms, code);
   return false;
 };
 

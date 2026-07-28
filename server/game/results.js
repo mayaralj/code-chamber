@@ -3,13 +3,20 @@ import { sleep } from "../utils/timers.js";
 import { buildPlayerList } from "../utils/playerList.js";
 import deleteRoom from "../room/deleteRoom.js";
 import db from "../db.js";
+import { rooms, playersInRooms } from "../index.js";
 
 // CONFIG
 const RESULTS_TIMER = 10;
 const GAME_OVER_TIMER = 5;
 
 // Send results
-export const sendResults = async (io, room, code, roundData) => {
+export const sendResults = async (io, code, roundData) => {
+  const room = rooms[code];
+  if (!room) {
+    console.error(`Room ${code} not found for sending results`);
+    return;
+  }
+
   // Calculate results ends at
   roundData.resultsEndsAt = Date.now() + 1000 * RESULTS_TIMER;
   // Send results to players in room
@@ -57,14 +64,7 @@ const updateWinnerMatchesWon = async (winner) => {
 };
 
 // Game over helper
-export const gameOver = async (
-  io,
-  rooms,
-  code,
-  roundData,
-  winner,
-  playersInRooms,
-) => {
+export const gameOver = async (io, code, roundData, winner) => {
   // Update matches_won for winner
   updateWinnerMatchesWon(winner);
 
