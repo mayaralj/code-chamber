@@ -74,7 +74,12 @@ const setUpGameSockets = (io, socket, { rooms, playersInRooms }) => {
       return;
     }
 
-    // Ensur game has not already started
+    // Ensure game is not starting
+    if (room.gameIsStarting) {
+      return;
+    }
+
+    // Ensure game has not already started
     if (room.isGameStarted) {
       return;
     }
@@ -83,6 +88,8 @@ const setUpGameSockets = (io, socket, { rooms, playersInRooms }) => {
     if (room.players.length < 1) {
       return;
     }
+
+    room.gameIsStarting = true;
 
     // Emit that game is starting
     io.to(code).emit("game-starting");
