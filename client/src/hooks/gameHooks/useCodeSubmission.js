@@ -4,10 +4,6 @@ import { socket } from "../../socket";
 export const useCodeSubmission = (code, players) => {
   // Code input
   const [codeInput, setCodeInput] = useState("");
-  const codeInputRef = useRef("");
-  useEffect(() => {
-    codeInputRef.current = codeInput;
-  }, [codeInput]);
 
   // Code submitted status
   const [codeSubmitted, setCodeSubmitted] = useState(false);
@@ -15,13 +11,10 @@ export const useCodeSubmission = (code, players) => {
 
   // Judging status
   const [isJudging, setIsJudging] = useState(false);
+  const isJudgingRef = useRef(false);
 
   // Language
   const [language, setLanguage] = useState("javascript");
-  const languageRef = useRef("javascript");
-  useEffect(() => {
-    languageRef.current = language;
-  }, [language]);
 
   // Player list
   const [playerList, setPlayerList] = useState(players || []);
@@ -35,7 +28,7 @@ export const useCodeSubmission = (code, players) => {
 
     socket.emit("submit-code", {
       code,
-      codeInput: codeInputRef.current,
+      codeInput,
       language,
       timeSubmitted,
     });
@@ -109,8 +102,8 @@ export const useCodeSubmission = (code, players) => {
 
     socket.on("request-current-code", () => {
       socket.emit("current-code", {
-        codeInput: codeInputRef.current,
-        language: languageRef.current,
+        codeInput,
+        language,
       });
     });
 

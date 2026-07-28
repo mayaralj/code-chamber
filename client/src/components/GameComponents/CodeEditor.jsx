@@ -29,16 +29,13 @@ const updateStarterCode = (
   const codeForLanguage = starterCode.find(
     (code) => code.language === language,
   );
-  console.log(
-    "Setting starter code for language:",
-    language,
-    codeForLanguage?.code,
-  );
-  if (codeForLanguage) {
-    editorRef.current.setValue(codeForLanguage.code);
-    // Manually trigger onChange
-    onChange?.(codeForLanguage.code);
+  if (!codeForLanguage) {
+    console.warn(`No starter code found for language: ${language}`);
+    return;
   }
+  editorRef.current.setValue(codeForLanguage.code);
+  // Manually trigger onChange
+  onChange?.(codeForLanguage.code);
 };
 
 const CodeEditor = ({
