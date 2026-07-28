@@ -1,6 +1,7 @@
 // Imports
 import { setUpGameQuestions } from "./questionHandler.js";
 import { determineAllEvents } from "./roundEvents.js";
+import { sleep } from "../utils/timers.js";
 import db from "../db.js";
 
 // Function to update matches played for a player
@@ -34,13 +35,35 @@ const beforeGame = async (rooms, code) => {
     player.gameData = {};
   });
 
+  // Set up game questions
+  await setUpGameQuestions(rooms, code);
+
+  // Check if room still exists
+  if (!rooms[code]) {
+    return;
+  }
+
+  // Sleep for 5 seconds before starting first round (so players can see the "Game Starting" message)
+  await sleep(5000);
+
+  // Check if room still exists
+  if (!rooms[code]) {
+    return;
+  }
+
   // Update matches played for all players
   await Promise.all(
     rooms[code].players.map((player) => updateMatchesPlayed(player)),
   );
 
-  // Set up game questions
-  await setUpGameQuestions(rooms, code);
+  // Check if room still exists
+  if (!rooms[code]) {
+    return;
+  }
+
+  // Mark room as game started
+  rooms[code].isGameStarted = true;
+  console.log(`Game started in room ${code}`);
 };
 
 export default beforeGame;

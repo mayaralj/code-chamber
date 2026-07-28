@@ -87,10 +87,6 @@ const setUpGameSockets = (io, socket, { rooms, playersInRooms }) => {
     // Emit that game is starting
     io.to(code).emit("game-starting");
 
-    // Mark room as game started
-    room.isGameStarted = true;
-    console.log(`Game started in room ${code}`);
-
     startGame(io, socket, code, rooms);
   });
 
