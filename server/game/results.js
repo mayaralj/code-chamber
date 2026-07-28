@@ -57,9 +57,21 @@ const updateWinnerMatchesWon = async (winner) => {
 };
 
 // Game over helper
-export const gameOver = async (io, rooms, code, roundData, winner) => {
+export const gameOver = async (
+  io,
+  rooms,
+  code,
+  roundData,
+  winner,
+  playersInRooms,
+) => {
   // Update matches_won for winner
   updateWinnerMatchesWon(winner);
+
+  // Remove all players from playersInRooms mapping
+  rooms[code].players.forEach((player) => {
+    delete playersInRooms[player.socketId];
+  });
 
   // Send game over data
   const gameOverEndsAt = Date.now() + 1000 * GAME_OVER_TIMER;

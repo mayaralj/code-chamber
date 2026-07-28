@@ -46,7 +46,7 @@ const beforeRound = (room) => {
 };
 
 // Start round
-const startRound = async (io, socket, code, rooms) => {
+const startRound = async (io, socket, code, rooms, playersInRooms) => {
   // Before Round
   const [curRound, roundData] = beforeRound(rooms[code]);
   const roundEvents = roundData?.roundEvents;
@@ -212,7 +212,14 @@ const startRound = async (io, socket, code, rooms) => {
         playerEliminated,
       );
       // Eliminate second player
-      eliminatePlayer(io, rooms[code], code, roundData, secondPlayerEliminated);
+      eliminatePlayer(
+        io,
+        rooms[code],
+        code,
+        roundData,
+        secondPlayerEliminated,
+        playersInRooms,
+      );
     }
     // Dont eliminate if missed bullet
     if (roundEvents?.afterRound?.missedBullet) {
@@ -226,7 +233,14 @@ const startRound = async (io, socket, code, rooms) => {
       roundData.missedPlayer = playerEliminated;
     } else {
       // Eliminate player if bullet did not miss
-      eliminatePlayer(io, rooms[code], code, roundData, playerEliminated);
+      eliminatePlayer(
+        io,
+        rooms[code],
+        code,
+        roundData,
+        playerEliminated,
+        playersInRooms,
+      );
     }
   }
 
@@ -237,7 +251,7 @@ const startRound = async (io, socket, code, rooms) => {
       `Game over in room ${code}, winner: ${rooms[code].players[0].username}`,
     );
     const winner = rooms[code].players[0];
-    await gameOver(io, rooms, code, roundData, winner);
+    await gameOver(io, rooms, code, roundData, winner, playersInRooms);
     // Game is over, return
     return;
   }

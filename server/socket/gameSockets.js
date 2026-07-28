@@ -97,7 +97,7 @@ const setUpGameSockets = (io, socket, { rooms, playersInRooms }) => {
     // Emit that game is starting
     io.to(code).emit("game-starting");
 
-    startGame(io, socket, code, rooms);
+    startGame(io, socket, code, rooms, playersInRooms);
   });
 
   // Listen for code submission

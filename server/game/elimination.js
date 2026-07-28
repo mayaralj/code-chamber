@@ -35,6 +35,7 @@ export const eliminatePlayer = (
   code,
   roundData,
   playerEliminated,
+  playersInRooms,
 ) => {
   console.log(
     `Eliminating player ${playerEliminated.username} from room ${code}`,
@@ -58,4 +59,7 @@ export const eliminatePlayer = (
 
   // Delete the player's gameData
   delete playerEliminated.gameData;
+
+  // Remove player from playersInRooms
+  delete playersInRooms[playerEliminated.socketId];
 };
