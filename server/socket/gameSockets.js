@@ -86,6 +86,9 @@ const setUpGameSockets = (io, socket, { rooms, playersInRooms }) => {
 
     // Check if more than 1 player
     if (room.players.length < 1) {
+      socket.emit("start-game-error", {
+        message: "Not enough players to start game",
+      });
       return;
     }
 

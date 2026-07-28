@@ -25,6 +25,9 @@ const RoomWait = () => {
   // Game starting state
   const [gameStarting, setGameStarting] = useState(false);
 
+  // Game starting error
+  const [gameStartingError, setGameStartingError] = useState("");
+
   // Check with server if user is supposed to be in this room
   useEffect(() => {
     socket.emit("check-room", { code });
@@ -49,6 +52,12 @@ const RoomWait = () => {
     // Listen for player leave
     socket.on("player-left", ({ players }) => {
       setPlayers(players);
+    });
+
+    // Listen for start game error
+    socket.on("start-game-error", ({ message }) => {
+      setGameStartingError(message);
+      setHostStarting(false);
     });
 
     // Listen for game starting
@@ -103,6 +112,17 @@ const RoomWait = () => {
 
   // Handle start game
   const handleStart = () => {
+    // Ensure host
+    if (!isHost) {
+      return;
+    }
+
+    // Ensure at least 1 player
+    if (players.length < 1) {
+      setGameStartingError("Not enough players to start game");
+      return;
+    }
+
     setHostStarting(true);
     socket.emit("start-game", { code });
   };
@@ -222,28 +242,39 @@ const RoomWait = () => {
           </div>
         </section>
 
-        <section
-          className={`grid gap-3 ${
-            isHost && players.length > 0 ? "grid-cols-2" : "grid-cols-1"
-          }`}
-        >
-          {isHost && players.length > 0 && (
-            <button
-              onClick={handleStart}
-              disabled={gameStarting || hostStarting}
-              className="cursor-pointer disabled:cursor-not-allowed disabled-opacity-50 border border-[#ffdd9d] bg-[#ffdd9d] py-3 text-sm font-black tracking-[0.1em] text-[#251b0f] sm:py-5 sm:text-2xl"
+        <section className="space-y-3">
+          {gameStartingError && (
+            <div
+              className="border border-[#b86d65] bg-[#2a1717] px-4 py-3 text-center text-xs font-bold tracking-[0.08em] text-[#f0aaa2]"
+              role="alert"
             >
-              {hostStarting ? "STARTING GAME..." : "START GAME"}
-            </button>
+              ERROR: {gameStartingError}
+            </div>
           )}
 
-          <button
-            onClick={handleLeave}
-            disabled={gameStarting}
-            className="cursor-pointer border border-[#d8b77f] bg-transparent py-3 text-sm font-black tracking-[0.1em] text-[#e7c49d] sm:py-5 sm:text-2xl"
+          <div
+            className={`grid gap-3 ${
+              isHost && players.length > 0 ? "grid-cols-2" : "grid-cols-1"
+            }`}
           >
-            LEAVE ROOM
-          </button>
+            {isHost && players.length > 0 && (
+              <button
+                onClick={handleStart}
+                disabled={gameStarting || hostStarting}
+                className="cursor-pointer border border-[#ffdd9d] bg-[#ffdd9d] py-3 text-sm font-black tracking-[0.1em] text-[#251b0f] disabled:cursor-not-allowed disabled:opacity-50 sm:py-5 sm:text-2xl"
+              >
+                {hostStarting ? "STARTING GAME..." : "START GAME"}
+              </button>
+            )}
+
+            <button
+              onClick={handleLeave}
+              disabled={gameStarting}
+              className="cursor-pointer border border-[#d8b77f] bg-transparent py-3 text-sm font-black tracking-[0.1em] text-[#e7c49d] disabled:cursor-not-allowed disabled:opacity-50 sm:py-5 sm:text-2xl"
+            >
+              LEAVE ROOM
+            </button>
+          </div>
         </section>
       </main>
     </div>
