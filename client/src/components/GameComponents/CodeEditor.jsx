@@ -1,4 +1,4 @@
-import Editor, { useMonaco } from "@monaco-editor/react";
+import Editor from "@monaco-editor/react";
 import { useRef, useEffect } from "react";
 
 // Languages supported (No language support besides javascript for now)
@@ -61,15 +61,17 @@ const CodeEditor = ({
     onMount?.();
   };
 
-  // Monaco
-  const monaco = useMonaco();
-
   // Saved code ref
   const savedCode = useRef({
     javascript: "",
     python: "",
     cpp: "",
   });
+  const handleEditorChange = (value) => {
+    console.log("Editor changed, saving code for language:", language);
+    savedCode.current[language] = value;
+    onChange?.(value);
+  };
 
   // Previous language ref
   const previousLanguage = useRef(language);
@@ -100,7 +102,7 @@ const CodeEditor = ({
       savedCode.current,
       onChange,
     );
-  }, [language, starterCode]);
+  }, [language, starterCode, onChange]);
 
   return (
     // Split the screen into 2 half, the second half is here
@@ -130,7 +132,7 @@ const CodeEditor = ({
           language={language}
           onMount={handleMount}
           theme="vs-dark"
-          onChange={onChange}
+          onChange={handleEditorChange}
           options={{
             fontSize: 16,
             minimap: { enabled: false },

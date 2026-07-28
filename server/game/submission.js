@@ -161,6 +161,7 @@ export const forceSubmitPlayer = (
       if (resolved) return;
       resolved = true;
       clearTimeout(timeout);
+      console.log(`codeInput: ${data.codeInput}, language: ${data.language}`);
       resolve({ player, codeInput: data.codeInput, language: data.language });
     };
 

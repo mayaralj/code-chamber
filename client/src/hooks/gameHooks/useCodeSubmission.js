@@ -1,9 +1,9 @@
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect, useRef, useCallback } from "react";
 import { socket } from "../../socket";
 
 export const useCodeSubmission = (code, players) => {
   // Code input
-  const [codeInput, setCodeInput] = useState("");
+  const codeInputRef = useRef("");
 
   // Code submitted status
   const [codeSubmitted, setCodeSubmitted] = useState(false);
@@ -15,9 +15,25 @@ export const useCodeSubmission = (code, players) => {
 
   // Language
   const [language, setLanguage] = useState("javascript");
+  const languageRef = useRef("javascript");
 
   // Player list
   const [playerList, setPlayerList] = useState(players || []);
+
+  // Handle code change updates to ref
+  const handleCodeChange = useCallback((value) => {
+    const nextCode = value ?? "";
+    codeInputRef.current = nextCode;
+  }, []);
+
+  // Handle language change updates to both state and ref
+  const handleLanguageChange = (e) => {
+    if (hasSubmitted.current) return;
+
+    const nextLanguage = e.target.value;
+    languageRef.current = nextLanguage;
+    setLanguage(nextLanguage);
+  };
 
   // Handle code submission
   const handleSubmit = () => {
@@ -28,8 +44,8 @@ export const useCodeSubmission = (code, players) => {
 
     socket.emit("submit-code", {
       code,
-      codeInput,
-      language,
+      codeInput: codeInputRef.current,
+      language: languageRef.current,
       timeSubmitted,
     });
   };
@@ -49,7 +65,7 @@ export const useCodeSubmission = (code, players) => {
   // Handle new round start by resetting states
   useEffect(() => {
     const handleNewRound = ({ players }) => {
-      setCodeInput("");
+      codeInputRef.current = "";
       setCodeSubmitted(false);
       hasSubmitted.current = false;
       setIsJudging(false);
@@ -64,13 +80,6 @@ export const useCodeSubmission = (code, players) => {
       socket.off("new-round", handleNewRound);
     };
   }, []);
-
-  // Handle language change
-  const handleLanguageChange = (e) => {
-    if (hasSubmitted.current) return;
-    console.log("Language changed to:", e.target.value);
-    setLanguage(e.target.value);
-  };
 
   // Listen for judging updates and errors
   useEffect(() => {
@@ -102,8 +111,8 @@ export const useCodeSubmission = (code, players) => {
 
     socket.on("request-current-code", () => {
       socket.emit("current-code", {
-        codeInput,
-        language,
+        codeInput: codeInputRef.current,
+        language: languageRef.current,
       });
     });
 
@@ -120,7 +129,7 @@ export const useCodeSubmission = (code, players) => {
   }, []);
 
   return {
-    setCodeInput,
+    handleCodeChange,
     codeSubmitted,
     isJudging,
     language,

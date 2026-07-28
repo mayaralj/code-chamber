@@ -40,7 +40,7 @@ const Game = () => {
   const { question, starterCode } = useGameQuestion(initQuestion);
   // Code Submission
   const {
-    setCodeInput,
+    handleCodeChange,
     codeSubmitted,
     isJudging,
     language,
@@ -149,7 +149,7 @@ const Game = () => {
           <Question question={question} />
           <div className="w-0.5 bg-white"></div>
           <CodeEditor
-            onChange={setCodeInput}
+            onChange={handleCodeChange}
             isJudging={isJudging}
             language={language}
             onLanguageChange={handleLanguageChange}

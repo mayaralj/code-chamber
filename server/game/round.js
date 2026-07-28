@@ -14,7 +14,7 @@ import { rooms, playersInRooms } from "../index.js";
 // Config
 // Timers (s)
 const COUNTDOWN_TIMER = 5;
-const ROUND_TIMER = 120;
+const ROUND_TIMER = 15;
 // Timeouts (ms)
 const FORCE_SUBMIT_TIMEOUT = 5000;
 
