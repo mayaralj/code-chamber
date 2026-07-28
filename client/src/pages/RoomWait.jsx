@@ -13,6 +13,8 @@ const RoomWait = () => {
   const { roomInfo } = location.state || {};
   const { player } = usePlayer();
   const isHost = roomInfo?.host === player?.username;
+  // Host starting state
+  const [hostStarting, setHostStarting] = useState(false);
 
   // Game started ref
   const gameStartedRef = useRef(false);
@@ -101,6 +103,7 @@ const RoomWait = () => {
 
   // Handle start game
   const handleStart = () => {
+    setHostStarting(true);
     socket.emit("start-game", { code });
   };
 
@@ -227,10 +230,10 @@ const RoomWait = () => {
           {isHost && players.length > 0 && (
             <button
               onClick={handleStart}
-              disabled={gameStarting}
-              className="cursor-pointer border border-[#ffdd9d] bg-[#ffdd9d] py-3 text-sm font-black tracking-[0.1em] text-[#251b0f] sm:py-5 sm:text-2xl"
+              disabled={gameStarting || hostStarting}
+              className="cursor-pointer disabled:cursor-not-allowed disabled-opacity-50 border border-[#ffdd9d] bg-[#ffdd9d] py-3 text-sm font-black tracking-[0.1em] text-[#251b0f] sm:py-5 sm:text-2xl"
             >
-              START GAME
+              {hostStarting ? "STARTING GAME..." : "START GAME"}
             </button>
           )}
 
