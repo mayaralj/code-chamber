@@ -1,5 +1,5 @@
 import { useNavigate } from "react-router-dom";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { socket } from "../socket";
 
 const CreateRoom = () => {
@@ -11,11 +11,25 @@ const CreateRoom = () => {
   const [maxPlayers, setMaxPlayers] = useState(4); // default max players
   // Public or Private state
   const [isPublic, setIsPublic] = useState(true); // default to public
+  // Create error
+  const [createError, setCreateError] = useState("");
+  // Is creating
+  const [isCreating, setIsCreating] = useState(false);
 
   const navigate = useNavigate();
 
   // Handle create function
   const handleCreate = () => {
+    // Validate room name
+    const trimmedRoomName = roomName.trim();
+    if (!trimmedRoomName || trimmedRoomName === "") {
+      setCreateError("Room name is required");
+      return;
+    }
+
+    // Set is creating to true, disables button
+    setIsCreating(true);
+
     // Emit create room to server
     socket.emit("create-room", {
       roomName,
@@ -23,14 +37,33 @@ const CreateRoom = () => {
       isPublic,
       difficulty,
     });
+  };
+
+  // useEffect to listen for room creation and errors
+  useEffect(() => {
+    // Listen for room create error
+    socket.on("room-create-error", ({ message }) => {
+      setIsCreating(false);
+      setCreateError(message);
+    });
 
     // Listen for room created event
-    socket.once("room-created", ({ roomInfo }) => {
+    socket.on("room-created", ({ roomInfo }) => {
+      setIsCreating(false);
       navigate(`/room-wait/${roomInfo.code}`, {
         state: { roomInfo },
       });
     });
-  };
+
+    // Cleanup listeners on unmount
+    return () => {
+      socket.off("room-create-error");
+      socket.off("room-created");
+      setCreateError("");
+      setIsCreating(false);
+    };
+  }, []);
+
   return (
     <div className="min-h-[calc(100vh-72px)] bg-[#0b0b0b] px-6 py-20 font-mono text-[#e7c49d]">
       <div className="mx-auto w-full max-w-[610px]">
@@ -124,11 +157,20 @@ const CreateRoom = () => {
           </fieldset>
 
           <div className="pt-5">
+            {createError && (
+              <div
+                className="mb-5 border border-[#b86d65] bg-[#2a1717] px-4 py-3 text-center text-xs font-bold tracking-[0.08em] text-[#f0aaa2]"
+                role="alert"
+              >
+                ERROR: {createError}
+              </div>
+            )}
             <button
-              className="w-full cursor-pointer border border-[#ffdd9d] bg-[#ffdd9d] py-5 text-3xl font-black tracking-[0.12em] text-[#251b0f] transition-colors duration-200 hover:bg-[#e7bc76]"
+              disabled={isCreating}
+              className="w-full cursor-pointer border border-[#ffdd9d] bg-[#ffdd9d] py-5 text-3xl font-black tracking-[0.12em] text-[#251b0f] transition-colors duration-200 hover:bg-[#e7bc76] disabled:cursor-not-allowed disabled:opacity-60"
               onClick={handleCreate}
             >
-              CREATE CHAMBER ›
+              {isCreating ? "INITIALIZING CHAMBER..." : "CREATE CHAMBER ›"}
             </button>
 
             <p className="mt-7 text-center text-[10px] font-bold tracking-[0.18em] text-[#564b3c]">
