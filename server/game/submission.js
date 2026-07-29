@@ -8,11 +8,8 @@ export const notifyJudging = (io, socketId, room, code) => {
   // Build a player list with needed data
   const playerList = buildPlayerList(room);
 
-  // Notify player that code is being judged
-  io.to(socketId).emit("code-judging");
-
   // Emit to all players with list of judging players
-  io.to(code).emit("judging-players", {
+  io.to(code).emit("update-players", {
     players: playerList,
   });
 };
@@ -26,7 +23,7 @@ export const notifySubmission = (io, socketId, room, code) => {
   io.to(socketId).emit("code-submitted");
 
   // Emit to all players with list of submitted players
-  io.to(code).emit("submitted-players", {
+  io.to(code).emit("update-players", {
     players: playerList,
   });
 };

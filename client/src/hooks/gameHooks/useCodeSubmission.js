@@ -1,7 +1,7 @@
 import { useState, useEffect, useRef, useCallback } from "react";
 import { socket } from "../../socket";
 
-export const useCodeSubmission = (code, players) => {
+export const useCodeSubmission = (code) => {
   // Code input (ref because its faster to update + no need the actual state for any ui)
   const codeInputRef = useRef("");
 
@@ -16,9 +16,6 @@ export const useCodeSubmission = (code, players) => {
   // Language
   const [language, setLanguage] = useState("javascript");
   const languageRef = useRef("javascript");
-
-  // Player list
-  const [playerList, setPlayerList] = useState(players || []);
 
   // Handle code change updates to ref
   const handleCodeChange = useCallback((value) => {
@@ -58,21 +55,9 @@ export const useCodeSubmission = (code, players) => {
     });
   };
 
-  // Handle results (only update player list here)
-  useEffect(() => {
-    const handleResults = ({ players }) => {
-      setPlayerList(players);
-    };
-    socket.on("send-results", handleResults);
-
-    return () => {
-      socket.off("send-results", handleResults);
-    };
-  }, []);
-
   // Handle new round start by resetting states
   useEffect(() => {
-    const handleNewRound = ({ players }) => {
+    const handleNewRound = () => {
       codeInputRef.current = "";
 
       isSubmittedRef.current = false;
@@ -80,8 +65,6 @@ export const useCodeSubmission = (code, players) => {
 
       isJudgingRef.current = false;
       setIsJudging(false);
-
-      setPlayerList(players);
     };
 
     // Listen for new round event
@@ -93,33 +76,16 @@ export const useCodeSubmission = (code, players) => {
     };
   }, []);
 
-  // Listen for judging updates and errors
-  useEffect(() => {
-    socket.on("code-judging", () => {
-      setIsJudging(true);
-    });
-
-    socket.on("judging-players", ({ players }) => {
-      setPlayerList(players);
-    });
-
-    // Cleanup
-    return () => {
-      socket.off("code-judging");
-      socket.off("judging-players");
-    };
-  }, []);
-
   // Listen for submission updates and errors
   useEffect(() => {
-    socket.on("submitted-players", ({ players }) => {
-      setPlayerList(players);
-    });
-
     socket.on("code-submitted", () => {
+      // Set is submitted to true
       setIsSubmitted(true);
-      setIsJudging(false);
       isSubmittedRef.current = true;
+
+      // Set is judging to false
+      setIsJudging(false);
+      isJudgingRef.current = false;
     });
 
     socket.on("request-current-code", () => {
@@ -134,7 +100,6 @@ export const useCodeSubmission = (code, players) => {
     });
 
     return () => {
-      socket.off("submitted-players");
       socket.off("code-submitted");
       socket.off("submit-code-error");
       socket.off("request-current-code");
@@ -148,7 +113,5 @@ export const useCodeSubmission = (code, players) => {
     language,
     handleSubmit,
     handleLanguageChange,
-    playerList,
-    setPlayerList,
   };
 };

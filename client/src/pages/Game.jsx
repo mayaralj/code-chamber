@@ -18,6 +18,7 @@ import { useCodeSubmission } from "../hooks/gameHooks/useCodeSubmission";
 import { useResults } from "../hooks/gameHooks/useResults";
 import { useCodeEditor } from "../hooks/gameHooks/useCodeEditor";
 import { useRoundEvents } from "../hooks/gameHooks/useRoundEvents";
+import { usePlayerList } from "../hooks/gameHooks/usePlayerList";
 
 const Game = () => {
   // Game Code
@@ -32,6 +33,8 @@ const Game = () => {
   } = location.state || {};
   const navigate = useNavigate();
 
+  // Player list state
+  const { playerList, setPlayerList } = usePlayerList(players);
   // Countdown Timer
   const { timeLeft, timerFinished } = useCountdownTimer(initEndsAt);
   // Round Timer
@@ -46,8 +49,6 @@ const Game = () => {
     language,
     handleSubmit,
     handleLanguageChange,
-    playerList,
-    setPlayerList,
   } = useCodeSubmission(code, players);
   // Editor Ready
   const { editorReady, setEditorReady } = useCodeEditor();
