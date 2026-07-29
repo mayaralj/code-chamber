@@ -36,7 +36,7 @@ const PlayerProvider = ({ children }) => {
     };
 
     const onDisconnect = (reason) => {
-      console.warn("Socket disconnected:", reason);
+      console.log("Socket disconnected:", reason);
       setPlayer(null);
       setConnectionStatus("disconnected");
     };

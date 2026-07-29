@@ -8,6 +8,10 @@ const RoomWait = () => {
   // Code
   const { code } = useParams();
   const navigate = useNavigate();
+  if (!code) {
+    navigate("/", { replace: true });
+  }
+
   // Get Info passed from Join or CreateRoom
   const location = useLocation();
   const { roomInfo } = location.state || {};
@@ -31,8 +35,13 @@ const RoomWait = () => {
   // Check with server if user is supposed to be in this room
   useEffect(() => {
     socket.emit("check-room", { code });
-    socket.once("check-room-response", ({ valid }) => {
+    console.log(code, "checking room");
+    socket.once("check-room-response", ({ message, valid }) => {
       if (!valid) {
+        console.log(
+          "User not valid for this room, redirecting to home",
+          message,
+        );
         navigate("/", { replace: true });
       }
     });
@@ -100,7 +109,7 @@ const RoomWait = () => {
         socket.emit("leave-room", { code });
       }
     };
-  }, [navigate]);
+  }, []);
 
   // Ensure they arent trying to enter the room from url only
   useEffect(() => {

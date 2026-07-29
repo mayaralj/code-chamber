@@ -2,7 +2,7 @@
 const eventOdds = {
   doubleElimination: 0.35,
   fasterTimer: 0.35,
-  missedBullet: 0.35,
+  missedBullet: 1,
 };
 const events = {
   doubleElimination: {

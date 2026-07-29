@@ -7,7 +7,7 @@ const RequireUsername = () => {
   if (isPending) {
     return (
       <div className="fixed inset-0 z-50 grid place-items-center bg-[#0b0b0b] text-[#e7c49d]">
-        Loading...
+        LOADING...
       </div>
     );
   }
