@@ -2,7 +2,7 @@ import { useState, useEffect, useRef, useCallback } from "react";
 import { socket } from "../../socket";
 
 export const useCodeSubmission = (code, players) => {
-  // Code input
+  // Code input (ref because its faster to update + no need the actual state for any ui)
   const codeInputRef = useRef("");
 
   // Code submitted status
@@ -37,13 +37,19 @@ export const useCodeSubmission = (code, players) => {
 
   // Handle code submission
   const handleSubmit = () => {
+    // If judging or submitted dont allow to emit again
     if (isSubmittedRef.current || isJudgingRef.current) return;
+    // Set is judging right away so ui feels responsive
     isJudgingRef.current = true;
     setIsJudging(true);
+
+    // This ref is only to prevent multiple emits, the actual state is set when the server responds with code-submitted
     isSubmittedRef.current = true;
 
+    // Track time submitted now instead on server for more accuracy
     const timeSubmitted = Date.now();
 
+    // Emit code submission to server
     socket.emit("submit-code", {
       code,
       codeInput: codeInputRef.current,
@@ -68,10 +74,13 @@ export const useCodeSubmission = (code, players) => {
   useEffect(() => {
     const handleNewRound = ({ players }) => {
       codeInputRef.current = "";
+
       isSubmittedRef.current = false;
       setIsSubmitted(false);
+
       isJudgingRef.current = false;
       setIsJudging(false);
+
       setPlayerList(players);
     };
 

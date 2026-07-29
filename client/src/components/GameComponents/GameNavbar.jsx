@@ -26,9 +26,9 @@ const GameNavbar = ({
     <div className="w-full bg-gray-900 py-3 flex justify-center items-center relative">
       {/* Submit Button (Green submitted, yellow judging, red not submitted) */}
       <button
-        className={`${isSubmitted ? "bg-green-500 cursor-not-allowed" : isJudging ? "bg-yellow-500 hover:bg-yellow-600 cursor-pointer" : "bg-gray-500 hover:bg-red-800 cursor-pointer"} text-white font-semibold px-6 py-2 rounded-lg transition-colors mx-auto`}
+        className={`${isSubmitted ? "bg-green-500 cursor-not-allowed" : isJudging ? "bg-yellow-500 hover:bg-yellow-600 cursor-not-allowed" : "bg-gray-500 hover:bg-red-800 cursor-pointer"} text-white font-semibold px-6 py-2 rounded-lg transition-colors mx-auto`}
         onClick={onSubmit}
-        disabled={isSubmitted}
+        disabled={isSubmitted || isJudging}
       >
         {isSubmitted ? "Submitted" : isJudging ? "Judging..." : "Submit"}
       </button>
