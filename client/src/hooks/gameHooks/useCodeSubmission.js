@@ -37,7 +37,9 @@ export const useCodeSubmission = (code, players) => {
 
   // Handle code submission
   const handleSubmit = () => {
-    if (isSubmittedRef.current) return;
+    if (isSubmittedRef.current || isJudgingRef.current) return;
+    isJudgingRef.current = true;
+    setIsJudging(true);
     isSubmittedRef.current = true;
 
     const timeSubmitted = Date.now();
