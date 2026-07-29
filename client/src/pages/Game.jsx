@@ -151,6 +151,7 @@ const Game = () => {
           <CodeEditor
             onChange={handleCodeChange}
             isJudging={isJudging}
+            isSubmitted={isSubmitted}
             language={language}
             onLanguageChange={handleLanguageChange}
             onMount={() => setEditorReady(true)}

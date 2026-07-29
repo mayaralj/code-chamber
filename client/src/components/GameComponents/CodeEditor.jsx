@@ -41,6 +41,7 @@ const updateStarterCode = (
 const CodeEditor = ({
   onChange,
   isJudging,
+  isSubmitted,
   language,
   onLanguageChange,
   onMount,
@@ -112,8 +113,8 @@ const CodeEditor = ({
       {/* Selector to Change Language */}
       <div className="mb-4 ">
         <select
-          className="bg-gray-700 text-white border border-gray-500 rounded py-2 px-4 focus:outline-none focus:ring-2 focus:ring-blue-500"
-          disabled={isJudging}
+          className="bg-gray-700 text-white border border-gray-500 rounded py-2 px-4 focus:outline-none focus:ring-2 focus:ring-blue-500 disabled:cursor-not-allowed disabled:opacity-50"
+          disabled={isJudging || isSubmitted}
           value={language}
           onChange={onLanguageChange}
         >
