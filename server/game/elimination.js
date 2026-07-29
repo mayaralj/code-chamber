@@ -7,7 +7,7 @@ export const determinePlayerEliminated = (roundData, ignorePlayer) => {
   let playerEliminated = null;
   roundData.roundResults.forEach((result) => {
     // Ignore player if specified
-    if (ignorePlayer && result.player.id === ignorePlayer.id) {
+    if (ignorePlayer && result.player.socketId === ignorePlayer.socketId) {
       return;
     }
     const score = result.score;
