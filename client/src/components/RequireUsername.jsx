@@ -5,6 +5,7 @@ const RequireUsername = () => {
   const { data: session, isPending } = authClient.useSession();
 
   if (isPending) {
+    console.log(session);
     return (
       <div className="fixed inset-0 z-50 grid place-items-center bg-[#0b0b0b] text-[#e7c49d]">
         LOADING...

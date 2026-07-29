@@ -10,9 +10,6 @@ const authClient = createAuthClient({
     credentials: "include",
   },
   plugins: [usernameClient()],
-  session: {
-    refreshOnWindowFocus: false,
-  },
 });
 
 export default authClient;
