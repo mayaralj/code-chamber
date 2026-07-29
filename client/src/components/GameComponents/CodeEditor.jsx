@@ -145,7 +145,7 @@ const CodeEditor = ({
             suggestOnTriggerCharacters: false,
             overviewRulerLanes: 0,
             contextmenu: false,
-            readOnly: isJudging,
+            readOnly: isJudging || isSubmitted,
             readOnlyMessage: { value: null },
           }}
         />

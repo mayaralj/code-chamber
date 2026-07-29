@@ -28,7 +28,7 @@ export const useCodeSubmission = (code, players) => {
 
   // Handle language change updates to both state and ref
   const handleLanguageChange = (e) => {
-    if (isSubmittedRef.current) return;
+    if (isJudgingRef.current || isSubmittedRef.current) return;
 
     const nextLanguage = e.target.value;
     languageRef.current = nextLanguage;
