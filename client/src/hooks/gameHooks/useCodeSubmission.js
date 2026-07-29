@@ -6,8 +6,8 @@ export const useCodeSubmission = (code, players) => {
   const codeInputRef = useRef("");
 
   // Code submitted status
-  const [codeSubmitted, setCodeSubmitted] = useState(false);
-  const hasSubmitted = useRef(false);
+  const [isSubmitted, setIsSubmitted] = useState(false);
+  const isSubmittedRef = useRef(false);
 
   // Judging status
   const [isJudging, setIsJudging] = useState(false);
@@ -28,7 +28,7 @@ export const useCodeSubmission = (code, players) => {
 
   // Handle language change updates to both state and ref
   const handleLanguageChange = (e) => {
-    if (hasSubmitted.current) return;
+    if (isSubmittedRef.current) return;
 
     const nextLanguage = e.target.value;
     languageRef.current = nextLanguage;
@@ -37,8 +37,8 @@ export const useCodeSubmission = (code, players) => {
 
   // Handle code submission
   const handleSubmit = () => {
-    if (hasSubmitted.current) return;
-    hasSubmitted.current = true;
+    if (isSubmittedRef.current) return;
+    isSubmittedRef.current = true;
 
     const timeSubmitted = Date.now();
 
@@ -66,8 +66,9 @@ export const useCodeSubmission = (code, players) => {
   useEffect(() => {
     const handleNewRound = ({ players }) => {
       codeInputRef.current = "";
-      setCodeSubmitted(false);
-      hasSubmitted.current = false;
+      isSubmittedRef.current = false;
+      setIsSubmitted(false);
+      isJudgingRef.current = false;
       setIsJudging(false);
       setPlayerList(players);
     };
@@ -105,8 +106,9 @@ export const useCodeSubmission = (code, players) => {
     });
 
     socket.on("code-submitted", () => {
-      setCodeSubmitted(true);
-      hasSubmitted.current = true;
+      setIsSubmitted(true);
+      setIsJudging(false);
+      isSubmittedRef.current = true;
     });
 
     socket.on("request-current-code", () => {
@@ -130,7 +132,7 @@ export const useCodeSubmission = (code, players) => {
 
   return {
     handleCodeChange,
-    codeSubmitted,
+    isSubmitted,
     isJudging,
     language,
     handleSubmit,

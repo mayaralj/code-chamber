@@ -113,6 +113,7 @@ const CodeEditor = ({
       <div className="mb-4 ">
         <select
           className="bg-gray-700 text-white border border-gray-500 rounded py-2 px-4 focus:outline-none focus:ring-2 focus:ring-blue-500"
+          disabled={isJudging}
           value={language}
           onChange={onLanguageChange}
         >

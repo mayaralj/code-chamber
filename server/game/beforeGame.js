@@ -4,6 +4,9 @@ import { determineAllEvents } from "./roundEvents.js";
 import { sleep } from "../utils/timers.js";
 import db from "../db.js";
 
+// Config
+const WAIT_TIME_BEFORE_GAME_START = 3500;
+
 // Function to update matches played for a player
 const updateMatchesPlayed = async (player) => {
   // Ignore guests
@@ -43,8 +46,8 @@ const beforeGame = async (rooms, code) => {
     return;
   }
 
-  // Sleep for 5 seconds before starting first round (so players can see the "Game Starting" message)
-  await sleep(5000);
+  // Sleep for the configured time before starting first round (so players can see the "Game Starting" message)
+  await sleep(WAIT_TIME_BEFORE_GAME_START);
 
   // Check if room still exists
   if (!rooms[code]) {

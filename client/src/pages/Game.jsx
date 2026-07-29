@@ -41,7 +41,7 @@ const Game = () => {
   // Code Submission
   const {
     handleCodeChange,
-    codeSubmitted,
+    isSubmitted,
     isJudging,
     language,
     handleSubmit,
@@ -139,7 +139,7 @@ const Game = () => {
         }
       >
         <GameNavbar
-          isSubmitted={codeSubmitted}
+          isSubmitted={isSubmitted}
           isJudging={isJudging}
           onSubmit={handleSubmit}
           playerList={playerList}
