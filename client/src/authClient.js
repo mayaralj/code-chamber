@@ -11,7 +11,7 @@ const authClient = createAuthClient({
   },
   plugins: [usernameClient()],
   session: {
-    refreshOnWindowFocus: true,
+    refreshOnWindowFocus: false,
   },
 });
 
