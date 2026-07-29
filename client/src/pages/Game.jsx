@@ -39,8 +39,6 @@ const Game = () => {
   const { timeLeft, timerFinished } = useCountdownTimer(initEndsAt);
   // Round Timer
   const { roundTimeLeft, currentRound } = useRoundTimer();
-  // Question
-  const { question, starterCode } = useGameQuestion(initQuestion);
   // Code Submission
   const {
     handleCodeChange,
@@ -50,6 +48,8 @@ const Game = () => {
     handleSubmit,
     handleLanguageChange,
   } = useCodeSubmission(code, players);
+  // Question
+  const { question, starterCode } = useGameQuestion(initQuestion);
   // Editor Ready
   const { editorReady, setEditorReady } = useCodeEditor();
   // Round events

@@ -62,29 +62,26 @@ const CodeEditor = ({
     onMount?.();
   };
 
+  // Previous language ref
+  const previousLanguage = useRef(language);
+
   // Saved code ref
   const savedCode = useRef({
     javascript: "",
     python: "",
     cpp: "",
   });
+
+  // Handle editor change (each key updates savedCode + the ref from onChange)
   const handleEditorChange = (value) => {
-    console.log("Editor changed, saving code for language:", language);
     savedCode.current[language] = value;
     onChange?.(value);
   };
 
-  // Previous language ref
-  const previousLanguage = useRef(language);
-
-  // Reset saved code when starterCode changes
-  useEffect(() => {
-    savedCode.current = {
-      javascript: "",
-      python: "",
-      cpp: "",
-    };
-  }, [starterCode]);
+  // On new round, reset saved code
+  const handleRoundChange = () => {
+    savedCode.current = { javascript: "", python: "", cpp: "" };
+  };
 
   // Update editor text when language changes
   useEffect(() => {
@@ -103,7 +100,12 @@ const CodeEditor = ({
     previousLanguage.current = language;
   }, [language]);
 
-  // Build starter_code for respective languages
+  // Reset saved code when starterCode changes
+  useEffect(() => {
+    handleRoundChange();
+  }, [starterCode]);
+
+  // Build starter_code for respective languages when either language or starterCode changes
   useEffect(() => {
     updateStarterCode(
       editorRef,

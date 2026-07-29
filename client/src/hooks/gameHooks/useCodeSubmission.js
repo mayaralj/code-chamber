@@ -46,6 +46,11 @@ export const useCodeSubmission = (code) => {
     // Track time submitted now instead on server for more accuracy
     const timeSubmitted = Date.now();
 
+    // Log the code
+    console.log(`Submitting code for room ${code} at time ${timeSubmitted}:`, {
+      codeInput: codeInputRef.current,
+    });
+
     // Emit code submission to server
     socket.emit("submit-code", {
       code,
