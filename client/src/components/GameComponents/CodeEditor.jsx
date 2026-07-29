@@ -30,7 +30,7 @@ const updateStarterCode = (
     (code) => code.language === language,
   );
   if (!codeForLanguage) {
-    console.warn(`No starter code found for language: ${language}`);
+    console.log(`No starter code found for language: ${language}`);
     return;
   }
   editorRef.current.setValue(codeForLanguage.code);
@@ -76,6 +76,15 @@ const CodeEditor = ({
 
   // Previous language ref
   const previousLanguage = useRef(language);
+
+  // Reset saved code when starterCode changes
+  useEffect(() => {
+    savedCode.current = {
+      javascript: "",
+      python: "",
+      cpp: "",
+    };
+  }, [starterCode]);
 
   // Update editor text when language changes
   useEffect(() => {
