@@ -1,9 +1,9 @@
 // RequireLogin.jsx
 import { Navigate, Outlet, useLocation } from "react-router-dom";
-import authClient from "../authClient";
+import useStableSession from "../hooks/useStableSession";
 
 const RequireLogin = () => {
-  const { data: session, isPending, error } = authClient.useSession();
+  const { data: session, isPending, error } = useStableSession();
   const location = useLocation();
 
   if (isPending) {
