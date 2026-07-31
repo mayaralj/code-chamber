@@ -20,7 +20,7 @@ const RequireUsername = () => {
   }
 
   // Logged in, but no username, need a username to be able to play
-  if (!session.user.username) {
+  if (session?.user && !session.user?.username) {
     return <Navigate to="/choose-username" replace />;
   }
 

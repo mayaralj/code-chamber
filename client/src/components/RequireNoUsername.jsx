@@ -13,7 +13,7 @@ const RequireNoUsername = () => {
     );
   }
 
-  if (session.user.username || error) {
+  if ((session?.user && session.user?.username) || error) {
     return <Navigate to="/profile" replace />;
   }
 
