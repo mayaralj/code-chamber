@@ -1,20 +1,20 @@
 // RequireLogin.jsx
 import { Navigate, Outlet, useLocation } from "react-router-dom";
-import usePlayer from "../hooks/usePlayer";
+import authClient from "../authClient";
 
 const RequireLogin = () => {
+  const { data: session, isPending, error } = authClient.useSession();
   const location = useLocation();
-  const { player, connectionStatus } = usePlayer();
-  if (connectionStatus !== "connected") {
+
+  if (isPending) {
     return (
-      <main className="fixed inset-0 z-50 grid place-items-center bg-[#0b0b0b] font-mono text-[#e7c49d]">
-        CONNECTING TO GAME SERVER...
+      <main className="flex min-h-screen items-center justify-center bg-[#0b0b0b] font-mono text-sm tracking-[0.16em] text-[#d9bd8f]">
+        LOADING...
       </main>
     );
   }
-  const { isGuest } = player;
 
-  if (isGuest) {
+  if (error || !session?.user) {
     return <Navigate to="/login" replace state={{ from: location.pathname }} />;
   }
 

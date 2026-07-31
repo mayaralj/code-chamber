@@ -1,19 +1,19 @@
 // RequireNoUsername.jsx
 import { Navigate, Outlet } from "react-router-dom";
-import usePlayer from "../hooks/usePlayer";
+import authClient from "../authClient";
 
 const RequireNoUsername = () => {
-  const { player, connectionStatus } = usePlayer();
-  if (connectionStatus !== "connected") {
+  const { data: session, isPending, error } = authClient.useSession();
+
+  if (isPending) {
     return (
-      <main className="fixed inset-0 z-50 grid place-items-center bg-[#0b0b0b] font-mono text-[#e7c49d]">
-        CONNECTING TO GAME SERVER...
+      <main className="flex min-h-screen items-center justify-center bg-[#0b0b0b] font-mono text-sm tracking-[0.16em] text-[#d9bd8f]">
+        LOADING...
       </main>
     );
   }
-  const { username } = player;
 
-  if (username) {
+  if (session.user.username || error) {
     return <Navigate to="/profile" replace />;
   }
 

@@ -6,6 +6,14 @@ const PlayerProvider = ({ children }) => {
   const [player, setPlayer] = useState(null);
   const [connectionStatus, setConnectionStatus] = useState("connecting");
 
+  // Retry connection helper
+  const retryConnection = () => {
+    setConnectionStatus("connecting");
+    if (!socket.connected) {
+      socket.connect();
+    }
+  };
+
   useEffect(() => {
     const setIdentity = (identity) => {
       console.log("Received identity:", identity);
@@ -51,7 +59,9 @@ const PlayerProvider = ({ children }) => {
   }, []);
 
   return (
-    <PlayerContext.Provider value={{ player, connectionStatus }}>
+    <PlayerContext.Provider
+      value={{ player, connectionStatus, retryConnection }}
+    >
       {children}
     </PlayerContext.Provider>
   );
