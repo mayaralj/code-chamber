@@ -3,7 +3,7 @@ import useStableSession from "../hooks/useStableSession";
 import authClient from "../authClient";
 
 const RequireUsername = () => {
-  const { data: session, isPending } = useStableSession();
+  const { session, isPending } = useStableSession();
   //const { data: session, isPending } = authClient.useSession();
 
   if (isPending) {

@@ -3,7 +3,7 @@ import { Navigate, Outlet } from "react-router-dom";
 import useStableSession from "../hooks/useStableSession";
 
 const RequireNoUsername = () => {
-  const { data: session, isPending, error } = useStableSession();
+  const { session, isPending, error } = useStableSession();
 
   if (isPending) {
     return (
