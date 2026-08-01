@@ -10,6 +10,8 @@ export const createServer = (app) => {
       origin: "http://localhost:3000",
       credentials: true,
     },
+    pingInterval: 5000, // 10 seconds
+    pingTimeout: 5000, // 5 seconds
   });
   return { server, io };
 };
