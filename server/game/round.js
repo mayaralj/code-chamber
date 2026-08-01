@@ -77,7 +77,7 @@ const startRound = async (io, socket, code) => {
 
   // Wait for countdown to finish before sending question
   await sleep(COUNTDOWN_TIMER * 1000);
-  if (!checkRoom(io, code)) {
+  if (!checkRoom(code)) {
     return;
   }
 
@@ -111,7 +111,7 @@ const startRound = async (io, socket, code) => {
 
   // Wait for round timer to finish or be cancelled
   await roundTimerPromise;
-  if (!checkRoom(io, code)) {
+  if (!checkRoom(code)) {
     return;
   }
   // Clear the cancel function from the room
@@ -143,7 +143,7 @@ const startRound = async (io, socket, code) => {
   );
 
   // Check if room still exists
-  if (!checkRoom(io, code)) {
+  if (!checkRoom(code)) {
     return;
   }
 
@@ -163,7 +163,7 @@ const startRound = async (io, socket, code) => {
   );
 
   // Check if room still exists
-  if (!checkRoom(io, code)) {
+  if (!checkRoom(code)) {
     return;
   }
 
@@ -178,7 +178,7 @@ const startRound = async (io, socket, code) => {
   );
 
   // Check room
-  if (!checkRoom(io, code)) {
+  if (!checkRoom(code)) {
     return;
   }
 
@@ -253,7 +253,7 @@ const startRound = async (io, socket, code) => {
   await sendResults(io, code, roundData);
 
   // Check if room still exists
-  if (!checkRoom(io, code)) {
+  if (!checkRoom(code)) {
     return;
   }
 };
