@@ -116,10 +116,10 @@ const Game = () => {
       if (roomDeletedRef.current) {
         return;
       }
-      console.log("Game component unmounting, leaving room");
+      console.log("Game component unmounting, leaving room with code:", code);
       socket.emit("game-leave-room", { code });
     };
-  }, []);
+  }, [code]);
 
   // State check
   useEffect(() => {
