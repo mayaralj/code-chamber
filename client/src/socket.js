@@ -1,5 +1,8 @@
 import { io } from "socket.io-client";
 
+// Get stored guest ID from localStorage if it exists
+const storedGuestId = localStorage.getItem("guestId");
+
 // Connect to the Socket.io server
 export const socket = io("http://localhost:5000", {
   withCredentials: true,
@@ -7,6 +10,9 @@ export const socket = io("http://localhost:5000", {
   reconnection: true,
   reconnectionDelay: 1000,
   reconnectionDelayMax: 5000,
+  auth: {
+    guestId: storedGuestId || null,
+  },
 });
 
 export const refreshSocketConnection = () => {
