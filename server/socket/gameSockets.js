@@ -38,7 +38,7 @@ const setUpGameSockets = (io, socket) => {
     socket.leave(code);
 
     // Remove from fast lookup
-    delete playersInRooms[socket.id];
+    delete playersInRooms[socket.data.id];
 
     // Check if no players remaining
     if (room.players.length === 0) {
@@ -84,6 +84,14 @@ const setUpGameSockets = (io, socket) => {
 
     // Ensure game has not already started
     if (room.isGameStarted) {
+      return;
+    }
+
+    // Check if anyone is still reconnecting
+    if (room.players.some((player) => player.isReconnecting)) {
+      socket.emit("start-game-error", {
+        message: "Waiting for a player to reconnect",
+      });
       return;
     }
 
@@ -199,7 +207,7 @@ const setUpGameSockets = (io, socket) => {
   // Code request listener
   socket.on(`current-code`, ({ codeInput, language }) => {
     // Get players room
-    const code = playersInRooms[socket.id];
+    const code = playersInRooms[socket.data.id];
     if (!code) {
       return;
     }
@@ -227,7 +235,7 @@ const setUpGameSockets = (io, socket) => {
 
   // Handle disconnection
   socket.on("disconnect", () => {
-    gameLeave(playersInRooms[socket.id]);
+    gameLeave(playersInRooms[socket.data.id]);
   });
 };
 

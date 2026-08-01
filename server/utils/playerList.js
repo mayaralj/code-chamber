@@ -7,6 +7,7 @@ export const buildPlayerList = (room) => {
   const playerList = room.players.map((p) => ({
     username: p.username,
     displayName: p.displayName,
+    isReconnecting: p.isReconnecting,
     ...(gameStarted && {
       judging: p?.gameData?.roundData?.[currentRound]?.judging,
       submitted: p?.gameData?.roundData?.[currentRound]?.submitted,

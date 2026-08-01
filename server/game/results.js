@@ -70,7 +70,7 @@ export const gameOver = async (io, code, roundData, winner) => {
 
   // Remove all players from playersInRooms mapping
   rooms[code].players.forEach((player) => {
-    delete playersInRooms[player.socketId];
+    delete playersInRooms[player.userId];
   });
 
   // Send game over data

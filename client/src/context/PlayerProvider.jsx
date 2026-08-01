@@ -1,53 +1,43 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { socket } from "../socket";
 import PlayerContext from "./PlayerContext";
 
 const PlayerProvider = ({ children }) => {
   const [player, setPlayer] = useState(null);
   const [connectionStatus, setConnectionStatus] = useState("connecting");
-
-  // Retry connection helper
-  const retryConnection = () => {
-    setConnectionStatus("connecting");
-    if (!socket.connected) {
-      socket.connect();
-    }
-  };
+  const hasConnectedOnceRef = useRef(false);
 
   useEffect(() => {
     const setIdentity = (identity) => {
-      console.log("Received identity:", identity);
       setPlayer(identity);
       setConnectionStatus("connected");
     };
 
     const onConnect = () => {
-      console.log("Connected:", socket.id);
-      setPlayer(null);
-      setConnectionStatus("connecting");
+      hasConnectedOnceRef.current = true;
+      // player identity set by user-data shortly after
     };
 
-    const onConnectError = (error) => {
-      console.error("Socket connection error:", error.message);
+    const onConnectError = () => {
       if (!socket.active) {
         setPlayer(null);
-        setConnectionStatus("error");
+        setConnectionStatus(
+          hasConnectedOnceRef.current ? "reconnecting" : "error",
+        );
       }
     };
 
-    const onDisconnect = (reason) => {
-      console.log("Socket disconnected:", reason);
-      setPlayer(null);
-      setConnectionStatus("disconnected");
+    const onDisconnect = () => {
+      setConnectionStatus(
+        hasConnectedOnceRef.current ? "reconnecting" : "disconnected",
+      );
     };
 
-    // Add Listeners for socket events
     socket.on("user-data", setIdentity);
     socket.on("connect", onConnect);
     socket.on("connect_error", onConnectError);
     socket.on("disconnect", onDisconnect);
 
-    // Attempt to connect the socket
     socket.connect();
 
     return () => {
@@ -59,9 +49,7 @@ const PlayerProvider = ({ children }) => {
   }, []);
 
   return (
-    <PlayerContext.Provider
-      value={{ player, connectionStatus, retryConnection }}
-    >
+    <PlayerContext.Provider value={{ player, connectionStatus }}>
       {children}
     </PlayerContext.Provider>
   );

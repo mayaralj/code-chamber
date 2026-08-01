@@ -8,15 +8,14 @@ const RoomWait = () => {
   // Code
   const { code } = useParams();
   const navigate = useNavigate();
-  if (!code) {
-    navigate("/", { replace: true });
-  }
 
   // Get Info passed from Join or CreateRoom
   const location = useLocation();
-  const { roomInfo } = location.state || {};
-  const { player } = usePlayer();
-  const isHost = roomInfo?.host === player?.username;
+  const { roomInfo: origRoomInfo } = location.state || {};
+  // Get player and connection status from context
+  const { player, connectionStatus } = usePlayer();
+  // ROom info state
+  const [roomInfo, setRoomInfo] = useState(origRoomInfo || null);
   // Host starting state
   const [hostStarting, setHostStarting] = useState(false);
 
@@ -31,6 +30,22 @@ const RoomWait = () => {
 
   // Game starting error
   const [gameStartingError, setGameStartingError] = useState("");
+
+  // Check if the current player is the host
+  console.log(
+    "Host username:",
+    roomInfo?.host,
+    "Current player username:",
+    player?.username,
+  );
+  const isHost = roomInfo?.host === player?.username;
+
+  // Check code
+  useEffect(() => {
+    if (!code) {
+      navigate("/", { replace: true });
+    }
+  }, [code, navigate]);
 
   // Check with server if user is supposed to be in this room
   useEffect(() => {
@@ -71,6 +86,7 @@ const RoomWait = () => {
 
     // Listen for game starting
     socket.on("game-starting", () => {
+      setGameStartingError("");
       setGameStarting(true);
     });
 
@@ -111,6 +127,56 @@ const RoomWait = () => {
     };
   }, []);
 
+  // Handle reconnecting listeners
+  useEffect(() => {
+    socket.on("player-reconnecting", ({ players }) => {
+      setPlayers(players);
+    });
+
+    socket.on("player-rejoined", ({ roomInfo }) => {
+      setPlayers(roomInfo.players);
+      setRoomInfo(roomInfo);
+    });
+
+    // Cleanup listeners on unmount
+    return () => {
+      socket.off("player-reconnecting");
+      socket.off("player-rejoined");
+    };
+  }, []);
+
+  // Handle rejoins
+  useEffect(() => {
+    const rejoin = () => {
+      console.log("Socket reconnected, attempting to rejoin room");
+      socket.emit("join-room", { code });
+    };
+    const onRoomRejoined = ({ roomInfo }) => {
+      console.log("Room rejoined");
+      setPlayers(roomInfo.players);
+      setRoomInfo(roomInfo);
+    };
+
+    socket.on("connect", rejoin);
+    socket.on("room-rejoined", onRoomRejoined);
+
+    return () => {
+      socket.off("connect", rejoin);
+      socket.off("room-rejoined", onRoomRejoined);
+    };
+  }, [code]);
+
+  // Handle leaving room on page unload (so tab closes dont get flagged as reconnecting)
+  useEffect(() => {
+    const handleUnload = () => {
+      console.log("Page unload, leaving room");
+      socket.emit("leave-room", { code });
+    };
+
+    window.addEventListener("pagehide", handleUnload);
+    return () => window.removeEventListener("pagehide", handleUnload);
+  }, [code]);
+
   // Ensure they arent trying to enter the room from url only
   useEffect(() => {
     if (!location.state) {
@@ -141,6 +207,11 @@ const RoomWait = () => {
     socket.emit("leave-room", { code });
     navigate("/browse", { replace: true });
   };
+
+  // Check if there exists a reconnecting player
+  const hasReconnectingPlayer = players.some((player) => player.isReconnecting);
+  //Check if local is reconnecting
+  const isReconnecting = connectionStatus === "reconnecting";
 
   return (
     <div className="relative h-dvh overflow-hidden bg-[#0b0b0b] px-4 py-20 font-mono text-[#e7c49d] [background-image:radial-gradient(#5b4e3e_0.55px,transparent_0.55px)] [background-size:20px_20px] sm:px-6">
@@ -201,10 +272,12 @@ const RoomWait = () => {
               gridTemplateRows: `repeat(${roomInfo?.maxPlayers || 1}, minmax(0, 1fr))`,
             }}
           >
-            {players.map((otherPlayer, index) => (
+            {players.map((otherPlayer) => (
               <article
                 key={otherPlayer.username}
-                className="flex min-h-0 items-center justify-between border border-[#4b4133] bg-[#1a1a1a] px-3 py-2 sm:px-4"
+                className={`flex min-h-0 items-center justify-between border border-[#4b4133] bg-[#1a1a1a] px-3 py-2 transition-opacity sm:px-4 ${
+                  otherPlayer.isReconnecting ? "opacity-40" : ""
+                }`}
               >
                 <div className="flex min-w-0 items-center gap-3">
                   <div className="flex h-8 w-8 shrink-0 items-center justify-center border border-[#8b7658] text-[#ffdd9d] sm:h-10 sm:w-10">
@@ -220,13 +293,19 @@ const RoomWait = () => {
                       {otherPlayer.displayName}
                     </p>
                     <p className="truncate text-[9px] font-bold tracking-wider text-[#9e8968] sm:text-[10px]">
-                      {otherPlayer.username}
+                      {otherPlayer.isReconnecting
+                        ? "RECONNECTING..."
+                        : otherPlayer.username}
                     </p>
                   </div>
                 </div>
 
                 <span className="ml-3 shrink-0">
-                  <span className="inline-block h-2 w-2 bg-[#ffdd9d]" />
+                  {otherPlayer.isReconnecting ? (
+                    <LoaderCircle className="h-4 w-4 animate-spin text-[#e6aaa1]" />
+                  ) : (
+                    <span className="inline-block h-2 w-2 bg-[#ffdd9d]" />
+                  )}
                 </span>
               </article>
             ))}
@@ -251,6 +330,17 @@ const RoomWait = () => {
           </div>
         </section>
 
+        {isReconnecting && (
+          <div className="fixed inset-0 z-40 flex items-center justify-center bg-[#0b0b0b]/80 backdrop-blur-sm">
+            <div className="flex items-center gap-3 border border-[#e6aaa1] bg-[#2a1717] px-6 py-4 text-[#f0aaa2]">
+              <LoaderCircle className="h-5 w-5 animate-spin" />
+              <span className="text-sm font-bold tracking-[0.08em]">
+                RECONNECTING TO SERVER...
+              </span>
+            </div>
+          </div>
+        )}
+
         <section className="space-y-3">
           {gameStartingError && (
             <div
@@ -269,10 +359,14 @@ const RoomWait = () => {
             {isHost && players.length > 0 && (
               <button
                 onClick={handleStart}
-                disabled={gameStarting || hostStarting}
+                disabled={gameStarting || hostStarting || hasReconnectingPlayer}
                 className="cursor-pointer border border-[#ffdd9d] bg-[#ffdd9d] py-3 text-sm font-black tracking-[0.1em] text-[#251b0f] disabled:cursor-not-allowed disabled:opacity-50 sm:py-5 sm:text-2xl"
               >
-                {hostStarting ? "STARTING GAME..." : "START GAME"}
+                {hasReconnectingPlayer
+                  ? "WAITING FOR PLAYER TO RECONNECT..."
+                  : hostStarting
+                    ? "STARTING GAME..."
+                    : "START GAME"}
               </button>
             )}
 

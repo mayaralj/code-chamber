@@ -1,6 +1,9 @@
 import { buildPlayerList } from "../utils/playerList.js";
 import { rooms, playersInRooms } from "../index.js";
 
+//CONFIG
+const RECONNECT_TIMEOUT = 30000;
+
 const setUpRoomSockets = (io, socket) => {
   // BRoadcast rooms helper
   const broadcastRooms = () => {
@@ -43,7 +46,7 @@ const setUpRoomSockets = (io, socket) => {
   };
 
   // Room leave helper
-  const leaveRoom = (socket, code) => {
+  const leaveRoom = (code) => {
     // Means just a regular disconnection
     if (!code) {
       return;
@@ -65,13 +68,18 @@ const setUpRoomSockets = (io, socket) => {
 
     // Remove from room in socket.io and from playersInRooms mapping
     socket.leave(code);
-    delete playersInRooms[socket.id];
+    delete playersInRooms[socket.data.id];
 
     if (!room.host || room.host.socketId === socket.id) {
       // Kick everyone when host leaves and delete room
       io.to(code).emit("host-left", { message: "Host left the room" });
       delete rooms[code];
       console.log(`Room ${code} deleted as host left`);
+
+      // Remove all players from playersInRooms mapping
+      room.players.forEach((player) => {
+        delete playersInRooms[player.userId];
+      });
     } else {
       // Delete room if empty
       if (room.players.length === 0) {
@@ -95,6 +103,8 @@ const setUpRoomSockets = (io, socket) => {
       username: socket.data.username,
       displayName: socket.data.displayName,
       isGuest: socket.data.isGuest,
+      isReconnecting: false,
+      disconnectTimeout: null,
     };
     return player;
   };
@@ -125,10 +135,10 @@ const setUpRoomSockets = (io, socket) => {
     }
 
     // Check if player is already in a room
-    if (playersInRooms[socket.id]) {
+    if (playersInRooms[socket.data.id]) {
       console.log("Player is already in a room, cannot create another");
       socket.emit("room-create-error", {
-        message: "You are already in a room, cannot create another",
+        message: "You are already in a room, cannot create one",
       });
       return;
     }
@@ -172,7 +182,7 @@ const setUpRoomSockets = (io, socket) => {
 
     // Put the creator in the room
     socket.join(code);
-    playersInRooms[socket.id] = code;
+    playersInRooms[socket.data.id] = code;
 
     // Emit back to the creator
     socket.emit("room-created", {
@@ -200,6 +210,48 @@ const setUpRoomSockets = (io, socket) => {
       return;
     }
 
+    // Handle reconnection
+    const existingPlayer = room.players.find(
+      (p) => p.userId === socket.data.id,
+    );
+    if (existingPlayer && existingPlayer.isReconnecting) {
+      // Clear timeout
+      clearTimeout(existingPlayer.disconnectTimeout);
+      existingPlayer.disconnectTimeout = null;
+      existingPlayer.isReconnecting = false;
+
+      // Update socket id
+      existingPlayer.socketId = socket.id;
+
+      // If host updated, update host info
+      if (room.host.userId === socket.data.id) {
+        room.host = buildPlayerInfo(socket);
+      }
+
+      // Put player in the room
+      socket.join(code);
+      playersInRooms[socket.data.id] = code;
+
+      // Emit back to the player that rejoined
+      socket.emit("room-rejoined", {
+        roomInfo: buildRoomInfo(room),
+      });
+      // Emit to the rest of players inside that room
+      socket.to(code).emit("player-rejoined", {
+        roomInfo: buildRoomInfo(room),
+      });
+      console.log(`Player ${username} rejoined room ${code}`);
+      return;
+    }
+
+    // Check if player is already in a room
+    if (playersInRooms[socket.data.id]) {
+      socket.emit("room-join-error", {
+        message: "You are already in a room, cannot join another",
+      });
+      return;
+    }
+
     // Check if room is full
     if (room.players.length >= room.maxPlayers) {
       socket.emit("room-join-error", { message: "Room is full" });
@@ -211,7 +263,7 @@ const setUpRoomSockets = (io, socket) => {
 
     // Put player in the room
     socket.join(code);
-    playersInRooms[socket.id] = code;
+    playersInRooms[socket.data.id] = code;
 
     // Emit back to the player that joined
     socket.emit("room-joined", {
@@ -226,7 +278,7 @@ const setUpRoomSockets = (io, socket) => {
 
   // Leave room event
   socket.on("leave-room", ({ code }) => {
-    leaveRoom(socket, code);
+    leaveRoom(code);
   });
 
   // Listen for getting all rooms for public rooms page
@@ -250,7 +302,7 @@ const setUpRoomSockets = (io, socket) => {
     const playerInRoom = room.players.some(
       (player) => player.socketId === socket.id,
     );
-    if (!playerInRoom) {
+    if (!playerInRoom && !playerInRoom.isReconnecting) {
       socket.emit("check-room-response", {
         valid: false,
         message: "You are not a member of this room",
@@ -271,9 +323,46 @@ const setUpRoomSockets = (io, socket) => {
     socket.leave("public-rooms");
   });
 
+  // Helper to handle the reconnect window for a player
+  const handleReconnectWindow = () => {
+    // Get room
+    const code = playersInRooms[socket.data.id];
+    if (!code) {
+      return;
+    }
+    const room = rooms[code];
+    if (!room) {
+      return;
+    }
+
+    // Ignore if game started, let gameSockets handle it
+    if (room.isGameStarted) {
+      return;
+    }
+
+    // Find exact player in room
+    const player = room.players.find((p) => p.socketId === socket.id);
+    if (!player) {
+      return;
+    }
+
+    // Mark player as reconnecting
+    player.isReconnecting = true;
+
+    // Notify all players in the room that this player is reconnecting
+    io.to(code).emit("player-reconnecting", {
+      players: buildPlayerList(room),
+    });
+
+    // Set a timeout to remove the player if they don't reconnect in time
+    player.disconnectTimeout = setTimeout(() => {
+      leaveRoom(code);
+    }, RECONNECT_TIMEOUT);
+  };
+
   // Handle disconnection
   socket.on("disconnect", () => {
-    leaveRoom(socket, playersInRooms[socket.id]);
+    handleReconnectWindow();
   });
 };
 

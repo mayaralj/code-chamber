@@ -61,5 +61,5 @@ export const eliminatePlayer = (io, code, roundData, playerEliminated) => {
   delete playerEliminated.gameData;
 
   // Remove player from playersInRooms
-  delete playersInRooms[playerEliminated.socketId];
+  delete playersInRooms[playerEliminated.userId];
 };
