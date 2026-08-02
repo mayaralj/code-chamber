@@ -3,7 +3,7 @@ import { Navigate, Outlet, useLocation } from "react-router-dom";
 import useStableSession from "../hooks/useStableSession";
 
 const RequireNotLoggedIn = () => {
-  const { session, isPending, error } = useStableSession();
+  const { session, isPending } = useStableSession();
   const location = useLocation();
 
   if (isPending) {
@@ -14,7 +14,7 @@ const RequireNotLoggedIn = () => {
     );
   }
 
-  if (error || session?.user) {
+  if (session?.user) {
     return (
       <Navigate to="/profile" replace state={{ from: location.pathname }} />
     );
