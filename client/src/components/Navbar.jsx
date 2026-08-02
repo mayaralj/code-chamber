@@ -1,12 +1,12 @@
 import { NavLink } from "react-router";
 import { useLocation, useNavigate } from "react-router";
-import authClient from "../authClient";
+import useStableSession from "../hooks/useStableSession";
 
 const Navbar = () => {
   const location = useLocation();
   const navigate = useNavigate();
   const isLogin = location.pathname === "/login";
-  const { data: session, isPending } = authClient.useSession();
+  const { session, isPending } = useStableSession();
 
   // Link class
   const linkClass =
@@ -43,7 +43,7 @@ const Navbar = () => {
         <NavLink to="/browse" className={linkClass("/browse")}>
           Browse
         </NavLink>
-        {isPending ? null : session ? (
+        {session ? (
           <>
             <NavLink to="/profile" className={linkClass("/profile")}>
               Profile
