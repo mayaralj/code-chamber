@@ -8,9 +8,9 @@ const RequireUsername = () => {
 
   if (isPending) {
     return (
-      <div className="fixed inset-0 z-50 grid place-items-center bg-[#0b0b0b] text-[#e7c49d]">
+      <main className="min-h-[calc(100vh-72px)] grid place-items-center bg-[#0b0b0b] font-mono text-[#e7c49d]">
         LOADING...
-      </div>
+      </main>
     );
   }
 
