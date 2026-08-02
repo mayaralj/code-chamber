@@ -2,6 +2,7 @@ import { useState, useEffect, useRef } from "react";
 import { socket } from "../socket";
 import router from "../router";
 import PlayerContext from "./PlayerContext";
+import toast from "react-hot-toast";
 
 // COnfig
 const SERVER_SHUTDOWN_TIMEOUT = 5000;
@@ -27,17 +28,25 @@ const PlayerProvider = ({ children }) => {
         return;
       }
       serverDownTimerRef.current = setTimeout(() => {
+        console.log("Server down timeout reached. Assuming server is down.");
         setConnectionStatus("server-down");
         router.navigate("/", { replace: true });
+        // Show toast notification
+        toast.error("ERROR: Game server is down. Please try again later.", {
+          duration: 5000,
+          position: "top-right",
+        });
       }, SERVER_SHUTDOWN_TIMEOUT);
     };
 
     const setIdentity = (identity) => {
+      clearServerDownTimer();
       setPlayer(identity);
       setConnectionStatus("connected");
     };
 
     const onConnect = () => {
+      clearServerDownTimer();
       hasConnectedOnceRef.current = true;
       // player identity set by user-data shortly after
     };
@@ -52,6 +61,7 @@ const PlayerProvider = ({ children }) => {
     };
 
     const onDisconnect = () => {
+      startServerDownTimer();
       setConnectionStatus(
         hasConnectedOnceRef.current ? "reconnecting" : "disconnected",
       );
