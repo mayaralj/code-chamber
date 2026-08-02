@@ -1,4 +1,4 @@
-import { useNavigate } from "react-router-dom";
+import { useNavigate } from "react-router";
 import { useState, useEffect } from "react";
 import { socket } from "../socket";
 

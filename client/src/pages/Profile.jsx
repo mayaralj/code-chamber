@@ -7,7 +7,7 @@ import {
   FaShieldAlt,
   FaSignOutAlt,
 } from "react-icons/fa";
-import { Link, useNavigate, useSearchParams } from "react-router-dom";
+import { Link, useNavigate, useSearchParams } from "react-router";
 import authClient from "../authClient";
 import { refreshSocketConnection } from "../socket";
 

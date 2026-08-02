@@ -1,4 +1,4 @@
-import { Navigate, Outlet } from "react-router-dom";
+import { Navigate, Outlet } from "react-router";
 import useStableSession from "../hooks/useStableSession";
 import authClient from "../authClient";
 

@@ -1,4 +1,4 @@
-import { useNavigate, useLocation, useParams } from "react-router-dom";
+import { useNavigate, useLocation, useParams } from "react-router";
 import { socket } from "../socket";
 import { useState, useEffect, useRef } from "react";
 import { LoaderCircle, Crown } from "lucide-react";

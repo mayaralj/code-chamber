@@ -1,6 +1,6 @@
 // Import from react
 import { useEffect, useState, useRef } from "react";
-import { useNavigate, useLocation, useParams } from "react-router-dom";
+import { useNavigate, useLocation, useParams } from "react-router";
 // Import socket
 import { socket } from "../socket";
 // Import from components

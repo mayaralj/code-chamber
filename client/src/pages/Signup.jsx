@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { FaDiscord, FaGithub, FaGoogle } from "react-icons/fa";
-import { NavLink, useNavigate, useSearchParams } from "react-router-dom";
+import { NavLink, useNavigate, useSearchParams } from "react-router";
 import authClient from "../authClient";
 import { refreshSocketConnection } from "../socket";
 import { withTimeout } from "../utils/timeout";

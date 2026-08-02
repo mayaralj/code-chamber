@@ -1,5 +1,5 @@
 // RequireLogin.jsx
-import { Navigate, Outlet, useLocation } from "react-router-dom";
+import { Navigate, Outlet, useLocation } from "react-router";
 import useStableSession from "../hooks/useStableSession";
 
 const RequireNotLoggedIn = () => {

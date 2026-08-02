@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { NavLink, useNavigate } from "react-router-dom";
+import { NavLink, useNavigate } from "react-router";
 import authClient from "../authClient";
 import { refreshSocketConnection } from "../socket";
 import { FaGoogle, FaGithub, FaDiscord } from "react-icons/fa";

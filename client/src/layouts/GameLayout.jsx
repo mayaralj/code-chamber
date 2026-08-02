@@ -1,4 +1,4 @@
-import { Outlet } from "react-router-dom";
+import { Outlet } from "react-router";
 import GameNavbar from "../components/GameComponents/GameNavbar";
 
 const GameLayout = () => {
