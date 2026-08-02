@@ -28,11 +28,10 @@ const PlayerProvider = ({ children }) => {
         return;
       }
       serverDownTimerRef.current = setTimeout(() => {
-        console.log("Server down timeout reached. Assuming server is down.");
         setConnectionStatus("server-down");
-        router.navigate("/", { replace: true });
+        //router.navigate("/", { replace: true });
         // Show toast notification
-        toast.error("ERROR: Game server is down. Please try again later.", {
+        toast.error("GAME SERVER IS DOWN", {
           duration: 5000,
           position: "top-right",
         });
