@@ -15,6 +15,8 @@ export const StableSessionProvider = ({ children }) => {
       setStableSession(session);
       setHasLoadedOnce(true);
     }
+  } else if (!isPending && session !== stableSession) {
+    setStableSession(session);
   }
 
   return (
