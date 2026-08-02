@@ -3,6 +3,7 @@ import { NavLink, useNavigate } from "react-router-dom";
 import authClient from "../authClient";
 import { refreshSocketConnection } from "../socket";
 import { FaGoogle, FaGithub, FaDiscord } from "react-icons/fa";
+import { withTimeout } from "../utils/timeout";
 
 const Login = () => {
   const navigate = useNavigate();
@@ -28,15 +29,23 @@ const Login = () => {
     setErrorMessage("");
     setIsLoading(true);
 
-    const { error } = await authClient.signIn.social({
-      provider,
-      callbackURL: `${appUrl}/profile`,
-      newUserCallbackURL: `${appUrl}/choose-username`,
-      errorCallbackURL: `${appUrl}/signup`,
-    });
+    try {
+      const { error } = await withTimeout(
+        authClient.signIn.social({
+          provider,
+          callbackURL: `${appUrl}/profile`,
+          newUserCallbackURL: `${appUrl}/choose-username`,
+          errorCallbackURL: `${appUrl}/signup`,
+        }),
+        8000,
+      );
 
-    if (error) {
-      setErrorMessage(error.message || "Social login failed. Try again.");
+      if (error) {
+        setErrorMessage(error.message || "Social login failed. Try again.");
+        setIsLoading(false);
+      }
+    } catch (err) {
+      setErrorMessage(err.message || "Something went wrong. Try again.");
       setIsLoading(false);
     }
   };
@@ -46,18 +55,25 @@ const Login = () => {
     setErrorMessage("");
     setIsLoading(true);
 
-    const { data, error } = await authClient.signIn.username({
-      username: form.username.trim(),
-      password: form.password,
-    });
-
-    if (error) {
-      setErrorMessage(error.message || "Invalid username or password.");
+    try {
+      const { data, error } = await withTimeout(
+        authClient.signIn.username({
+          username: form.username.trim(),
+          password: form.password,
+        }),
+        8000,
+      );
+      if (error) {
+        setErrorMessage(error.message || "Invalid username or password.");
+        setIsLoading(false);
+        return;
+      }
+      console.log("Logged in:", data.user);
+    } catch (err) {
+      setErrorMessage(err.message || "Something went wrong. Try again.");
       setIsLoading(false);
       return;
     }
-
-    console.log("Logged in:", data.user);
 
     try {
       await refreshSocketConnection();

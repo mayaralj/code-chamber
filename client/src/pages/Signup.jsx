@@ -3,6 +3,7 @@ import { FaDiscord, FaGithub, FaGoogle } from "react-icons/fa";
 import { NavLink, useNavigate, useSearchParams } from "react-router-dom";
 import authClient from "../authClient";
 import { refreshSocketConnection } from "../socket";
+import { withTimeout } from "../utils/timeout";
 
 const Signup = () => {
   const navigate = useNavigate();
@@ -35,16 +36,25 @@ const Signup = () => {
     setErrorMessage("");
     setIsLoading(true);
 
-    const { error } = await authClient.signIn.social({
-      provider,
-      callbackURL: `${appUrl}/profile`,
-      newUserCallbackURL: `${appUrl}/choose-username`,
-      errorCallbackURL: `${appUrl}/signup`,
-    });
+    try {
+      const { error } = await withTimeout(
+        authClient.signIn.social({
+          provider,
+          callbackURL: `${appUrl}/profile`,
+          newUserCallbackURL: `${appUrl}/choose-username`,
+          errorCallbackURL: `${appUrl}/signup`,
+        }),
+        8000,
+      );
 
-    if (error) {
-      setErrorMessage(error.message || "Social authentication failed.");
+      if (error) {
+        setErrorMessage(error.message || "Social authentication failed.");
+        setIsLoading(false);
+      }
+    } catch (err) {
+      setErrorMessage(err.message || "Something went wrong. Try again.");
       setIsLoading(false);
+      return;
     }
   };
 
@@ -57,29 +67,33 @@ const Signup = () => {
     setErrorMessage("");
     setIsLoading(true);
 
-    const { data, error } = await authClient.signUp.email({
-      name: username,
-      username,
-      password: form.password,
-      email: `${cleanUsername}@users.yourapp.invalid`,
-    });
+    try {
+      const { data, error } = await withTimeout(
+        authClient.signUp.email({
+          name: username,
+          username,
+          password: form.password,
+          email: `${cleanUsername}@users.yourapp.invalid`,
+        }),
+        8000,
+      );
 
-    if (error) {
-      setErrorMessage(error.message || "Unable to create account.");
+      if (error) {
+        setErrorMessage(error.message || "Unable to create account.");
+        setIsLoading(false);
+        return;
+      }
+
+      console.log("Account created:", data.user);
+      await refreshSocketConnection();
+
+      setIsLoading(false);
+      navigate("/profile", { replace: true });
+    } catch (err) {
+      setErrorMessage(err.message || "Something went wrong. Try again.");
       setIsLoading(false);
       return;
     }
-
-    console.log("Account created:", data.user);
-
-    try {
-      await refreshSocketConnection();
-    } catch (socketError) {
-      console.error("Signup succeeded but socket refresh failed:", socketError);
-    }
-
-    setIsLoading(false);
-    navigate("/profile", { replace: true });
   };
 
   return (
