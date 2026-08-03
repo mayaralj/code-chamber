@@ -8,7 +8,7 @@ import { buildPlayerList } from "../utils/playerList.js";
 import startGame from "../game/startGame.js";
 
 // Import rooms and playersInRooms from index.js
-import { rooms, playersInRooms } from "../index.js";
+import { rooms, playersInRooms, roomIdToCode } from "../index.js";
 
 const setUpGameSockets = (io, socket) => {
   // Game leave
@@ -42,6 +42,7 @@ const setUpGameSockets = (io, socket) => {
 
     // Check if no players remaining
     if (room.players.length === 0) {
+      delete roomIdToCode[room.roomId];
       delete rooms[code];
       console.log(`Room ${code} deleted as last player left`);
       return;

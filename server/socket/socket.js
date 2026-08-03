@@ -44,7 +44,6 @@ const initSocket = (io, info) => {
         const guestId = providedGuestId?.startsWith("guest-")
           ? providedGuestId
           : `guest-${randomUUID()}`;
-        console.log(`Assigning guest id ${guestId} to socket ${socket.id}`);
         // Cancel any username cleanup timeout if it exists
         if (deleteGuestUsernameTimeouts.has(guestId)) {
           clearTimeout(deleteGuestUsernameTimeouts.get(guestId));

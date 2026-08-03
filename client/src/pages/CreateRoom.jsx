@@ -2,6 +2,9 @@ import { useNavigate } from "react-router";
 import { useEffect, useState } from "react";
 import { socket } from "../socket";
 
+// Config
+const CREATE_ROOM_TIMEOUT = 3000;
+
 const CreateRoom = () => {
   // Room name state
   const [roomName, setRoomName] = useState("");
@@ -30,13 +33,36 @@ const CreateRoom = () => {
     // Set is creating to true, disables button
     setIsCreating(true);
 
-    // Emit create room to server
-    socket.emit("create-room", {
-      roomName,
-      maxPlayers,
-      isPublic,
-      difficulty,
-    });
+    // Create a unique room id
+    const roomId = crypto.randomUUID();
+    socket.timeout(CREATE_ROOM_TIMEOUT).emit(
+      "create-room",
+      {
+        roomId,
+        roomName: trimmedRoomName,
+        maxPlayers,
+        isPublic,
+        difficulty,
+      },
+      (err, response) => {
+        setIsCreating(false);
+        if (err) {
+          // Notify server to stop server creation
+          socket.emit("cancel-room-creation", { roomId });
+          setCreateError("Server not responding. Please try again.");
+          return;
+        }
+        if (response.error) {
+          setCreateError(response.error);
+          return;
+        }
+        if (response.roomInfo) {
+          navigate(`/room-wait/${response.roomInfo.code}`, {
+            state: { roomInfo: response.roomInfo },
+          });
+        }
+      },
+    );
   };
 
   // useEffect to listen for room creation and errors

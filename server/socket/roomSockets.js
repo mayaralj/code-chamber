@@ -1,5 +1,5 @@
 import { buildPlayerList } from "../utils/playerList.js";
-import { rooms, playersInRooms } from "../index.js";
+import { rooms, playersInRooms, roomIdToCode } from "../index.js";
 
 //CONFIG
 const RECONNECT_TIMEOUT = 30000;
@@ -73,6 +73,7 @@ const setUpRoomSockets = (io, socket) => {
     if (!room.host || room.host.userId === socket.data.id) {
       // Kick everyone when host leaves and delete room
       io.to(code).emit("host-left", { message: "Host left the room" });
+      delete roomIdToCode[room.roomId];
       delete rooms[code];
       console.log(`Room ${code} deleted as host left`);
 
@@ -83,6 +84,7 @@ const setUpRoomSockets = (io, socket) => {
     } else {
       // Delete room if empty
       if (room.players.length === 0) {
+        delete roomIdToCode[room.roomId];
         delete rooms[code];
         console.log(`Room ${code} deleted as it became empty`);
       } else {
@@ -123,73 +125,82 @@ const setUpRoomSockets = (io, socket) => {
   };
 
   // Listen for room creation
-  socket.on("create-room", ({ roomName, maxPlayers, isPublic, difficulty }) => {
-    // Get host username
-    const username = socket.data.username;
-    if (!username) {
-      console.log("Username is required to create a room");
-      socket.emit("room-create-error", {
-        message: "Username is Required to Create a Room",
-      });
+  socket.on(
+    "create-room",
+    ({ roomId, roomName, maxPlayers, isPublic, difficulty }, callback) => {
+      // Get host username
+      const username = socket.data.username;
+      if (!username) {
+        console.log("Username is required to create a room");
+        return callback({ error: "Username is Required to Create a Room" });
+      }
+
+      // Check if player is already in a room
+      if (playersInRooms[socket.data.id]) {
+        console.log("Player is already in a room, cannot create another");
+        return callback({
+          error: "You are already in a room, cannot create one",
+        });
+      }
+
+      // Check if room name is valid
+      if (!roomName || roomName.trim() === "") {
+        return callback({ error: "Room name is required" });
+      }
+
+      // Create a random code
+      let code = Math.random().toString(36).substring(2, 6).toUpperCase();
+      // Ensure code is unique
+      while (rooms[code]) {
+        code = Math.random().toString(36).substring(2, 6).toUpperCase();
+      }
+
+      // Verify difficulty is valid
+      const validDifficulties = ["Easy", "Medium", "Hard"];
+      if (!validDifficulties.includes(difficulty)) {
+        return callback({ error: "Invalid difficulty level" });
+      }
+
+      // Build player info for host
+      const hostInfo = buildPlayerInfo(socket);
+
+      // Store roomId to code mapping
+      roomIdToCode[roomId] = code;
+
+      // Store new room in active rooms
+      rooms[code] = {
+        roomId,
+        host: hostInfo,
+        code,
+        players: [hostInfo],
+        roomName,
+        maxPlayers,
+        roundStartTime: null,
+        isPublic,
+        difficulty,
+        isGameStarted: false,
+      };
+
+      // Put the creator in the room
+      socket.join(code);
+      playersInRooms[socket.data.id] = code;
+
+      // Emit back to the creator
+      broadcastRooms();
+      console.log(`Room ${code} created by ${username}`);
+      callback({ roomInfo: buildRoomInfo(rooms[code]) });
+    },
+  );
+
+  // Handle cancel room creation
+  socket.on("cancel-room-creation", ({ roomId }) => {
+    // Find the room with the matching roomId
+    const code = roomIdToCode[roomId];
+    if (!code) {
       return;
     }
-
-    // Check if player is already in a room
-    if (playersInRooms[socket.data.id]) {
-      console.log("Player is already in a room, cannot create another");
-      socket.emit("room-create-error", {
-        message: "You are already in a room, cannot create one",
-      });
-      return;
-    }
-
-    // Check if room name is valid
-    if (!roomName || roomName.trim() === "") {
-      socket.emit("room-create-error", { message: "Room name is required" });
-      return;
-    }
-
-    // Create a random code
-    let code = Math.random().toString(36).substring(2, 6).toUpperCase();
-    // Ensure code is unique
-    while (rooms[code]) {
-      code = Math.random().toString(36).substring(2, 6).toUpperCase();
-    }
-
-    // Verify difficulty is valid
-    const validDifficulties = ["Easy", "Medium", "Hard"];
-    if (!validDifficulties.includes(difficulty)) {
-      socket.emit("room-create-error", {
-        message: "Invalid difficulty level",
-      });
-      return;
-    }
-
-    const hostInfo = buildPlayerInfo(socket);
-
-    // Store new room in active rooms
-    rooms[code] = {
-      host: hostInfo,
-      code,
-      players: [hostInfo],
-      roomName,
-      maxPlayers,
-      roundStartTime: null,
-      isPublic,
-      difficulty,
-      isGameStarted: false,
-    };
-
-    // Put the creator in the room
-    socket.join(code);
-    playersInRooms[socket.data.id] = code;
-
-    // Emit back to the creator
-    socket.emit("room-created", {
-      roomInfo: buildRoomInfo(rooms[code]),
-    });
-    broadcastRooms();
-    console.log(`Room ${code} created by ${username}`);
+    console.log(`Room creation canceled for roomId ${roomId}, code ${code}`);
+    leaveRoom(code);
   });
 
   const rejoinPlayer = (code, room, existingPlayer) => {
@@ -344,7 +355,6 @@ const setUpRoomSockets = (io, socket) => {
 
   // Leave room event
   socket.on("leave-room", ({ code }) => {
-    console.log(`Player ${socket.data.username} is leaving room ${code}`);
     leaveRoom(code);
   });
 

@@ -12,6 +12,7 @@ const PORT = process.env.PORT || 5000;
 // Rooms and players in rooms
 export const rooms = {};
 export const playersInRooms = {};
+export const roomIdToCode = {};
 
 // Server startup function
 const serverStartup = async () => {
