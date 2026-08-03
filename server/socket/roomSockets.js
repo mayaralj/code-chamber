@@ -2,7 +2,7 @@ import { buildPlayerList } from "../utils/playerList.js";
 import { rooms, playersInRooms } from "../index.js";
 
 //CONFIG
-const RECONNECT_TIMEOUT = 30000;
+const RECONNECT_TIMEOUT = 8000;
 
 const setUpRoomSockets = (io, socket) => {
   // BRoadcast rooms helper

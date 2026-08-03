@@ -77,6 +77,11 @@ const setUpGameSockets = (io, socket) => {
       return;
     }
 
+    // Check socket is connected
+    if (!socket.connected) {
+      return;
+    }
+
     // Ensure game is not starting
     if (room.gameIsStarting) {
       return;
