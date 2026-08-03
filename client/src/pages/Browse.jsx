@@ -71,6 +71,14 @@ const Browse = () => {
     });
   };
 
+  // Add cleanup on unmount
+  useEffect(() => {
+    return () => {
+      socket.off("room-joined");
+      socket.off("room-join-error");
+    };
+  }, []);
+
   const filteredRooms = rooms.filter((room) => {
     const matchesSearch = room.roomName
       .toLowerCase()
