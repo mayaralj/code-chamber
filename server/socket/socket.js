@@ -100,7 +100,6 @@ const initSocket = (io, info) => {
     });
 
     totalConnections++;
-    console.log("Total connections: " + totalConnections);
 
     // Room handlers
     setUpRoomSockets(io, socket);
@@ -125,7 +124,6 @@ const initSocket = (io, info) => {
 
       // Decrement total connections
       totalConnections--;
-      console.log("Total connections: " + totalConnections);
     });
   });
 };

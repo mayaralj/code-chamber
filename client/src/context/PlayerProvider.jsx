@@ -31,7 +31,7 @@ const PlayerProvider = ({ children }) => {
         setConnectionStatus("server-down");
         //router.navigate("/", { replace: true });
         // Show toast notification
-        toast.error("GAME SERVER IS DOWN", {
+        toast.error("Error: Lost Server Connection", {
           duration: 5000,
           position: "top-right",
         });
