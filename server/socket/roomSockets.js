@@ -2,7 +2,7 @@ import { buildPlayerList } from "../utils/playerList.js";
 import { rooms, playersInRooms } from "../index.js";
 
 //CONFIG
-const RECONNECT_TIMEOUT = 8000;
+const RECONNECT_TIMEOUT = 30000;
 
 const setUpRoomSockets = (io, socket) => {
   // BRoadcast rooms helper
@@ -242,6 +242,20 @@ const setUpRoomSockets = (io, socket) => {
       });
       console.log(`Player ${username} rejoined room ${code}`);
       return;
+    }
+
+    // Check if player trying to join another room while reconnecting in a room
+    const existingRoomCode = playersInRooms[socket.data.id];
+    if (existingRoomCode && existingRoomCode !== code) {
+      const existingRoom = rooms[existingRoomCode];
+      const playerInExistingRoom = existingRoom.players.find(
+        (p) => p.userId === socket.data.id,
+      );
+      // Leave their reconnecting room to allow to join the new room
+      if (playerInExistingRoom && playerInExistingRoom.isReconnecting) {
+        clearTimeout(playerInExistingRoom.disconnectTimeout);
+        leaveRoom(existingRoomCode);
+      }
     }
 
     // Check if player is already in a room
