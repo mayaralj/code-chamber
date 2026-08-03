@@ -57,6 +57,7 @@ const CreateRoom = () => {
           return;
         }
         if (response.roomInfo) {
+          setCreateError("");
           navigate(`/room-wait/${response.roomInfo.code}`, {
             state: { roomInfo: response.roomInfo },
           });
@@ -64,31 +65,6 @@ const CreateRoom = () => {
       },
     );
   };
-
-  // useEffect to listen for room creation and errors
-  useEffect(() => {
-    // Listen for room create error
-    socket.on("room-create-error", ({ message }) => {
-      setIsCreating(false);
-      setCreateError(message);
-    });
-
-    // Listen for room created event
-    socket.on("room-created", ({ roomInfo }) => {
-      setIsCreating(false);
-      navigate(`/room-wait/${roomInfo.code}`, {
-        state: { roomInfo },
-      });
-    });
-
-    // Cleanup listeners on unmount
-    return () => {
-      socket.off("room-create-error");
-      socket.off("room-created");
-      setCreateError("");
-      setIsCreating(false);
-    };
-  }, []);
 
   return (
     <div className="min-h-[calc(100vh-72px)] bg-[#0b0b0b] px-6 py-20 font-mono text-[#e7c49d]">
