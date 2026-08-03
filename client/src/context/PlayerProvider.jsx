@@ -5,7 +5,7 @@ import PlayerContext from "./PlayerContext";
 import toast from "react-hot-toast";
 
 // COnfig
-const SERVER_SHUTDOWN_TIMEOUT = 5000;
+const SERVER_SHUTDOWN_TIMEOUT = 10000;
 
 // Player provider
 const PlayerProvider = ({ children }) => {
@@ -13,6 +13,7 @@ const PlayerProvider = ({ children }) => {
   const [connectionStatus, setConnectionStatus] = useState("connecting");
   const hasConnectedOnceRef = useRef(false);
   const serverDownTimerRef = useRef(null);
+  const toastIdRef = useRef(null);
 
   useEffect(() => {
     const clearServerDownTimer = () => {
@@ -28,24 +29,25 @@ const PlayerProvider = ({ children }) => {
         return;
       }
       serverDownTimerRef.current = setTimeout(() => {
-        setConnectionStatus("server-down");
+        setConnectionStatus("lost-connection");
         //router.navigate("/", { replace: true });
         // Show toast notification
-        toast.error("Error: Lost Server Connection", {
-          duration: 5000,
-          position: "top-right",
+        toastIdRef.current = toast.error("Error: Lost Server Connection", {
+          duration: 10000,
         });
       }, SERVER_SHUTDOWN_TIMEOUT);
     };
 
     const setIdentity = (identity) => {
       clearServerDownTimer();
+      toast.dismiss(toastIdRef.current);
       setPlayer(identity);
       setConnectionStatus("connected");
     };
 
     const onConnect = () => {
       clearServerDownTimer();
+      toast.dismiss(toastIdRef.current);
       hasConnectedOnceRef.current = true;
       // player identity set by user-data shortly after
     };

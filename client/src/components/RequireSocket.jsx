@@ -8,7 +8,7 @@ const RequireSocket = () => {
     connectionStatus === "connecting" ||
     connectionStatus === "disconnected" ||
     connectionStatus === "error" ||
-    connectionStatus === "server-down"
+    connectionStatus === "lost-connection"
   ) {
     // If in one of the game/room screens exit out first
     const pathName = window.location.pathname;
