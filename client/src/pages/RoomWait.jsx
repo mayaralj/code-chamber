@@ -210,7 +210,8 @@ const RoomWait = () => {
 
   // Check if there exists a reconnecting player
   const hasReconnectingPlayer = players.some((player) => player.isReconnecting);
-  //Check if local is reconnecting
+  //Check local status
+  const isConnected = connectionStatus === "connected";
   const isReconnecting = connectionStatus === "reconnecting";
 
   return (
@@ -359,7 +360,12 @@ const RoomWait = () => {
             {isHost && players.length > 0 && (
               <button
                 onClick={handleStart}
-                disabled={gameStarting || hostStarting || hasReconnectingPlayer}
+                disabled={
+                  gameStarting ||
+                  hostStarting ||
+                  hasReconnectingPlayer ||
+                  !isConnected
+                }
                 className="cursor-pointer border border-[#ffdd9d] bg-[#ffdd9d] py-3 text-sm font-black tracking-[0.1em] text-[#251b0f] disabled:cursor-not-allowed disabled:opacity-50 sm:py-5 sm:text-2xl"
               >
                 {hasReconnectingPlayer
