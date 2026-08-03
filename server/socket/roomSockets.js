@@ -63,14 +63,14 @@ const setUpRoomSockets = (io, socket) => {
 
     // Remove player from room
     room.players = room.players.filter(
-      (player) => player.socketId !== socket.id,
+      (player) => player.userId !== socket.data.id,
     );
 
     // Remove from room in socket.io and from playersInRooms mapping
     socket.leave(code);
     delete playersInRooms[socket.data.id];
 
-    if (!room.host || room.host.socketId === socket.id) {
+    if (!room.host || room.host.userId === socket.data.id) {
       // Kick everyone when host leaves and delete room
       io.to(code).emit("host-left", { message: "Host left the room" });
       delete rooms[code];
@@ -192,6 +192,30 @@ const setUpRoomSockets = (io, socket) => {
     console.log(`Room ${code} created by ${username}`);
   });
 
+  const rejoinPlayer = (code, room, existingPlayer) => {
+    // Handle reconnection
+    // Clear timeout
+    console.log(`Player ${existingPlayer.username} rejoined room ${code}`);
+    clearTimeout(existingPlayer.disconnectTimeout);
+    existingPlayer.disconnectTimeout = null;
+    // Mark player as reconnected
+    existingPlayer.isReconnecting = false;
+
+    // Update socket id
+    existingPlayer.socketId = socket.id;
+
+    // If host updated, update host info
+    if (room.host.userId === socket.data.id) {
+      room.host = buildPlayerInfo(socket);
+    }
+
+    // Put player in the room
+    socket.join(code);
+    playersInRooms[socket.data.id] = code;
+
+    return;
+  };
+
   // Listen for on room join
   socket.on("join-room", ({ code }) => {
     // Get username from socket data
@@ -210,51 +234,43 @@ const setUpRoomSockets = (io, socket) => {
       return;
     }
 
-    // Handle reconnection
-    const existingPlayer = room.players.find(
-      (p) => p.userId === socket.data.id,
-    );
-    if (existingPlayer && existingPlayer.isReconnecting) {
-      // Clear timeout
-      clearTimeout(existingPlayer.disconnectTimeout);
-      existingPlayer.disconnectTimeout = null;
-      existingPlayer.isReconnecting = false;
-
-      // Update socket id
-      existingPlayer.socketId = socket.id;
-
-      // If host updated, update host info
-      if (room.host.userId === socket.data.id) {
-        room.host = buildPlayerInfo(socket);
+    // Check if player trying to join another room while reconnecting in a room (this will kick them out of current and join the new one, should rarely ever happen)
+    const existingRoomCode = playersInRooms[socket.data.id];
+    if (existingRoomCode) {
+      const existingRoom = rooms[existingRoomCode];
+      let playerInExistingRoom = null;
+      if (!existingRoom) {
+        // If the existing room doesn't exist, just remove them from playersInRooms and continue
+        delete playersInRooms[socket.data.id];
+      } else {
+        playerInExistingRoom = existingRoom.players.find(
+          (p) => p.userId === socket.data.id,
+        );
       }
 
-      // Put player in the room
-      socket.join(code);
-      playersInRooms[socket.data.id] = code;
-
-      // Emit back to the player that rejoined
-      socket.emit("room-rejoined", {
-        roomInfo: buildRoomInfo(room),
-      });
-      // Emit to the rest of players inside that room
-      socket.to(code).emit("player-rejoined", {
-        roomInfo: buildRoomInfo(room),
-      });
-      console.log(`Player ${username} rejoined room ${code}`);
-      return;
-    }
-
-    // Check if player trying to join another room while reconnecting in a room
-    const existingRoomCode = playersInRooms[socket.data.id];
-    if (existingRoomCode && existingRoomCode !== code) {
-      const existingRoom = rooms[existingRoomCode];
-      const playerInExistingRoom = existingRoom.players.find(
-        (p) => p.userId === socket.data.id,
-      );
-      // Leave their reconnecting room to allow to join the new room
-      if (playerInExistingRoom && playerInExistingRoom.isReconnecting) {
+      if (
+        existingRoomCode !== code &&
+        playerInExistingRoom &&
+        playerInExistingRoom.isReconnecting
+      ) {
+        console.log(
+          `Player ${username} is trying to join room ${code} while reconnecting in room ${existingRoomCode}, kicking them from the old room`,
+        );
         clearTimeout(playerInExistingRoom.disconnectTimeout);
+        playerInExistingRoom.disconnectTimeout = null;
+        playerInExistingRoom.isReconnecting = false;
         leaveRoom(existingRoomCode);
+      } else if (
+        existingRoomCode === code &&
+        playerInExistingRoom &&
+        playerInExistingRoom.isReconnecting
+      ) {
+        // If they are trying to join the same room they are already in, just rejoin them
+        rejoinPlayer(code, room, playerInExistingRoom);
+        socket.emit("room-joined", {
+          roomInfo: buildRoomInfo(room),
+        });
+        return;
       }
     }
 
@@ -290,8 +306,45 @@ const setUpRoomSockets = (io, socket) => {
     console.log(`Player ${username} joined room ${code}`);
   });
 
+  // Rejoin room event
+  socket.on("rejoin-room", ({ code }) => {
+    // Get username from socket data
+    const username = socket.data.username;
+    if (!username) {
+      socket.emit("room-rejoin-error");
+      return;
+    }
+    const room = rooms[code];
+    if (!room) {
+      socket.emit("room-rejoin-error");
+      return;
+    }
+
+    // Find player in room
+    const existingPlayer = room.players.find(
+      (p) => p.userId === socket.data.id,
+    );
+    if (!existingPlayer || !existingPlayer.isReconnecting) {
+      socket.emit("room-rejoin-error");
+      return;
+    }
+
+    // Handle rejoin
+    rejoinPlayer(code, room, existingPlayer);
+    // Emit back to the player that rejoined
+    socket.emit("room-rejoined", {
+      roomInfo: buildRoomInfo(room),
+    });
+
+    // Emit to the rest of players inside that room
+    socket.to(code).emit("player-rejoined", {
+      roomInfo: buildRoomInfo(room),
+    });
+  });
+
   // Leave room event
   socket.on("leave-room", ({ code }) => {
+    console.log(`Player ${socket.data.username} is leaving room ${code}`);
     leaveRoom(code);
   });
 

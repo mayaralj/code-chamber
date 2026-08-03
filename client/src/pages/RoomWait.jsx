@@ -122,7 +122,8 @@ const RoomWait = () => {
       socket.off("host-left");
       socket.off("game-starting");
       if (!gameStartedRef.current) {
-        socket.emit("leave-room", { code });
+        // Keep volatile so it doesnt cause problems for reconnect handling
+        socket.volatile.emit("leave-room", { code });
       }
     };
   }, []);
@@ -149,22 +150,28 @@ const RoomWait = () => {
   useEffect(() => {
     const rejoin = () => {
       console.log("Socket reconnected, attempting to rejoin room");
-      socket.emit("join-room", { code });
+      socket.emit("rejoin-room", { code });
     };
     const onRoomRejoined = ({ roomInfo }) => {
       console.log("Room rejoined");
       setPlayers(roomInfo.players);
       setRoomInfo(roomInfo);
     };
+    const rejoinError = () => {
+      console.log("Room rejoin error, redirecting to browse");
+      navigate("/browse", { replace: true });
+    };
 
     socket.on("connect", rejoin);
     socket.on("room-rejoined", onRoomRejoined);
+    socket.on("room-rejoin-error", rejoinError);
 
     return () => {
       socket.off("connect", rejoin);
       socket.off("room-rejoined", onRoomRejoined);
+      socket.off("room-rejoin-error", rejoinError);
     };
-  }, [code]);
+  }, [code, navigate]);
 
   // Handle leaving room on page unload (so tab closes dont get flagged as reconnecting)
   useEffect(() => {
