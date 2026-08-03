@@ -32,7 +32,7 @@ const setUpGameSockets = (io, socket) => {
     }
 
     // Remove player from room
-    room.players = room.players.filter((p) => p.socketId !== socket.id);
+    room.players = room.players.filter((p) => p.userId !== socket.data.id);
 
     // Leave from socket room
     socket.leave(code);
