@@ -1,3 +1,5 @@
+import { roomIdToCode } from "../index.js";
+
 // Helper to delete room
 const deleteRoom = (io, rooms, code) => {
   if (!rooms[code]) {
@@ -5,6 +7,7 @@ const deleteRoom = (io, rooms, code) => {
   }
   io.to(code).emit("room-deleted");
   io.in(code).socketsLeave(code);
+  delete roomIdToCode[rooms[code].id];
   delete rooms[code];
   console.log(`Room ${code} deleted`);
 };
