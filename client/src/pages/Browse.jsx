@@ -184,6 +184,7 @@ const Browse = () => {
           {filteredRooms.slice(0, visibleRoomCount).map((room) => {
             const isFull = room.players.length >= room.maxPlayers;
             const gameStarted = room.isGameStarted;
+            const isGameStarting = room.isGameStarting;
             console.log(gameStarted);
 
             return (
@@ -204,7 +205,7 @@ const Browse = () => {
 
                   <span
                     className={`px-2 py-1 text-[12px] font-bold ${
-                      gameStarted
+                      gameStarted || isGameStarting
                         ? "bg-[#2f2c27] text-[#8e8477]"
                         : isFull
                           ? "bg-[#30302d] text-[#8e8477]"
@@ -213,9 +214,11 @@ const Browse = () => {
                   >
                     {gameStarted
                       ? "IN PROGRESS"
-                      : isFull
-                        ? "ROOM FULL"
-                        : "JOINABLE"}
+                      : isGameStarting
+                        ? "GAME STARTING"
+                        : isFull
+                          ? "ROOM FULL"
+                          : "JOINABLE"}
                   </span>
                 </div>
 
@@ -243,16 +246,18 @@ const Browse = () => {
                   disabled={isFull}
                   onClick={() => handleJoin(room.code)}
                   className={`mt-9 w-full border py-4 text-sm font-bold tracking-wider transition-colors ${
-                    isFull || gameStarted
+                    isFull || gameStarted || isGameStarting
                       ? "cursor-not-allowed border-[#30302d] bg-[#292929] text-[#81786b]"
                       : "cursor-pointer border-[#ffdd9d] bg-[#ffdd9d] text-[#251b0f] hover:bg-[#e7bc76]"
                   }`}
                 >
                   {gameStarted
                     ? "IN PROGRESS"
-                    : isFull
-                      ? "FULL"
-                      : "JOIN ROOM  ›"}
+                    : isGameStarting
+                      ? "GAME STARTING"
+                      : isFull
+                        ? "FULL"
+                        : "JOIN ROOM  ›"}
                 </button>
 
                 {error.code === room.code && (
