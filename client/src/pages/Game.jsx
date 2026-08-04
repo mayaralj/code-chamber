@@ -86,6 +86,17 @@ const Game = () => {
     };
   }, []);
 
+  // Handle leaving game on page unload
+  useEffect(() => {
+    const handleUnload = () => {
+      console.log("Page unload, leaving game room");
+      socket.emit("game-leave-room", { code });
+    };
+
+    window.addEventListener("pagehide", handleUnload);
+    return () => window.removeEventListener("pagehide", handleUnload);
+  }, [code]);
+
   // Kick them out on player eliminated
   useEffect(() => {
     socket.once("player-eliminated", () => {
