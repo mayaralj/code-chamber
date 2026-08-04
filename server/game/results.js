@@ -68,9 +68,10 @@ export const gameOver = async (io, code, roundData, winner) => {
   // Update matches_won for winner
   updateWinnerMatchesWon(winner);
 
-  // Remove all players from playersInRooms mapping
+  // Remove all players from playersInRooms mapping and socket rooms
   rooms[code].players.forEach((player) => {
     delete playersInRooms[player.userId];
+    io.sockets.sockets.get(player.socketId)?.leave(code);
   });
 
   // Send game over data

@@ -25,7 +25,7 @@ const updateMatchesPlayed = async (player) => {
 };
 
 // Helper to check if room is still valid before game officially starts (mainly checks for players that dc while waiting for game to start)
-const isRoomStillValid = (io, code) => {
+const isRoomStillValid = (io, socket, code) => {
   const room = rooms[code];
   if (!room) return false;
 
@@ -46,7 +46,7 @@ const isRoomStillValid = (io, code) => {
 };
 
 // Function to handle before game initialization
-const beforeGame = async (io, code) => {
+const beforeGame = async (io, socket, code) => {
   // Initialize round data
   rooms[code].roundData = {};
   rooms[code].currentRound = 0;
@@ -64,7 +64,7 @@ const beforeGame = async (io, code) => {
   await setUpGameQuestions(rooms, code);
 
   // Check if room still valid
-  if (!isRoomStillValid(io, code)) {
+  if (!isRoomStillValid(io, socket, code)) {
     return;
   }
 
@@ -72,7 +72,7 @@ const beforeGame = async (io, code) => {
   await sleep(WAIT_TIME_BEFORE_GAME_START);
 
   // Check if room still valid
-  if (!isRoomStillValid(io, code)) {
+  if (!isRoomStillValid(io, socket, code)) {
     return;
   }
 
@@ -82,7 +82,7 @@ const beforeGame = async (io, code) => {
   );
 
   // Check if room still valid
-  if (!isRoomStillValid(io, code)) {
+  if (!isRoomStillValid(io, socket, code)) {
     return;
   }
 
