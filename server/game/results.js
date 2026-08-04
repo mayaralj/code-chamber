@@ -68,12 +68,6 @@ export const gameOver = async (io, code, roundData, winner) => {
   // Update matches_won for winner
   updateWinnerMatchesWon(winner);
 
-  // Remove all players from playersInRooms mapping and socket rooms
-  rooms[code].players.forEach((player) => {
-    delete playersInRooms[player.userId];
-    io.sockets.sockets.get(player.socketId)?.leave(code);
-  });
-
   // Send game over data
   const gameOverEndsAt = Date.now() + 1000 * GAME_OVER_TIMER;
   io.to(code).emit("game-over", {
@@ -89,6 +83,12 @@ export const gameOver = async (io, code, roundData, winner) => {
 
   // Emit that room is deleted
   io.to(code).emit("room-deleted");
+
+  // Remove all players from mapping and socket rooms and delete the room
+  rooms[code].players.forEach((player) => {
+    delete playersInRooms[player.userId];
+    io.sockets.sockets.get(player.socketId)?.leave(code);
+  });
 
   // Delete room
   console.log(`Game over in room ${code}, deleting room`);
