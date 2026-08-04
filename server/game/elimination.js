@@ -32,6 +32,10 @@ export const determinePlayerEliminated = (roundData, ignorePlayer) => {
 
 // Helper to eliminate player from room
 export const eliminatePlayer = (io, code, roundData, playerEliminated) => {
+  if (!playerEliminated) {
+    console.error(`No player to eliminate in room ${code}`);
+    return;
+  }
   console.log(
     `Eliminating player ${playerEliminated.username} from room ${code}`,
   );

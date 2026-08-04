@@ -102,21 +102,25 @@ const startRound = async (io, socket, code) => {
   // Allow submissions now
   roundData.submissionsAllowed = true;
 
-  // Create a new promise and cancel function for the round timer
-  const { promise: roundTimerPromise, cancel: cancelRoundTimer } =
-    cancellableSleep((ROUND_TIMER / timeMultiplier) * 1000);
-
-  // Save the cancel function in the room so it can be cancelled if all players submit early
-  roundData.cancelRoundTimer = cancelRoundTimer;
-
   // Wait for round timer to finish or be cancelled
-  await roundTimerPromise;
+  // Only start round timer if enough players are still in the room
+  if (rooms[code].players.length > 1) {
+    // Create a new promise and cancel function for the round timer
+    const { promise: roundTimerPromise, cancel: cancelRoundTimer } =
+      cancellableSleep((ROUND_TIMER / timeMultiplier) * 1000);
+
+    // Save the cancel function in the room so it can be cancelled if all players submit early
+    roundData.cancelRoundTimer = cancelRoundTimer;
+    await roundTimerPromise;
+    // Clear the cancel function from the room
+    roundData.cancelRoundTimer = null;
+    console.log(
+      `Round timer finished for room ${code}, processing submissions`,
+    );
+  }
   if (!checkRoom(code)) {
     return;
   }
-  // Clear the cancel function from the room
-  roundData.cancelRoundTimer = null;
-  console.log(`Round timer finished for room ${code}, processing submissions`);
 
   // Emit that game timer is finished
   io.to(code).emit("round-timer-finished");

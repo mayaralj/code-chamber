@@ -64,6 +64,10 @@ const setUpGameSockets = (io, socket) => {
         room.roundData[room.currentRound].cancelRoundTimer();
       }
     }
+
+    console.log(
+      `User ${socket.data.username} left game room ${code}, ${room.players.length} players remaining`,
+    );
   };
 
   socket.on("start-game", ({ code }) => {

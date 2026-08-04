@@ -24,7 +24,7 @@ const updateMatchesPlayed = async (player) => {
   );
 };
 
-// Helper to check if room is still valid
+// Helper to check if room is still valid before game officially starts (mainly checks for players that dc while waiting for game to start)
 const isRoomStillValid = (io, code) => {
   const room = rooms[code];
   if (!room) return false;
