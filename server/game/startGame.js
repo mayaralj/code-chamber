@@ -6,7 +6,7 @@ import { rooms } from "../index.js";
 // Start game
 const startGame = async (io, socket, code) => {
   // Call beforeGame initialization
-  await beforeGame(rooms, code);
+  await beforeGame(io, code);
 
   // While loop to start rounds until game is over
   while (rooms[code] && rooms[code].players.length > 0) {

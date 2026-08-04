@@ -3,6 +3,7 @@ import { setUpGameQuestions } from "./questionHandler.js";
 import { determineAllEvents } from "./roundEvents.js";
 import { sleep } from "../utils/timers.js";
 import db from "../db.js";
+import { rooms, playersInRooms, roomIdToCode } from "../index.js";
 
 // Config
 const WAIT_TIME_BEFORE_GAME_START = 3500;
@@ -23,8 +24,29 @@ const updateMatchesPlayed = async (player) => {
   );
 };
 
+// Helper to check if room is still valid
+const isRoomStillValid = (io, code) => {
+  const room = rooms[code];
+  if (!room) return false;
+
+  if (room.players.length < 2) {
+    // Notify any remaining player, then clean up
+    if (room.players.length === 1) {
+      io.to(code).emit("game-start-cancelled", {
+        message: "Not enough players to start the game",
+      });
+      delete playersInRooms[room.players[0].userId];
+    }
+    delete rooms[code];
+    console.log(`Room ${code} deleted, insufficient players before game start`);
+    return false;
+  }
+
+  return true;
+};
+
 // Function to handle before game initialization
-const beforeGame = async (rooms, code) => {
+const beforeGame = async (io, code) => {
   // Initialize round data
   rooms[code].roundData = {};
   rooms[code].currentRound = 0;
@@ -41,16 +63,16 @@ const beforeGame = async (rooms, code) => {
   // Set up game questions
   await setUpGameQuestions(rooms, code);
 
-  // Check if room still exists
-  if (!rooms[code]) {
+  // Check if room still valid
+  if (!isRoomStillValid(io, code)) {
     return;
   }
 
   // Sleep for the configured time before starting first round (so players can see the "Game Starting" message)
   await sleep(WAIT_TIME_BEFORE_GAME_START);
 
-  // Check if room still exists
-  if (!rooms[code]) {
+  // Check if room still valid
+  if (!isRoomStillValid(io, code)) {
     return;
   }
 
@@ -59,8 +81,8 @@ const beforeGame = async (rooms, code) => {
     rooms[code].players.map((player) => updateMatchesPlayed(player)),
   );
 
-  // Check if room still exists
-  if (!rooms[code]) {
+  // Check if room still valid
+  if (!isRoomStillValid(io, code)) {
     return;
   }
 
