@@ -93,6 +93,12 @@ export const useCodeSubmission = (code) => {
       isJudgingRef.current = false;
     });
 
+    socket.on("code-judging", () => {
+      // Set is judging to true
+      setIsJudging(true);
+      isJudgingRef.current = true;
+    });
+
     socket.on("request-current-code", () => {
       socket.emit("current-code", {
         codeInput: codeInputRef.current,

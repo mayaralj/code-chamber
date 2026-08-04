@@ -8,6 +8,9 @@ export const notifyJudging = (io, socketId, room, code) => {
   // Build a player list with needed data
   const playerList = buildPlayerList(room);
 
+  // Notify player that code is being judged (mainly needed for force submission because client handles on clicks)
+  io.to(socketId).emit("code-judging");
+
   // Emit to all players with list of judging players
   io.to(code).emit("update-players", {
     players: playerList,
