@@ -205,6 +205,12 @@ const RoomWait = () => {
       return;
     }
 
+    // Check connection
+    if (connectionStatus !== "connected") {
+      setGameStartingError("Connection unstable, cannot start game");
+      return;
+    }
+
     setHostStarting(true);
     socket.emit("start-game", { code });
   };
