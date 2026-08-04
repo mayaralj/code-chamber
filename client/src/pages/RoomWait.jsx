@@ -3,6 +3,7 @@ import { socket } from "../socket";
 import { useState, useEffect, useRef } from "react";
 import { LoaderCircle, Crown } from "lucide-react";
 import usePlayer from "../hooks/usePlayer.js";
+import toast from "react-hot-toast";
 
 const RoomWait = () => {
   // Code
@@ -90,6 +91,13 @@ const RoomWait = () => {
       setGameStarting(true);
     });
 
+    // Game start cancelled
+    socket.once("game-start-cancelled", ({ message }) => {
+      console.log("Game start cancelled, redirecting to home");
+      toast.error(message);
+      navigate("/browse", { replace: true });
+    });
+
     // Listen for game started
     socket.on(
       "game-started",
@@ -121,6 +129,8 @@ const RoomWait = () => {
       socket.off("game-started");
       socket.off("host-left");
       socket.off("game-starting");
+      socket.off("start-game-error");
+      socket.off("game-start-cancelled");
       if (!gameStartedRef.current) {
         // Keep volatile so it doesnt cause problems for reconnect handling
         socket.volatile.emit("leave-room", { code });

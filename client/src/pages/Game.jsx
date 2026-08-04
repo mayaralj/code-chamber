@@ -19,6 +19,8 @@ import { useResults } from "../hooks/gameHooks/useResults";
 import { useCodeEditor } from "../hooks/gameHooks/useCodeEditor";
 import { useRoundEvents } from "../hooks/gameHooks/useRoundEvents";
 import { usePlayerList } from "../hooks/gameHooks/usePlayerList";
+// toast
+import toast from "react-hot-toast";
 
 const Game = () => {
   // Game Code
