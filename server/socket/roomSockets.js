@@ -299,6 +299,18 @@ const setUpRoomSockets = (io, socket) => {
       return;
     }
 
+    // Check if game is starting
+    if (room.gameIsStarting) {
+      socket.emit("room-join-error", { message: "Game is starting" });
+      return;
+    }
+
+    // Check if game has already started
+    if (room.isGameStarted) {
+      socket.emit("room-join-error", { message: "Game has already started" });
+      return;
+    }
+
     // Push player to room
     room.players.push(buildPlayerInfo(socket));
 
@@ -421,6 +433,12 @@ const setUpRoomSockets = (io, socket) => {
     const player = room.players.find((p) => p.socketId === socket.id);
     if (!player) {
       return;
+    }
+
+    // Clear if previously reconnecting
+    if (player.disconnectTimeout) {
+      clearTimeout(player.disconnectTimeout);
+      player.disconnectTimeout = null;
     }
 
     // Mark player as reconnecting
