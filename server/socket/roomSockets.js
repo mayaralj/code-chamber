@@ -1,50 +1,16 @@
 import { buildPlayerList } from "../utils/playerList.js";
 import { rooms, playersInRooms, roomIdToCode } from "../index.js";
+import {
+  broadcastRooms,
+  broadcastAddRoom,
+  broadcastRemoveRoom,
+  broadcastUpdateRoom,
+} from "../broadcast/broadcastRooms.js";
 
 //CONFIG
 const RECONNECT_TIMEOUT = 30000;
 
 const setUpRoomSockets = (io, socket) => {
-  // BRoadcast rooms helper
-  const broadcastRooms = () => {
-    let publicRooms = Object.values(rooms).filter(
-      (room) => room.isPublic && !room.isGameStarted,
-    );
-    // Fill up public rooms for testing 30 rooms
-    // while (publicRooms.length < 30) {
-    //   const randomDifficulty = ["Easy", "Medium", "Hard"][
-    //     Math.floor(Math.random() * 3)
-    //   ];
-    //   const randomMaxPlayers = [2, 3, 4, 5, 6][Math.floor(Math.random() * 5)];
-    //   const randomGameStarted = [true, false][Math.floor(Math.random() * 2)];
-    //   publicRooms.push({
-    //     code: `TEST${publicRooms.length + 1}`,
-    //     roomName: `Test Room ${publicRooms.length + 1}`,
-    //     host: { username: "TestHost" },
-    //     players: [],
-    //     maxPlayers: randomMaxPlayers,
-    //     isPublic: true,
-    //     difficulty: randomDifficulty,
-    //     isGameStarted: randomGameStarted,
-    //   });
-    // }
-
-    // Build rooms object with only necessary info for public rooms page
-    publicRooms = publicRooms.map((room) => ({
-      code: room.code,
-      roomName: room.roomName,
-      host: room.host.username,
-      players: buildPlayerList(room),
-      maxPlayers: room.maxPlayers,
-      isPublic: room.isPublic,
-      difficulty: room.difficulty,
-      isGameStarted: room.isGameStarted,
-    }));
-
-    // Broadcast only to clients in public rooms page
-    io.to("public-rooms").emit("rooms-list", publicRooms);
-  };
-
   // Room leave helper
   const leaveRoom = (code) => {
     // Means just a regular disconnection
@@ -73,6 +39,8 @@ const setUpRoomSockets = (io, socket) => {
     if (!room.host || room.host.userId === socket.data.id) {
       // Kick everyone when host leaves and delete room
       io.to(code).emit("host-left", { message: "Host left the room" });
+      // Notify public rooms that room deleted
+      broadcastRemoveRoom(io, code);
       delete roomIdToCode[room.roomId];
       delete rooms[code];
       console.log(`Room ${code} deleted as host left`);
@@ -84,6 +52,8 @@ const setUpRoomSockets = (io, socket) => {
     } else {
       // Delete room if empty
       if (room.players.length === 0) {
+        // Notify public rooms that room deleted
+        broadcastRemoveRoom(io, code);
         delete roomIdToCode[room.roomId];
         delete rooms[code];
         console.log(`Room ${code} deleted as it became empty`);
@@ -92,9 +62,6 @@ const setUpRoomSockets = (io, socket) => {
         io.to(code).emit("player-left", { players: buildPlayerList(room) });
       }
     }
-
-    // Broadcast updated rooms list to all clients
-    broadcastRooms();
   };
 
   // Helper to build player info relevant to room/game
@@ -179,14 +146,17 @@ const setUpRoomSockets = (io, socket) => {
         isPublic,
         difficulty,
         isGameStarted: false,
+        isGameStarting: false,
       };
 
       // Put the creator in the room
       socket.join(code);
       playersInRooms[socket.data.id] = code;
 
-      // Emit back to the creator
-      broadcastRooms();
+      // Notify room added
+      broadcastAddRoom(io, rooms[code]);
+
+      // call back to the creator
       console.log(`Room ${code} created by ${username}`);
       callback({ roomInfo: buildRoomInfo(rooms[code]) });
     },
@@ -300,7 +270,7 @@ const setUpRoomSockets = (io, socket) => {
     }
 
     // Check if game is starting
-    if (room.gameIsStarting) {
+    if (room.isGameStarting) {
       socket.emit("room-join-error", { message: "Game is starting" });
       return;
     }
@@ -325,7 +295,7 @@ const setUpRoomSockets = (io, socket) => {
     // Emit to the rest of players inside that room
     socket.to(code).emit("player-joined", { players: buildPlayerList(room) });
     // Broadcast updated rooms list to all clients
-    broadcastRooms();
+    broadcastUpdateRoom(io, room);
     console.log(`Player ${username} joined room ${code}`);
   });
 
@@ -372,7 +342,7 @@ const setUpRoomSockets = (io, socket) => {
 
   // Listen for getting all rooms for public rooms page
   socket.on("get-rooms", () => {
-    broadcastRooms();
+    broadcastRooms(io);
   });
 
   // Validity checks

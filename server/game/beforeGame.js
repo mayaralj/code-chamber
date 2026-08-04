@@ -4,6 +4,10 @@ import { determineAllEvents } from "./roundEvents.js";
 import { sleep } from "../utils/timers.js";
 import db from "../db.js";
 import { rooms, playersInRooms, roomIdToCode } from "../index.js";
+import {
+  broadcastRemoveRoom,
+  broadcastUpdateRoom,
+} from "../broadcast/broadcastRooms.js";
 
 // Config
 const WAIT_TIME_BEFORE_GAME_START = 3500;
@@ -29,7 +33,7 @@ const isRoomStillValid = (io, socket, code) => {
   const room = rooms[code];
   if (!room) return false;
 
-  if (room.players.length < 2) {
+  if (room.players.length < 1) {
     // Notify any remaining player, then clean up
     if (room.players.length === 1) {
       io.to(code).emit("game-start-cancelled", {
@@ -37,6 +41,8 @@ const isRoomStillValid = (io, socket, code) => {
       });
       delete playersInRooms[room.players[0].userId];
     }
+    broadcastRemoveRoom(io, code);
+    delete roomIdToCode[room.roomId];
     delete rooms[code];
     console.log(`Room ${code} deleted, insufficient players before game start`);
     return false;
@@ -88,6 +94,8 @@ const beforeGame = async (io, socket, code) => {
 
   // Mark room as game started
   rooms[code].isGameStarted = true;
+  rooms[code].isGameStarting = false;
+  broadcastUpdateRoom(io, rooms[code]);
   console.log(`Game started in room ${code}`);
 };
 

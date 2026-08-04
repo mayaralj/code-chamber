@@ -81,6 +81,11 @@ export const gameOver = async (io, code, roundData, winner) => {
   // Sleep for game over timer duration
   await sleep(GAME_OVER_TIMER * 1000);
 
+  // Check if room still exists before deleting
+  if (!rooms[code]) {
+    return;
+  }
+
   // Emit that room is deleted
   io.to(code).emit("room-deleted");
 

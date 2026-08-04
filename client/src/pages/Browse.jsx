@@ -36,6 +36,40 @@ const Browse = () => {
     };
   }, []);
 
+  // Listen for room updates
+  useEffect(() => {
+    // Room added
+    const handleRoomAdded = ({ room }) => {
+      setRooms((prevRooms) => [...prevRooms, room]);
+    };
+
+    // Room deleted
+    const handleRoomDeleted = ({ code }) => {
+      setRooms((prevRooms) => prevRooms.filter((room) => room.code !== code));
+    };
+
+    // Room updated
+    const handleRoomUpdated = ({ updatedRoom }) => {
+      setRooms((prevRooms) =>
+        prevRooms.map((room) =>
+          room.code === updatedRoom.code ? updatedRoom : room,
+        ),
+      );
+    };
+
+    // Listeners
+    socket.on("room-added", handleRoomAdded);
+    socket.on("room-deleted", handleRoomDeleted);
+    socket.on("room-updated", handleRoomUpdated);
+
+    // Clean up socket listeners on unmount
+    return () => {
+      socket.off("room-added", handleRoomAdded);
+      socket.off("room-deleted", handleRoomDeleted);
+      socket.off("room-updated", handleRoomUpdated);
+    };
+  }, []);
+
   // Handle join function
   const handleJoin = (code) => {
     // Check for valid code
@@ -182,9 +216,9 @@ const Browse = () => {
 
         <section className="mt-10 grid gap-7 md:grid-cols-2 xl:grid-cols-3">
           {filteredRooms.slice(0, visibleRoomCount).map((room) => {
-            const isFull = room.players.length >= room.maxPlayers;
+            const isFull = room.playerCount >= room.maxPlayers;
             const gameStarted = room.isGameStarted;
-            const isGameStarting = room.isGameStarting;
+            const gameStarting = room.isGameStarting;
             console.log(gameStarted);
 
             return (
@@ -205,7 +239,7 @@ const Browse = () => {
 
                   <span
                     className={`px-2 py-1 text-[12px] font-bold ${
-                      gameStarted || isGameStarting
+                      gameStarted || gameStarting
                         ? "bg-[#2f2c27] text-[#8e8477]"
                         : isFull
                           ? "bg-[#30302d] text-[#8e8477]"
@@ -214,7 +248,7 @@ const Browse = () => {
                   >
                     {gameStarted
                       ? "IN PROGRESS"
-                      : isGameStarting
+                      : gameStarting
                         ? "GAME STARTING"
                         : isFull
                           ? "ROOM FULL"
@@ -237,23 +271,23 @@ const Browse = () => {
                   />
                   <RoomDetail
                     label="PLAYERS"
-                    value={`${room.players.length}/${room.maxPlayers}`}
+                    value={`${room.playerCount}/${room.maxPlayers}`}
                     valueClass="text-[#ffdd9d]"
                   />
                 </div>
 
                 <button
-                  disabled={isFull}
+                  disabled={isFull || gameStarted || gameStarting}
                   onClick={() => handleJoin(room.code)}
                   className={`mt-9 w-full border py-4 text-sm font-bold tracking-wider transition-colors ${
-                    isFull || gameStarted || isGameStarting
+                    isFull || gameStarted || gameStarting
                       ? "cursor-not-allowed border-[#30302d] bg-[#292929] text-[#81786b]"
                       : "cursor-pointer border-[#ffdd9d] bg-[#ffdd9d] text-[#251b0f] hover:bg-[#e7bc76]"
                   }`}
                 >
                   {gameStarted
                     ? "IN PROGRESS"
-                    : isGameStarting
+                    : gameStarting
                       ? "GAME STARTING"
                       : isFull
                         ? "FULL"
