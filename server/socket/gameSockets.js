@@ -144,9 +144,12 @@ const setUpGameSockets = (io, socket) => {
       }
 
       // Check if player is valid and not already submitted or judging
-      const player = room.players.find((p) => p.socketId === socket.id);
+      const player = room.players.find((p) => p.userId === socket.data.id);
       if (!player) {
-        socket.emit("submit-code-error", { message: "Player not found" });
+        return;
+      }
+      // Check for reconnecting player
+      if (player.isReconnecting) {
         return;
       }
       const playerRoundData = player?.gameData?.roundData?.[room.currentRound];
