@@ -10,6 +10,15 @@ import startGame from "../game/startGame.js";
 // Import rooms and playersInRooms from index.js
 import { rooms, playersInRooms, roomIdToCode } from "../index.js";
 
+// Import broadcast functions
+import {
+  broadcastRemoveRoom,
+  broadcastUpdateRoom,
+} from "../broadcast/broadcastRooms.js";
+
+// CONFIG
+const RECONNECT_TIMEOUT = 30000;
+
 const setUpGameSockets = (io, socket) => {
   // Game leave
   const gameLeave = (code) => {
@@ -42,6 +51,7 @@ const setUpGameSockets = (io, socket) => {
 
     // Check if no players remaining
     if (room.players.length === 0) {
+      broadcastRemoveRoom(io, code);
       delete roomIdToCode[room.roomId];
       delete rooms[code];
       console.log(`Room ${code} deleted as last player left`);
@@ -88,7 +98,7 @@ const setUpGameSockets = (io, socket) => {
     }
 
     // Ensure game is not starting
-    if (room.gameIsStarting) {
+    if (room.isGameStarting) {
       return;
     }
 
@@ -113,7 +123,8 @@ const setUpGameSockets = (io, socket) => {
       return;
     }
 
-    room.gameIsStarting = true;
+    room.isGameStarting = true;
+    broadcastUpdateRoom(io, room);
 
     // Emit that game is starting
     io.to(code).emit("game-starting");
@@ -243,9 +254,52 @@ const setUpGameSockets = (io, socket) => {
     gameLeave(code);
   });
 
+  // Helper to handle the reconnect window for a player
+  const handleReconnectWindow = () => {
+    // Get room
+    const code = playersInRooms[socket.data.id];
+    if (!code) {
+      return;
+    }
+    const room = rooms[code];
+    if (!room) {
+      return;
+    }
+
+    // Ignore if not game started, let roomSockets handle it
+    if (!room.isGameStarted) {
+      return;
+    }
+
+    // Find exact player in room
+    const player = room.players.find((p) => p.socketId === socket.id);
+    if (!player) {
+      return;
+    }
+
+    // Clear if previously reconnecting
+    if (player.disconnectTimeout) {
+      clearTimeout(player.disconnectTimeout);
+      player.disconnectTimeout = null;
+    }
+
+    // Mark player as reconnecting
+    player.isReconnecting = true;
+
+    // Notify all players in the room that this player is reconnecting
+    io.to(code).emit("player-reconnecting", {
+      players: buildPlayerList(room),
+    });
+
+    // Set a timeout to remove the player if they don't reconnect in time
+    player.disconnectTimeout = setTimeout(() => {
+      gameLeave(code);
+    }, RECONNECT_TIMEOUT);
+  };
+
   // Handle disconnection
   socket.on("disconnect", () => {
-    gameLeave(playersInRooms[socket.data.id]);
+    handleReconnectWindow();
   });
 };
 
