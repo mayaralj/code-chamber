@@ -68,6 +68,8 @@ const Game = () => {
   const { results, resultsReady, eliminatedPlayers, missedPlayer, winner } =
     useResults(code);
 
+  const toastIdRef = useRef(null);
+
   // Check with server if user is supposed to be here
   // useEffect(() => {
   //   socket.emit("check-room", { code });
@@ -148,10 +150,30 @@ const Game = () => {
       socket.emit("reconnect-game", { code });
     });
 
+    // On waiting-for-reconnect, show toast notification
+    socket.on("waiting-for-reconnect", () => {
+      console.log("Waiting for server to reconnect you to game");
+      toastIdRef.current = toast.error(
+        "Waiting for players to reconnect before proceeding...",
+        {
+          duration: 1000000,
+        },
+      );
+    });
+
+    // Players reconnected
+    socket.on("players-reconnected", ({ players }) => {
+      console.log("Players reconnected to game successfully");
+      setPlayerList(players);
+      toast.dismiss(toastIdRef.current);
+    });
+
     // Cleanup
     return () => {
       socket.off("reconnect-success");
       socket.off("reconnect-failure");
+      socket.off("waiting-for-reconnect");
+      socket.off("players-reconnected");
     };
   }, []);
 

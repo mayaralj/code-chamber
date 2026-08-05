@@ -13,6 +13,9 @@ export const useCodeSubmission = (code) => {
   const [isJudging, setIsJudging] = useState(false);
   const isJudgingRef = useRef(false);
 
+  // Submit error
+  const [submitError, setSubmitError] = useState(null);
+
   // Language
   const [language, setLanguage] = useState("javascript");
   const languageRef = useRef("javascript");
@@ -108,6 +111,7 @@ export const useCodeSubmission = (code) => {
 
     socket.once("submit-code-error", ({ message }) => {
       console.error("Error submitting code:", message);
+      setSubmitError(message);
     });
 
     return () => {
@@ -124,5 +128,6 @@ export const useCodeSubmission = (code) => {
     language,
     handleSubmit,
     handleLanguageChange,
+    submitError,
   };
 };
