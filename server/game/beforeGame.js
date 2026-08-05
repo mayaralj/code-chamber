@@ -30,17 +30,18 @@ const updateMatchesPlayed = async (player) => {
 
 // Helper to check if room is still valid before game officially starts (mainly checks for players that dc while waiting for game to start)
 const isRoomStillValid = (io, socket, code) => {
+  // If room doesn't exist, return false
   const room = rooms[code];
   if (!room) return false;
 
+  // If room has not enough players, cancel game start and delete room
   if (room.players.length < 1) {
-    // Notify any remaining player, then clean up
-    if (room.players.length === 1) {
-      io.to(code).emit("game-start-cancelled", {
-        message: "Not enough players to start the game",
-      });
-      delete playersInRooms[room.players[0].userId];
+    for (const player of room.players) {
+      delete playersInRooms[player.userId];
     }
+    io.to(code).emit("game-start-cancelled", {
+      message: "Not enough players to start the game",
+    });
     broadcastRemoveRoom(io, code);
     delete roomIdToCode[room.roomId];
     delete rooms[code];
