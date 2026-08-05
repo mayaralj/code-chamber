@@ -60,6 +60,7 @@ const setUpRoomSockets = (io, socket) => {
       } else {
         // Notify players in the room that someone left
         io.to(code).emit("player-left", { players: buildPlayerList(room) });
+        broadcastUpdateRoom(io, room);
       }
     }
   };
@@ -241,6 +242,8 @@ const setUpRoomSockets = (io, socket) => {
         playerInExistingRoom.disconnectTimeout = null;
         playerInExistingRoom.isReconnecting = false;
         leaveRoom(existingRoomCode);
+        // Broadcast
+        broadcastUpdateRoom(io, existingRoom);
       } else if (
         existingRoomCode === code &&
         playerInExistingRoom &&
