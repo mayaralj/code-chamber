@@ -6,6 +6,7 @@ const GameNavbar = ({
   onSubmit,
   playerList,
   roundTimeLeft,
+  isReconnecting,
 }) => {
   // Modal states
   const [showModal, setShowModal] = useState(false);
@@ -28,9 +29,15 @@ const GameNavbar = ({
       <button
         className={`${isSubmitted ? "bg-green-500 cursor-not-allowed" : isJudging ? "bg-yellow-500 hover:bg-yellow-600 cursor-not-allowed" : "bg-gray-500 hover:bg-red-800 cursor-pointer"} text-white font-semibold px-6 py-2 rounded-lg transition-colors mx-auto`}
         onClick={onSubmit}
-        disabled={isSubmitted || isJudging}
+        disabled={isSubmitted || isJudging || isReconnecting}
       >
-        {isSubmitted ? "Submitted" : isJudging ? "Judging..." : "Submit"}
+        {isReconnecting
+          ? "Reconnecting..."
+          : isSubmitted
+            ? "Submitted"
+            : isJudging
+              ? "Judging..."
+              : "Submit"}
       </button>
       {/* Timer On the very left side */}
       <div className="absolute left-8 text-2xl text-orange-100 font-semibold select-none pointer-events-none">

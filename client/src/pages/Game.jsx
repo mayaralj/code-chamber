@@ -19,6 +19,8 @@ import { useResults } from "../hooks/gameHooks/useResults";
 import { useCodeEditor } from "../hooks/gameHooks/useCodeEditor";
 import { useRoundEvents } from "../hooks/gameHooks/useRoundEvents";
 import { usePlayerList } from "../hooks/gameHooks/usePlayerList";
+// Player
+import usePlayer from "../hooks/usePlayer";
 // toast
 import toast from "react-hot-toast";
 
@@ -34,6 +36,10 @@ const Game = () => {
     beforeRoundEvents: firstBeforeEvents,
   } = location.state || {};
   const navigate = useNavigate();
+  // conncetion status
+  const { connectionStatus } = usePlayer();
+  // Local status
+  const isReconnecting = connectionStatus === "reconnecting";
 
   // Player list state
   const { playerList, setPlayerList } = usePlayerList(players);
@@ -49,7 +55,8 @@ const Game = () => {
     language,
     handleSubmit,
     handleLanguageChange,
-  } = useCodeSubmission(code, players);
+    submitError,
+  } = useCodeSubmission(code, isReconnecting);
   // Question
   const { question, starterCode } = useGameQuestion(initQuestion);
   // Editor Ready
@@ -123,6 +130,31 @@ const Game = () => {
     };
   }, []);
 
+  // Reconnection sockets
+  useEffect(() => {
+    // Handle reconnect success and failure
+    socket.once("reconnect-success", ({ players }) => {
+      console.log("Reconnected to game successfully");
+      setPlayerList(players);
+    });
+    socket.once("reconnect-failure", () => {
+      console.log("Failed to reconnect to game, redirecting to home");
+      navigate("/browse", { replace: true });
+    });
+
+    // On connection, attempt to reconnect to game
+    socket.on("connect", () => {
+      console.log("Socket reconnected, attempting to reconnect to game");
+      socket.emit("reconnect-game", { code });
+    });
+
+    // Cleanup
+    return () => {
+      socket.off("reconnect-success");
+      socket.off("reconnect-failure");
+    };
+  }, []);
+
   // Disconnection
   useEffect(() => {
     return () => {
@@ -144,6 +176,13 @@ const Game = () => {
 
   return (
     <>
+      {isReconnecting && (
+        <div className="fixed top-3 right-3 z-50 flex items-center gap-2 rounded-full bg-yellow-500/90 px-3 py-1 text-xs font-bold text-black shadow-lg">
+          <span className="h-2 w-2 animate-pulse rounded-full bg-black" />
+          RECONNECTING...
+        </div>
+      )}
+
       {/* Always render editor, just hide it */}
       <div
         className={
@@ -158,6 +197,7 @@ const Game = () => {
           onSubmit={handleSubmit}
           playerList={playerList}
           roundTimeLeft={roundTimeLeft}
+          isReconnecting={isReconnecting}
         />
         <div className="flex flex-1 overflow-hidden bg-gray-950">
           <Question question={question} />
