@@ -25,6 +25,7 @@ const Browse = () => {
   // Fetch list of public rooms
   useEffect(() => {
     socket.on("rooms-list", (rooms) => {
+      console.log(`Received rooms list: ${rooms.length} rooms`);
       setRooms(rooms);
     });
 
@@ -38,35 +39,27 @@ const Browse = () => {
 
   // Listen for room updates
   useEffect(() => {
-    // Room added
-    const handleRoomAdded = ({ room }) => {
-      setRooms((prevRooms) => [...prevRooms, room]);
-    };
-
-    // Room deleted
-    const handleRoomDeleted = ({ code }) => {
-      setRooms((prevRooms) => prevRooms.filter((room) => room.code !== code));
-    };
-
-    // Room updated
-    const handleRoomUpdated = ({ updatedRoom }) => {
-      setRooms((prevRooms) =>
-        prevRooms.map((room) =>
-          room.code === updatedRoom.code ? updatedRoom : room,
-        ),
+    // Room batch updates
+    socket.on("rooms-batch-update", ({ added, updated, removed }) => {
+      console.log(
+        `Received rooms batch update: ${added.length} added, ${updated.length} updated, ${removed.length} removed`,
       );
-    };
-
-    // Listeners
-    socket.on("room-added", handleRoomAdded);
-    socket.on("room-deleted", handleRoomDeleted);
-    socket.on("room-updated", handleRoomUpdated);
+      setRooms((prevRooms) => {
+        // Remove new rooms
+        let next = prevRooms.filter((r) => !removed.includes(r.code));
+        // Update existing rooms
+        next = next.map((r) => updated.find((u) => u.code === r.code) || r);
+        // Add new rooms
+        const newRooms = added.filter(
+          (a) => !next.some((r) => r.code === a.code),
+        );
+        return [...next, ...newRooms];
+      });
+    });
 
     // Clean up socket listeners on unmount
     return () => {
-      socket.off("room-added", handleRoomAdded);
-      socket.off("room-deleted", handleRoomDeleted);
-      socket.off("room-updated", handleRoomUpdated);
+      socket.off("rooms-batch-update");
     };
   }, []);
 

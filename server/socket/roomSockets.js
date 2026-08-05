@@ -342,7 +342,7 @@ const setUpRoomSockets = (io, socket) => {
 
   // Listen for getting all rooms for public rooms page
   socket.on("get-rooms", () => {
-    broadcastRooms(io);
+    broadcastRooms(io, socket);
   });
 
   // Validity checks

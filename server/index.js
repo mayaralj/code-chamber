@@ -5,6 +5,7 @@ import { startPool } from "./executor/containerPool.js";
 import { registerShutdownSignals } from "./shutdown.js";
 import initSocket from "./socket/socket.js";
 import db from "./db.js";
+import { startBatchTimer } from "./broadcast/broadcastRooms.js";
 
 // Port
 const PORT = process.env.PORT || 5000;
@@ -41,6 +42,9 @@ const serverStartup = async () => {
     // Create the app and server
     const app = createApp();
     const { server, io } = createServer(app);
+
+    // Start batch broadcast updates for browse page to list all rooms
+    startBatchTimer(io);
 
     // Socket initialization
     initSocket(io, { ...data });
