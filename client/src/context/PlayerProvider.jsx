@@ -24,7 +24,10 @@ const PlayerProvider = ({ children }) => {
 
     const startServerDownTimer = () => {
       // Check if already
-      if (serverDownTimerRef.current) {
+      if (
+        serverDownTimerRef.current ||
+        connectionStatus === "lost-connection"
+      ) {
         return;
       }
       serverDownTimerRef.current = setTimeout(() => {
