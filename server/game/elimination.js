@@ -7,7 +7,7 @@ export const determinePlayerEliminated = (roundData, ignorePlayer) => {
   let playerEliminated = null;
   roundData.roundResults.forEach((result) => {
     // Ignore player if specified
-    if (ignorePlayer && result.player.socketId === ignorePlayer.socketId) {
+    if (ignorePlayer && result.player.userId === ignorePlayer.userId) {
       return;
     }
     const score = result.score;
@@ -47,7 +47,7 @@ export const eliminatePlayer = (io, code, roundData, playerEliminated) => {
 
   // Remove player from room
   room.players = room.players.filter(
-    (p) => p.socketId !== playerEliminated.socketId,
+    (p) => p.userId !== playerEliminated.userId,
   );
   // Remove from round data
   if (!roundData.eliminatedPlayers) {
