@@ -6,7 +6,10 @@ import { playAnyTimer } from "../../utils/timers.js";
 
 export const useCountdownTimer = (initEndsAt) => {
   const [timeLeft, setTimeLeft] = useState(5);
-  const [timerFinished, setTimerFinished] = useState(false);
+  const [timerFinished, setTimerFinished] = useState(() =>
+    Boolean(initEndsAt && initEndsAt > Date.now() ? false : true),
+  );
+
   // Cleanup ref
   const cleanupRef = useState(null);
 
@@ -33,12 +36,14 @@ export const useCountdownTimer = (initEndsAt) => {
   }, []);
 
   useEffect(() => {
-    // Play initial ends at (happens only when game started)
-    if (!initEndsAt) return;
-    playAnyTimer({ endsAt: initEndsAt, functionSetter: setTimeLeft });
+    // Play initial ends if its valid
+    if (initEndsAt && initEndsAt > Date.now()) {
+      playAnyTimer({ endsAt: initEndsAt, functionSetter: setTimeLeft });
+    }
 
     // Listen for timer finished event
     socket.on("timer-finished", () => {
+      console.log("Timer finished event received from server");
       setTimerFinished(true);
       setTimeLeft(0);
       if (cleanupRef.current) {
