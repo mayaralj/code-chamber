@@ -28,6 +28,14 @@ const setUpRoomSockets = (io, socket) => {
     }
 
     // Remove player from room
+    // Check they exist first
+    const player = room.players.find((p) => p.userId === socket.data.id);
+    if (!player) {
+      console.log(
+        `Socket ${socket.id} attempted to leave room: ${code} but player was not found`,
+      );
+      return;
+    }
     room.players = room.players.filter(
       (player) => player.userId !== socket.data.id,
     );
