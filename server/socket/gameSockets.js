@@ -41,6 +41,14 @@ const setUpGameSockets = (io, socket) => {
     }
 
     // Remove player from room
+    // Ensure they exist in the room first (maybe eliminated)
+    const player = room.players.find((p) => p.userId === socket.data.id);
+    if (!player) {
+      console.log(
+        `Socket ${socket.id} attempted to leave room in game: ${code} but player was not found`,
+      );
+      return;
+    }
     room.players = room.players.filter((p) => p.userId !== socket.data.id);
 
     // Leave from socket room
