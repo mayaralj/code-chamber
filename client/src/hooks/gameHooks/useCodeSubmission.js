@@ -102,8 +102,9 @@ export const useCodeSubmission = (code) => {
       isJudgingRef.current = true;
     });
 
-    socket.on("request-current-code", () => {
-      socket.emit("current-code", {
+    socket.on("request-code", (data, callback) => {
+      console.log(`Server requested current code for room ${code}`);
+      callback({
         codeInput: codeInputRef.current,
         language: languageRef.current,
       });
@@ -117,7 +118,7 @@ export const useCodeSubmission = (code) => {
     return () => {
       socket.off("code-submitted");
       socket.off("submit-code-error");
-      socket.off("request-current-code");
+      socket.off("request-code");
     };
   }, []);
 

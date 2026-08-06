@@ -237,23 +237,23 @@ const setUpGameSockets = (io, socket) => {
   );
 
   // Code request listener
-  socket.on(`current-code`, ({ codeInput, language }) => {
-    // Get players room
-    const code = playersInRooms[socket.data.id];
-    if (!code) {
-      return;
-    }
-    const room = rooms[code];
-    if (!room) {
-      return;
-    }
-    // Get pending code requests map
-    const pendingCodeRequests = room.pendingCodeRequests;
-    // Find the resolver for this socket
-    const resolver = pendingCodeRequests.get(socket.id);
-    if (!resolver) {
-      return;
-    }
+  // socket.on(`current-code`, ({ codeInput, language }) => {
+  //   // Get players room
+  //   const code = playersInRooms[socket.data.id];
+  //   if (!code) {
+  //     return;
+  //   }
+  //   const room = rooms[code];
+  //   if (!room) {
+  //     return;
+  //   }
+  //   // Get pending code requests map
+  //   const pendingCodeRequests = room.pendingCodeRequests;
+  //   // Find the resolver for this socket
+  //   const resolver = pendingCodeRequests.get(socket.id);
+  //   if (!resolver) {
+  //     return;
+  //   }
 
     // Resolve the promise with the code input and language
     resolver({ codeInput, language });

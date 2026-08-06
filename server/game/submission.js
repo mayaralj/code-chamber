@@ -89,10 +89,7 @@ export const processSubmission = async (
 
   // Get round data
   const roundData = room.roundData[room.currentRound];
-  // Check if submissions are allowed
-  if (!roundData.submissionsAllowed) {
-    return;
-  }
+
   // Init round results
   if (!roundData.roundResults) {
     roundData.roundResults = [];
@@ -148,29 +145,52 @@ export const processSubmission = async (
   return result;
 };
 
-export const forceSubmitPlayer = (
+// Helper to get player code
+export const getPlayerCode = (
   player,
   io,
   pendingCodeRequests,
-  timeoutMs,
+  starterCode,
+  timeout,
 ) => {
   return new Promise((resolve) => {
-    let resolved = false;
+    // Time out after timeout (ms)
+    const timeoutHandle = setTimeout(() => {
+      pendingCodeRequests.delete(player.userId);
+      resolve({
+        player,
+        codeInput: starterCode["javascript"],
+        language: "javascript",
+      });
+    }, timeout);
 
-    const finish = (data = {}) => {
-      if (resolved) return;
-      resolved = true;
-      clearTimeout(timeout);
-      console.log(`codeInput: ${data.codeInput}, language: ${data.language}`);
-      resolve({ player, codeInput: data.codeInput, language: data.language });
-    };
+    // Store the resolve function and timeout handle in the pendingCodeRequests map
+    pendingCodeRequests.set(player.userId, { resolve, timeoutHandle });
 
-    const timeout = setTimeout(() => {
-      console.log("Timed Out");
-      finish();
-    }, timeoutMs);
+    // Get target socket, io.to(socketid) wasnt working so get the socket directly from io.sockets.sockets
+    const targetSocket = io.sockets.sockets.get(player.socketId);
 
-    pendingCodeRequests.set(player.socketId, finish);
-    io.to(player.socketId).emit("request-current-code");
+    // Check socket exists
+    if (!targetSocket) {
+      clearTimeout(timeoutHandle);
+      pendingCodeRequests.delete(player.userId);
+      resolve({
+        player,
+        codeInput: starterCode["javascript"],
+        language: "javascript",
+      });
+      return;
+    }
+
+    // Request current code
+    targetSocket.emit("request-code", {}, (response) => {
+      clearTimeout(timeoutHandle);
+      pendingCodeRequests.delete(player.userId);
+      resolve({
+        player,
+        codeInput: response.codeInput,
+        language: response.language,
+      });
+    });
   });
 };
