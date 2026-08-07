@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { socket } from "../../socket";
 
 // Import timer utils
@@ -9,21 +9,31 @@ export const useCountdownTimer = (initEndsAt) => {
   const [timerFinished, setTimerFinished] = useState(() =>
     Boolean(initEndsAt && initEndsAt > Date.now() ? false : true),
   );
+  const [timerEndsAt, setTimerEndsAt] = useState(initEndsAt);
 
   // Cleanup ref
-  const cleanupRef = useState(null);
+  const cleanupRef = useRef(null);
+
+  // On time endsAt change, start the timer
+  useEffect(() => {
+    if (timerEndsAt && timerEndsAt > Date.now()) {
+      // Cleanup prev
+      if (cleanupRef.current) {
+        cleanupRef.current();
+      }
+      // Start new timer
+      cleanupRef.current = playAnyTimer({
+        endsAt: timerEndsAt,
+        functionSetter: setTimeLeft,
+      });
+    }
+  }, [timerEndsAt]);
 
   // Handle new round start by resetting states
   useEffect(() => {
     const handleNewRound = ({ newEndsAt }) => {
       setTimerFinished(false);
-      if (cleanupRef.current) {
-        cleanupRef.current();
-      }
-      cleanupRef.current = playAnyTimer({
-        endsAt: newEndsAt,
-        functionSetter: setTimeLeft,
-      });
+      setTimerEndsAt(newEndsAt);
     };
 
     // Listen for new round event
@@ -36,11 +46,6 @@ export const useCountdownTimer = (initEndsAt) => {
   }, []);
 
   useEffect(() => {
-    // Play initial ends if its valid
-    if (initEndsAt && initEndsAt > Date.now()) {
-      playAnyTimer({ endsAt: initEndsAt, functionSetter: setTimeLeft });
-    }
-
     // Listen for timer finished event
     socket.on("timer-finished", () => {
       console.log("Timer finished event received from server");
@@ -55,8 +60,11 @@ export const useCountdownTimer = (initEndsAt) => {
     // Cleanup on unmount
     return () => {
       socket.off("timer-finished");
+      if (cleanupRef.current) {
+        cleanupRef.current();
+      }
     };
   }, []);
 
-  return { timeLeft, timerFinished };
+  return { timeLeft, timerFinished, setTimerFinished, setTimerEndsAt };
 };
