@@ -24,5 +24,5 @@ export const useGameQuestion = (initQuestion) => {
     };
   }, []);
 
-  return { question, starterCode };
+  return { question, setQuestion, starterCode, setStarterCode };
 };

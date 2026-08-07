@@ -24,5 +24,5 @@ export const useRoundEvents = (firstBeforeEvents) => {
   }, []);
 
   // Return
-  return { beforeRoundEvents, afterRoundEvents };
+  return { beforeRoundEvents, setBeforeRoundEvents, afterRoundEvents };
 };

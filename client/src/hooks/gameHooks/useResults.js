@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { socket } from "../../socket";
 import { playAnyTimer } from "../../utils/timers.js";
 
@@ -7,7 +7,7 @@ export const useResults = () => {
   const [resultsTimer, setResultsTimer] = useState(null);
   const [resultsReady, setResultsReady] = useState(false);
   // Cleanup ref
-  const cleanupRef = useState(null);
+  const cleanupRef = useRef(null);
 
   // Player Eliminated
   const [eliminatedPlayers, setEliminatedPlayers] = useState([]);
@@ -45,6 +45,7 @@ export const useResults = () => {
       eliminatedPlayers,
       missedPlayer,
     }) => {
+      console.log("Results received from server:");
       setResults(results);
       setResultsReady(true);
       setMissedPlayer(missedPlayer);
@@ -63,6 +64,7 @@ export const useResults = () => {
 
     // Listen for results timer finished event
     socket.on("results-timer-finished", () => {
+      console.log("Results timer finished event received from server");
       setResultsReady(false);
       if (cleanupRef.current) {
         cleanupRef.current();
@@ -74,6 +76,11 @@ export const useResults = () => {
     socket.on(
       "game-over",
       ({ results, gameOverEndsAt, eliminatedPlayers, winner }) => {
+        console.log("Game over received from server:", {
+          gameOverEndsAt,
+          eliminatedPlayers,
+          winner,
+        });
         setResults(results);
         setResultsReady(true);
         setEliminatedPlayers(eliminatedPlayers);
@@ -100,5 +107,16 @@ export const useResults = () => {
     };
   }, []);
 
-  return { results, resultsReady, eliminatedPlayers, missedPlayer, winner };
+  return {
+    results,
+    setResults,
+    resultsReady,
+    setResultsReady,
+    eliminatedPlayers,
+    setEliminatedPlayers,
+    setMissedPlayer,
+    missedPlayer,
+    winner,
+    setWinner,
+  };
 };

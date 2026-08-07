@@ -5,22 +5,29 @@ import { socket } from "../../socket";
 import { playAnyTimer } from "../../utils/timers.js";
 
 // Round Timer
-export const useRoundTimer = (roundEndsAt, timeMultiplier) => {
+export const useRoundTimer = (initRoundEndsAt, initTimeMultiplier) => {
   const [roundTimeLeft, setRoundTimeLeft] = useState(0);
   const [roundTimerFinished, setRoundTimerFinished] = useState(false);
+  const [timeMultiplier, setTimeMultiplier] = useState(initTimeMultiplier);
+  const [roundEndsAt, setRoundEndsAt] = useState(initRoundEndsAt);
   const [currentRound, setCurrentRound] = useState(1); // Set 1 initially, will be updated on new round event
   const roundTimerCleanupRef = useRef(null);
 
   // If initial roundEndsAt and multiplier are provided, start the timer
   useEffect(() => {
     if (roundEndsAt && timeMultiplier) {
+      // Cleanup prev
+      if (roundTimerCleanupRef.current) {
+        roundTimerCleanupRef.current();
+      }
+      // Start new timer
       roundTimerCleanupRef.current = playAnyTimer({
         endsAt: roundEndsAt,
         functionSetter: setRoundTimeLeft,
         timeMultiplier,
       });
     }
-  }, []);
+  }, [roundEndsAt, timeMultiplier]);
 
   // Handle new round start by resetting states
   useEffect(() => {
@@ -45,17 +52,15 @@ export const useRoundTimer = (roundEndsAt, timeMultiplier) => {
       console.log(`Received round-tick with endsAt: ${roundEndsAt}`);
       // Game timer tick
       setRoundTimerFinished(false);
-      roundTimerCleanupRef.current = playAnyTimer({
-        endsAt: roundEndsAt,
-        functionSetter: setRoundTimeLeft,
-        timeMultiplier,
-      });
+      setRoundEndsAt(roundEndsAt);
+      setTimeMultiplier(timeMultiplier);
     });
 
     // Game timer finished
     socket.on("round-timer-finished", () => {
       setRoundTimerFinished(true);
       setRoundTimeLeft(0);
+      // Cleanup timer
       if (roundTimerCleanupRef.current) {
         roundTimerCleanupRef.current();
         roundTimerCleanupRef.current = null;
@@ -69,5 +74,11 @@ export const useRoundTimer = (roundEndsAt, timeMultiplier) => {
     };
   }, []);
 
-  return { roundTimeLeft, currentRound };
+  return {
+    roundTimeLeft,
+    currentRound,
+    setCurrentRound,
+    setRoundEndsAt,
+    setTimeMultiplier,
+  };
 };
