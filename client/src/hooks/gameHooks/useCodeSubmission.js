@@ -20,6 +20,15 @@ export const useCodeSubmission = (code) => {
   const [language, setLanguage] = useState("javascript");
   const languageRef = useRef("javascript");
 
+  // On judging/submitted update the refs (used incase it was called from outside the hook)
+  useEffect(() => {
+    isSubmittedRef.current = isSubmitted;
+  }, [isSubmitted]);
+
+  useEffect(() => {
+    isJudgingRef.current = isJudging;
+  }, [isJudging]);
+
   // Handle code change updates to ref
   const handleCodeChange = useCallback((value) => {
     const nextCode = value ?? "";
@@ -125,7 +134,9 @@ export const useCodeSubmission = (code) => {
   return {
     handleCodeChange,
     isSubmitted,
+    setIsSubmitted,
     isJudging,
+    setIsJudging,
     language,
     handleSubmit,
     handleLanguageChange,
