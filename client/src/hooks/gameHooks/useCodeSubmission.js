@@ -122,6 +122,11 @@ export const useCodeSubmission = (code) => {
     socket.once("submit-code-error", ({ message }) => {
       console.error("Error submitting code:", message);
       setSubmitError(message);
+      // Reset is submitted and is judging to false
+      setIsSubmitted(false);
+      isSubmittedRef.current = false;
+      setIsJudging(false);
+      isJudgingRef.current = false;
     });
 
     return () => {
