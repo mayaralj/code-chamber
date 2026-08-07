@@ -149,6 +149,22 @@ const RoomWait = () => {
       setRoomInfo(roomInfo);
     });
 
+    // if game started while dc it will listen here
+    socket.on("reconnect-game-success", (reconnectData) => {
+      console.log("Reconnected to game successfully");
+      navigate(`/game/${code}`, {
+        replace: true,
+        state: {
+          players: reconnectData.players,
+          endsAt: reconnectData.endsAt,
+          question: reconnectData.question,
+          beforeRoundEvents: reconnectData.beforeRoundEvents,
+          roundEndsAt: reconnectData.roundEndsAt,
+          timeMultiplier: reconnectData.timeMultiplier,
+        },
+      });
+    });
+
     // Cleanup listeners on unmount
     return () => {
       socket.off("player-reconnecting");

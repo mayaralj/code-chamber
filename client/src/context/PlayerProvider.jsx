@@ -4,7 +4,7 @@ import PlayerContext from "./PlayerContext";
 import toast from "react-hot-toast";
 
 // COnfig
-const SERVER_SHUTDOWN_TIMEOUT = 10000;
+const SERVER_SHUTDOWN_TIMEOUT = 100000;
 
 // Player provider
 const PlayerProvider = ({ children }) => {

@@ -34,6 +34,8 @@ const Game = () => {
     endsAt: initEndsAt,
     question: initQuestion,
     beforeRoundEvents: firstBeforeEvents,
+    roundEndsAt,
+    timeMultiplier,
   } = location.state || {};
   const navigate = useNavigate();
   // conncetion status
@@ -44,29 +46,49 @@ const Game = () => {
   // Player list state
   const { playerList, setPlayerList } = usePlayerList(players);
   // Countdown Timer
-  const { timeLeft, timerFinished } = useCountdownTimer(initEndsAt);
+  const { timeLeft, timerFinished, setTimerFinished, setTimerEndsAt } =
+    useCountdownTimer(initEndsAt);
   // Round Timer
-  const { roundTimeLeft, currentRound } = useRoundTimer();
+  const {
+    roundTimeLeft,
+    currentRound,
+    setCurrentRound,
+    setRoundEndsAt,
+    setTimeMultiplier,
+  } = useRoundTimer(roundEndsAt, timeMultiplier);
   // Code Submission
   const {
     handleCodeChange,
     isSubmitted,
+    setIsSubmitted,
     isJudging,
+    setIsJudging,
     language,
     handleSubmit,
     handleLanguageChange,
     submitError,
   } = useCodeSubmission(code, isReconnecting);
   // Question
-  const { question, starterCode } = useGameQuestion(initQuestion);
+  const { question, setQuestion, starterCode, setStarterCode } =
+    useGameQuestion(initQuestion);
   // Editor Ready
   const { editorReady, setEditorReady } = useCodeEditor();
   // Round events
-  const { beforeRoundEvents, afterRoundEvents } =
+  const { beforeRoundEvents, setBeforeRoundEvents, afterRoundEvents } =
     useRoundEvents(firstBeforeEvents);
   // Results
-  const { results, resultsReady, eliminatedPlayers, missedPlayer, winner } =
-    useResults(code);
+  const {
+    results,
+    setResults,
+    resultsReady,
+    setResultsReady,
+    eliminatedPlayers,
+    setEliminatedPlayers,
+    setMissedPlayer,
+    missedPlayer,
+    winner,
+    setWinner,
+  } = useResults(code);
 
   const toastIdRef = useRef(null);
 
@@ -135,9 +157,44 @@ const Game = () => {
   // Reconnection sockets
   useEffect(() => {
     // Handle reconnect success and failure
-    socket.once("reconnect-success", ({ players }) => {
+    socket.once("reconnect-game-success", (reconnectData) => {
       console.log("Reconnected to game successfully");
-      setPlayerList(players);
+      // Update the base regardless of phase
+      const { phase } = reconnectData;
+      setPlayerList(reconnectData.players);
+      setCurrentRound(reconnectData.curRound);
+      setBeforeRoundEvents(reconnectData.beforeRoundEvents);
+      setQuestion(reconnectData.question);
+      setStarterCode(reconnectData.question.starterCode);
+
+      // Update player states
+      setIsSubmitted(reconnectData.submitted);
+      setIsJudging(reconnectData.judging);
+
+      // Handle phase specific updates
+      switch (phase) {
+        case "countdown":
+        case "game-started":
+        case "new-round":
+          // Update ends at
+          setTimerEndsAt(reconnectData.endsAt);
+          break;
+        case "round-tick":
+          // Disable countdown timer and update round timer
+          setTimerFinished(true);
+          setTimerEndsAt(null);
+          // Update round timer
+          setRoundEndsAt(reconnectData.roundEndsAt);
+          setTimeMultiplier(reconnectData.timeMultiplier);
+          break;
+        case "results":
+          setResults(reconnectData.results);
+          setResultsReady(true);
+          setEliminatedPlayers(reconnectData.eliminatedPlayers);
+          setMissedPlayer(reconnectData.missedPlayer);
+          setWinner(reconnectData.winner);
+          break;
+      }
     });
     socket.once("reconnect-failure", () => {
       console.log("Failed to reconnect to game, redirecting to home");

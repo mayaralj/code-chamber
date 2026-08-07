@@ -6,6 +6,7 @@ import {
   broadcastRemoveRoom,
   broadcastUpdateRoom,
 } from "../broadcast/broadcastRooms.js";
+import reconnectGame from "../game/reconnectGame.js";
 
 //CONFIG
 const RECONNECT_TIMEOUT = 30000;
@@ -330,6 +331,12 @@ const setUpRoomSockets = (io, socket) => {
     );
     if (!existingPlayer || !existingPlayer.isReconnecting) {
       socket.emit("room-rejoin-error");
+      return;
+    }
+
+    // Check if game has started, if so, call reconnectGame to handle the reconnection
+    if (room.isGameStarted) {
+      reconnectGame(io, socket, code);
       return;
     }
 

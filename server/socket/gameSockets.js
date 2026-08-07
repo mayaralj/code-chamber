@@ -16,8 +16,11 @@ import {
   broadcastUpdateRoom,
 } from "../broadcast/broadcastRooms.js";
 
+// Import reconnectGame function
+import reconnectGame from "../game/reconnectGame.js";
+
 // CONFIG
-const RECONNECT_TIMEOUT = 30000;
+const RECONNECT_TIMEOUT = 300000;
 
 const setUpGameSockets = (io, socket) => {
   // Game leave
@@ -176,6 +179,11 @@ const setUpGameSockets = (io, socket) => {
         return;
       }
 
+      // Check if submissions are allowed
+      if (!roundData.submissionsAllowed) {
+        return;
+      }
+
       // Validate time submitted
       if (typeof timeSubmitted !== "number" || isNaN(timeSubmitted)) {
         socket.emit("submit-code-error", { message: "Invalid time submitted" });
@@ -236,33 +244,19 @@ const setUpGameSockets = (io, socket) => {
     },
   );
 
-  // Code request listener
-  // socket.on(`current-code`, ({ codeInput, language }) => {
-  //   // Get players room
-  //   const code = playersInRooms[socket.data.id];
-  //   if (!code) {
-  //     return;
-  //   }
-  //   const room = rooms[code];
-  //   if (!room) {
-  //     return;
-  //   }
-  //   // Get pending code requests map
-  //   const pendingCodeRequests = room.pendingCodeRequests;
-  //   // Find the resolver for this socket
-  //   const resolver = pendingCodeRequests.get(socket.id);
-  //   if (!resolver) {
-  //     return;
-  //   }
-
-    // Resolve the promise with the code input and language
-    resolver({ codeInput, language });
-    pendingCodeRequests.delete(socket.id);
-  });
-
   // on game leave room
   socket.on("game-leave-room", ({ code }) => {
     gameLeave(code);
+  });
+
+  // Listen for reconnect game
+  socket.on("reconnect-game", ({ code }) => {
+    // Check if room is valid
+    const room = rooms[code];
+    if (!room) {
+      return;
+    }
+    reconnectGame(io, socket, code);
   });
 
   // Helper to handle the reconnect window for a player

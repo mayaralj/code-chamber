@@ -3,7 +3,7 @@ import { sleep, cancellableSleep } from "../utils/timers.js";
 import { buildPlayerList } from "../utils/playerList.js";
 import {
   processSubmission,
-  forceSubmitPlayer,
+  getPlayerCode,
   calculateScore,
 } from "./submission.js";
 import { determinePlayerEliminated, eliminatePlayer } from "./elimination.js";
@@ -14,9 +14,84 @@ import { rooms, playersInRooms } from "../index.js";
 // Config
 // Timers (s)
 const COUNTDOWN_TIMER = 5;
-const ROUND_TIMER = 15;
+const ROUND_TIMER = 30;
 // Timeouts (ms)
-const FORCE_SUBMIT_TIMEOUT = 5000;
+const FORCE_SUBMIT_TIMEOUT = 50000;
+
+// Helper to wait for reconnecting players to reconnect or timeout
+const waitForReconnectingPlayers = async (io, code) => {
+  // Get room and round data
+  const room = rooms[code];
+  if (!room) {
+    console.error(
+      `Room ${code} not found for waiting for reconnecting players`,
+    );
+    return;
+  }
+  const roundData = room.roundData[room.currentRound];
+
+  // If any players are reconnecting, sleep until they reconnect or timeout
+  const reconnectingPlayersCount = rooms[code].players.filter(
+    (p) => p.isReconnecting,
+  ).length;
+  if (reconnectingPlayersCount > 0) {
+    console.log(
+      `Room ${code} has ${reconnectingPlayersCount} reconnecting players, waiting for them to reconnect...`,
+    );
+    io.to(code).emit("waiting-for-reconnect");
+    // Store a cancellable sleep
+    const { promise: reconnectSleepPromise, cancel: cancelReconnectSleep } =
+      cancellableSleep(1000 * 60 * 5);
+    roundData.reconnectSleepCancel = cancelReconnectSleep;
+    await reconnectSleepPromise;
+    roundData.reconnectSleepCancel = null;
+    console.log(
+      `Room ${code} finished waiting for reconnecting players, continuing to process round`,
+    );
+    io.to(code).emit("players-reconnected", {
+      players: buildPlayerList(rooms[code]),
+    });
+  }
+};
+
+// Build reconnecting data for the game so its easy to send to players that reconnet
+const buildReconnectData = (room, phase) => {
+  // Gather base data
+  const roundData = room.roundData[room.currentRound];
+  const base = {
+    phase,
+    code: room.code,
+    curRound: room.currentRound,
+    players: buildPlayerList(room),
+    question: roundData.question,
+    beforeRoundEvents: roundData.roundEvents?.beforeRound,
+  };
+
+  if (
+    phase === "countdown" ||
+    phase === "game-started" ||
+    phase === "new-round"
+  ) {
+    room.reconnectData = {
+      ...base,
+      endsAt: roundData.endsAt,
+    };
+  } else if (phase === "round-tick") {
+    room.reconnectData = {
+      ...base,
+      roundEndsAt: roundData.roundEndsAt,
+      timeMultiplier: roundData.roundEvents?.beforeRound?.fasterTimer || 1,
+    };
+  } else if (phase === "results") {
+    room.reconnectData = {
+      ...base,
+      roundResults: roundData.roundResults,
+      eliminatedPlayers: roundData.eliminatedPlayers,
+      missedPlayer: roundData.missedPlayer,
+      winner: roundData.winner,
+    };
+  }
+};
 
 // Before Round
 const beforeRound = (room) => {
@@ -57,6 +132,8 @@ const startRound = async (io, socket, code) => {
   // If this is the first round, emit game-started, else emit timer-tick and send-question
   if (curRound === 1) {
     console.log(`Current round is 1, emitting game-started for room ${code}`);
+    // Build reconnect data
+    buildReconnectData(rooms[code], "game-started");
     io.to(code).emit("game-started", {
       code,
       serverPlayers: buildPlayerList(rooms[code]),
@@ -66,6 +143,8 @@ const startRound = async (io, socket, code) => {
     });
   } else {
     // Emit to each client that new round is starting and send updated player list
+    // Build reconnect data
+    buildReconnectData(rooms[code], "new-round");
     io.to(code).emit("new-round", {
       currentRound: curRound,
       newEndsAt: roundData.endsAt,
@@ -91,6 +170,7 @@ const startRound = async (io, socket, code) => {
   roundData.roundEndsAt = Date.now() + 1000 * ROUND_TIMER;
 
   // Start game timer
+  buildReconnectData(rooms[code], "round-tick");
   io.to(code).emit("round-tick", {
     roundEndsAt: roundData.roundEndsAt,
     timeMultiplier,
@@ -104,7 +184,7 @@ const startRound = async (io, socket, code) => {
 
   // Wait for round timer to finish or be cancelled
   // Only start round timer if enough players are still in the room
-  if (rooms[code].players.length > 1) {
+  if (rooms[code].players.length > 0) {
     // Create a new promise and cancel function for the round timer
     const { promise: roundTimerPromise, cancel: cancelRoundTimer } =
       cancellableSleep((ROUND_TIMER / timeMultiplier) * 1000);
@@ -114,16 +194,22 @@ const startRound = async (io, socket, code) => {
     await roundTimerPromise;
     // Clear the cancel function from the room
     roundData.cancelRoundTimer = null;
-    console.log(
-      `Round timer finished for room ${code}, processing submissions`,
-    );
   }
   if (!checkRoom(code)) {
     return;
   }
 
+  // Build reconnect data
+  buildReconnectData(rooms[code], "round-timer-finished");
+
   // Emit that game timer is finished
   io.to(code).emit("round-timer-finished");
+
+  // Disable manual submissions now, let the server handle force submissions
+  roundData.submissionsAllowed = false;
+
+  // If any players are reconnecting, wait for them to reconnect or timeout
+  await waitForReconnectingPlayers(io, code);
 
   // List all unsubmitted players (not submitted and not judging)
   const unsubmittedPlayers = rooms[code].players.filter((p) => {
@@ -132,15 +218,16 @@ const startRound = async (io, socket, code) => {
   });
 
   // Force submit all players
-  const forceSubmitAll = await Promise.all(
+  const getPlayerCodeAll = await Promise.all(
     unsubmittedPlayers.map((player) => {
       console.log(
         `Requesting force submit for player ${player.username} in room ${code}`,
       );
-      return forceSubmitPlayer(
+      return getPlayerCode(
         player,
         io,
         rooms[code].pendingCodeRequests,
+        roundData.question.starterCode,
         FORCE_SUBMIT_TIMEOUT,
       );
     }),
@@ -151,9 +238,12 @@ const startRound = async (io, socket, code) => {
     return;
   }
 
+  // If any players are reconnecting, wait for them to reconnect or timeout
+  await waitForReconnectingPlayers(io, code);
+
   // Process all force submissions
   await Promise.all(
-    forceSubmitAll.map(({ player, codeInput, language }) => {
+    getPlayerCodeAll.map(({ player, codeInput, language }) => {
       console.log(`Force submitting player ${player.username} in room ${code}`);
       return processSubmission(
         io,
@@ -171,6 +261,9 @@ const startRound = async (io, socket, code) => {
     return;
   }
 
+  // If any players are reconnecting, wait for them to reconnect or timeout
+  await waitForReconnectingPlayers(io, code);
+
   // Check for pending submissions and wait for them to finish (not from force submission)
   if (roundData.pendingSubmissions?.size > 0) {
     console.log(`Waiting for pending submissions in room ${code}...`);
@@ -186,8 +279,8 @@ const startRound = async (io, socket, code) => {
     return;
   }
 
-  // Disable submissions now
-  roundData.submissionsAllowed = false;
+  // If any players are reconnecting, wait for them to reconnect or timeout
+  await waitForReconnectingPlayers(io, code);
 
   // Calculate scores for all players
   if (roundData.roundResults) {
@@ -248,12 +341,14 @@ const startRound = async (io, socket, code) => {
       `Game over in room ${code}, winner: ${rooms[code].players[0].username}`,
     );
     const winner = rooms[code].players[0];
+    buildReconnectData(rooms[code], "results");
     await gameOver(io, code, roundData, winner);
     // Game is over, return
     return;
   }
 
   // Send results
+  buildReconnectData(rooms[code], "results");
   await sendResults(io, code, roundData);
 
   // Check if room still exists
