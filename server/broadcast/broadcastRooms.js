@@ -65,10 +65,6 @@ const flushBroadcasts = (io) => {
   //Clear pending broadcasts
   pendingBroadcasts.clear();
 
-  console.log(
-    `Broadcasting rooms batch update: ${added.length} added, ${updated.length} updated, ${removed.length} removed`,
-  );
-
   // Emit to clients in public rooms page
   io.to("public-rooms").emit("rooms-batch-update", {
     added,
