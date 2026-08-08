@@ -72,6 +72,7 @@ export const processSubmission = async (
   language,
   submitTime,
 ) => {
+  // Get room
   const room = rooms[code];
   if (!room) {
     console.error(`Room ${code} not found`);
@@ -193,4 +194,105 @@ export const getPlayerCode = (
       });
     });
   });
+};
+
+// Helper to handle code submission (only from manual submission)
+export const handleSubmitCode = async (io, socket, submitData) => {
+  // Destructure submit data
+  const { code, codeInput, language, timeSubmitted } = submitData;
+
+  // Check if room is valid
+  const room = rooms[code];
+  if (!room) {
+    socket.emit("submit-code-error", { message: "Room not found" });
+    return;
+  }
+
+  // Check if player is valid and not already submitted or judging
+  const player = room.players.find((p) => p.userId === socket.data.id);
+  if (!player) {
+    return;
+  }
+  // Check for reconnecting player
+  if (player.isReconnecting) {
+    return;
+  }
+  const playerRoundData = player?.gameData?.roundData?.[room.currentRound];
+  if (
+    !playerRoundData ||
+    playerRoundData?.submitted ||
+    playerRoundData?.judging
+  ) {
+    return;
+  }
+
+  // Get round data
+  const roundData = room.roundData[room.currentRound];
+  if (!roundData) {
+    socket.emit("submit-code-error", { message: "No round data found" });
+    return;
+  }
+
+  // Check if submissions are allowed
+  if (!roundData.submissionsAllowed) {
+    return;
+  }
+
+  // Validate time submitted
+  if (typeof timeSubmitted !== "number" || isNaN(timeSubmitted)) {
+    socket.emit("submit-code-error", { message: "Invalid time submitted" });
+    return;
+  }
+
+  // Check if time submitted is way to off current time
+  const currentTime = Date.now();
+  if (Math.abs(timeSubmitted - currentTime) > 5000) {
+    // 5 second window
+    socket.emit("submit-code-error", {
+      message: "Time submitted is out of bounds",
+    });
+    return;
+  }
+
+  // Get the submit time
+  const roundStartTime = roundData.roundStartTime || Date.now();
+  const submitTime = (timeSubmitted - roundStartTime) / 1000;
+
+  // Init pending submissions map if not already
+  if (!roundData.pendingSubmissions) {
+    roundData.pendingSubmissions = new Map();
+  }
+
+  // Store submission promise
+  const submissionPromise = processSubmission(
+    io,
+    code,
+    player,
+    codeInput,
+    language,
+    submitTime,
+  );
+
+  // Set in the map
+  roundData.pendingSubmissions.set(player.socketId, submissionPromise);
+
+  // Wait for submission to finish
+  await submissionPromise;
+
+  // Delete from the map
+  roundData.pendingSubmissions.delete(player.socketId);
+
+  // If all players have submitted, stop game timer to send all results
+  if (
+    room.players.every(
+      (p) => p?.gameData?.roundData?.[room.currentRound]?.submitted,
+    )
+  ) {
+    if (roundData.cancelRoundTimer) {
+      console.log(
+        `All players have submitted in room ${code}, cancelling round timer`,
+      );
+      roundData.cancelRoundTimer();
+    }
+  }
 };

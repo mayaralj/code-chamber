@@ -1,5 +1,53 @@
 // Imports
-import { rooms } from "../globals.js";
+import { rooms, playersInRooms } from "../globals.js";
+import leaveGame from "../game/leaveGame.js";
+import { buildPlayerList } from "../utils/playerList.js";
+
+// Config
+const RECONNECT_TIMEOUT = 300000;
+
+// Helper to handle the reconnect timeout for a player
+export const startReconnectTimeout = (io, socket) => {
+  // Get room
+  const code = playersInRooms[socket.data.id];
+  if (!code) {
+    return;
+  }
+  const room = rooms[code];
+  if (!room) {
+    return;
+  }
+
+  // Ignore if not game started, let roomSockets handle it
+  if (!room.isGameStarted) {
+    return;
+  }
+
+  // Find exact player in room
+  const player = room.players.find((p) => p.socketId === socket.id);
+  if (!player) {
+    return;
+  }
+
+  // Clear if previously reconnecting
+  if (player.disconnectTimeout) {
+    clearTimeout(player.disconnectTimeout);
+    player.disconnectTimeout = null;
+  }
+
+  // Mark player as reconnecting
+  player.isReconnecting = true;
+
+  // Notify all players in the room that this player is reconnecting
+  io.to(code).emit("player-reconnecting", {
+    players: buildPlayerList(room),
+  });
+
+  // Set a timeout to remove the player if they don't reconnect in time
+  player.disconnectTimeout = setTimeout(() => {
+    leaveGame(io, socket, code);
+  }, RECONNECT_TIMEOUT);
+};
 
 // Helper to wait for pending code
 const waitForPendingCode = (rooms, code, existingPlayer, socket) => {

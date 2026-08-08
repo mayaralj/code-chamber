@@ -2,6 +2,7 @@
 import beforeGame from "./beforeGame.js";
 import startRound from "./round.js";
 import { rooms } from "../globals.js";
+import { broadcastUpdateRoom } from "../broadcast/broadcastRooms.js";
 
 // Start game
 const startGame = async (io, socket, code) => {
@@ -15,4 +16,57 @@ const startGame = async (io, socket, code) => {
   }
 };
 
-export default startGame;
+// Handle start game (with all the checks and states)
+const handleStartGame = async (io, socket, code) => {
+  // Check if room is valid
+  const room = rooms[code];
+  if (!room) {
+    return;
+  }
+
+  // Check if its the host
+  if (room.host.socketId !== socket.id) {
+    return;
+  }
+
+  // Check socket is connected
+  if (!socket.connected) {
+    return;
+  }
+
+  // Ensure game is not starting
+  if (room.isGameStarting) {
+    return;
+  }
+
+  // Ensure game has not already started
+  if (room.isGameStarted) {
+    return;
+  }
+
+  // Check if anyone is still reconnecting
+  if (room.players.some((player) => player.isReconnecting)) {
+    socket.emit("start-game-error", {
+      message: "Waiting for a player to reconnect",
+    });
+    return;
+  }
+
+  // Check if more than 1 player
+  if (room.players.length < 1) {
+    socket.emit("start-game-error", {
+      message: "Not enough players to start game",
+    });
+    return;
+  }
+
+  room.isGameStarting = true;
+  broadcastUpdateRoom(io, room);
+
+  // Emit that game is starting
+  io.to(code).emit("game-starting");
+
+  startGame(io, socket, code);
+};
+
+export default handleStartGame;

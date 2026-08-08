@@ -1,310 +1,34 @@
-// Import submission processor
-import { processSubmission } from "../game/submission.js";
-
-// import build player list
-import { buildPlayerList } from "../utils/playerList.js";
-
-// Import round manager
-import startGame from "../game/startGame.js";
-
-// Import rooms and playersInRooms from index.js
-import { rooms, playersInRooms, roomIdToCode } from "../globals.js";
-
-// Import broadcast functions
-import {
-  broadcastRemoveRoom,
-  broadcastUpdateRoom,
-} from "../broadcast/broadcastRooms.js";
-
-// Import reconnectGame function
+// Imports
+import handleStartGame from "../game/startGame.js";
 import reconnectGame from "../game/reconnectGame.js";
-
-// CONFIG
-const RECONNECT_TIMEOUT = 300000;
+import leaveGame from "../game/leaveGame.js";
+import { handleSubmitCode } from "../game/submission.js";
+import { startReconnectTimeout } from "../game/reconnectGame.js";
 
 const setUpGameSockets = (io, socket) => {
-  // Game leave
-  const gameLeave = (code) => {
-    // Means just a regular disconnection
-    if (!code) {
-      return;
-    }
-    // Check if room is valid
-    const room = rooms[code];
-    if (!room) {
-      console.log(
-        `Socket ${socket.id} attempted to leave room in game: ${code} but it was not found`,
-      );
-      return;
-    }
-
-    // If not game started, let roomSockets handle it
-    if (!room.isGameStarted) {
-      return;
-    }
-
-    // Remove player from room
-    // Ensure they exist in the room first (maybe eliminated)
-    const player = room.players.find((p) => p.userId === socket.data.id);
-    if (!player) {
-      console.log(
-        `Socket ${socket.id} attempted to leave room in game: ${code} but player was not found`,
-      );
-      return;
-    }
-    room.players = room.players.filter((p) => p.userId !== socket.data.id);
-
-    // Leave from socket room
-    socket.leave(code);
-
-    // Remove from fast lookup
-    delete playersInRooms[socket.data.id];
-
-    // Check if no players remaining
-    if (room.players.length === 0) {
-      broadcastRemoveRoom(io, code);
-      delete roomIdToCode[room.roomId];
-      delete rooms[code];
-      console.log(`Room ${code} deleted as last player left`);
-      return;
-    }
-
-    // Notify players in the room that someone left
-    io.to(code).emit("player-left", { players: buildPlayerList(room) });
-
-    // Check if all players have submitted after someone leaves or player is only one left
-    if (
-      room.players.every((p) => {
-        const playerRoundData = p?.gameData?.roundData?.[room.currentRound];
-        return playerRoundData?.submitted;
-      }) ||
-      room.players.length === 1
-    ) {
-      if (room.roundData[room.currentRound]?.cancelRoundTimer) {
-        // Force end round
-        room.roundData[room.currentRound].cancelRoundTimer();
-      }
-    }
-
-    console.log(
-      `User ${socket.data.username} left game room ${code}, ${room.players.length} players remaining`,
-    );
-  };
-
   socket.on("start-game", ({ code }) => {
-    // Check if room is valid
-    const room = rooms[code];
-    if (!room) {
-      return;
-    }
-
-    // Check if its the host
-    if (room.host.socketId !== socket.id) {
-      return;
-    }
-
-    // Check socket is connected
-    if (!socket.connected) {
-      return;
-    }
-
-    // Ensure game is not starting
-    if (room.isGameStarting) {
-      return;
-    }
-
-    // Ensure game has not already started
-    if (room.isGameStarted) {
-      return;
-    }
-
-    // Check if anyone is still reconnecting
-    if (room.players.some((player) => player.isReconnecting)) {
-      socket.emit("start-game-error", {
-        message: "Waiting for a player to reconnect",
-      });
-      return;
-    }
-
-    // Check if more than 1 player
-    if (room.players.length < 1) {
-      socket.emit("start-game-error", {
-        message: "Not enough players to start game",
-      });
-      return;
-    }
-
-    room.isGameStarting = true;
-    broadcastUpdateRoom(io, room);
-
-    // Emit that game is starting
-    io.to(code).emit("game-starting");
-
-    startGame(io, socket, code);
+    handleStartGame(io, socket, code);
   });
 
   // Listen for code submission
-  socket.on(
-    "submit-code",
-    async ({ code, codeInput, language, timeSubmitted }) => {
-      // Check if room is valid
-      const room = rooms[code];
-      if (!room) {
-        socket.emit("submit-code-error", { message: "Room not found" });
-        return;
-      }
-
-      // Check if player is valid and not already submitted or judging
-      const player = room.players.find((p) => p.userId === socket.data.id);
-      if (!player) {
-        return;
-      }
-      // Check for reconnecting player
-      if (player.isReconnecting) {
-        return;
-      }
-      const playerRoundData = player?.gameData?.roundData?.[room.currentRound];
-      if (
-        !playerRoundData ||
-        playerRoundData?.submitted ||
-        playerRoundData?.judging
-      ) {
-        return;
-      }
-
-      // Get round data
-      const roundData = room.roundData[room.currentRound];
-      if (!roundData) {
-        socket.emit("submit-code-error", { message: "No round data found" });
-        return;
-      }
-
-      // Check if submissions are allowed
-      if (!roundData.submissionsAllowed) {
-        return;
-      }
-
-      // Validate time submitted
-      if (typeof timeSubmitted !== "number" || isNaN(timeSubmitted)) {
-        socket.emit("submit-code-error", { message: "Invalid time submitted" });
-        return;
-      }
-
-      // Check if time submitted is way to off current time
-      const currentTime = Date.now();
-      if (Math.abs(timeSubmitted - currentTime) > 5000) {
-        // 5 second window
-        socket.emit("submit-code-error", {
-          message: "Time submitted is out of bounds",
-        });
-        return;
-      }
-
-      // Get the submit time
-      const roundStartTime = roundData.roundStartTime || Date.now();
-      const submitTime = (timeSubmitted - roundStartTime) / 1000;
-
-      // Init pending submissions map if not already
-      if (!roundData.pendingSubmissions) {
-        roundData.pendingSubmissions = new Map();
-      }
-
-      // Store submission promise
-      const submissionPromise = processSubmission(
-        io,
-        code,
-        player,
-        codeInput,
-        language,
-        submitTime,
-      );
-
-      // Set in the map
-      roundData.pendingSubmissions.set(player.socketId, submissionPromise);
-
-      // Wait for submission to finish
-      await submissionPromise;
-
-      // Delete from the map
-      roundData.pendingSubmissions.delete(player.socketId);
-
-      // If all players have submitted, stop game timer to send all results
-      if (
-        room.players.every(
-          (p) => p?.gameData?.roundData?.[room.currentRound]?.submitted,
-        )
-      ) {
-        if (roundData.cancelRoundTimer) {
-          console.log(
-            `All players have submitted in room ${code}, cancelling round timer`,
-          );
-          roundData.cancelRoundTimer();
-        }
-      }
-    },
-  );
+  socket.on("submit-code", (submitData) => {
+    console.log("submit-code event received:", submitData);
+    handleSubmitCode(io, socket, submitData);
+  });
 
   // on game leave room
   socket.on("game-leave-room", ({ code }) => {
-    gameLeave(code);
+    leaveGame(io, socket, code);
   });
 
   // Listen for reconnect game
   socket.on("reconnect-game", ({ code }) => {
-    // Check if room is valid
-    const room = rooms[code];
-    if (!room) {
-      return;
-    }
     reconnectGame(io, socket, code);
   });
 
-  // Helper to handle the reconnect window for a player
-  const handleReconnectWindow = () => {
-    // Get room
-    const code = playersInRooms[socket.data.id];
-    if (!code) {
-      return;
-    }
-    const room = rooms[code];
-    if (!room) {
-      return;
-    }
-
-    // Ignore if not game started, let roomSockets handle it
-    if (!room.isGameStarted) {
-      return;
-    }
-
-    // Find exact player in room
-    const player = room.players.find((p) => p.socketId === socket.id);
-    if (!player) {
-      return;
-    }
-
-    // Clear if previously reconnecting
-    if (player.disconnectTimeout) {
-      clearTimeout(player.disconnectTimeout);
-      player.disconnectTimeout = null;
-    }
-
-    // Mark player as reconnecting
-    player.isReconnecting = true;
-
-    // Notify all players in the room that this player is reconnecting
-    io.to(code).emit("player-reconnecting", {
-      players: buildPlayerList(room),
-    });
-
-    // Set a timeout to remove the player if they don't reconnect in time
-    player.disconnectTimeout = setTimeout(() => {
-      gameLeave(code);
-    }, RECONNECT_TIMEOUT);
-  };
-
   // Handle disconnection
   socket.on("disconnect", () => {
-    handleReconnectWindow();
+    startReconnectTimeout(io, socket);
   });
 };
 

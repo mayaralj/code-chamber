@@ -1,6 +1,9 @@
 // Imports
 import { broadcastRooms } from "../broadcast/broadcastRooms.js";
-import reconnectRoom, { startReconnectTimeout } from "../room/reconnectRoom.js";
+import {
+  handleReconnectRoom,
+  startReconnectTimeout,
+} from "../room/reconnectRoom.js";
 import leaveRoom from "../room/leaveRoom.js";
 import createRoom, { cancelRoomCreation } from "../room/createRoom.js";
 import joinRoom from "../room/joinRoom.js";
@@ -25,7 +28,7 @@ const setUpRoomSockets = (io, socket) => {
 
   // Rejoin room event
   socket.on("reconnect-room", ({ code }) => {
-    reconnectRoom(io, socket, code);
+    handleReconnectRoom(io, socket, code);
   });
 
   // Leave room event

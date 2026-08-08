@@ -4,7 +4,7 @@ import leaveRoom from "./leaveRoom.js";
 import { buildRoomInfo, buildPlayerInfo } from "./roomUtils.js";
 import { buildPlayerList } from "../utils/playerList.js";
 import { broadcastUpdateRoom } from "../broadcast/broadcastRooms.js";
-import { handleReconnectRoom } from "./reconnectRoom.js";
+import reconnectRoom from "./reconnectRoom.js";
 
 // Join room method
 const joinRoom = (io, socket, code) => {
@@ -58,7 +58,7 @@ const joinRoom = (io, socket, code) => {
       playerInExistingRoom.isReconnecting
     ) {
       // If they are trying to join the same room they are already in, just rejoin them
-      handleReconnectRoom(socket, code, playerInExistingRoom);
+      reconnectRoom(socket, code, playerInExistingRoom);
       socket.emit("room-joined", {
         roomInfo: buildRoomInfo(room),
       });

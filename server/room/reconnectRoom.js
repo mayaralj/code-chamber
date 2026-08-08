@@ -52,7 +52,7 @@ export const startReconnectTimeout = (io, socket) => {
   }, RECONNECT_TIMEOUT);
 };
 
-export const handleReconnectRoom = (socket, code, existingPlayer) => {
+const reconnectRoom = (socket, code, existingPlayer) => {
   // Check room (should always exist due to prev checks from caller)
   const room = rooms[code];
 
@@ -79,7 +79,7 @@ export const handleReconnectRoom = (socket, code, existingPlayer) => {
   return;
 };
 
-const reconnectRoom = (io, socket, code) => {
+export const handleReconnectRoom = (io, socket, code) => {
   // Get username from socket data
   const username = socket.data.username;
   if (!username) {
@@ -106,7 +106,7 @@ const reconnectRoom = (io, socket, code) => {
   }
 
   // Handle rejoin
-  handleReconnectRoom(socket, code, existingPlayer);
+  reconnectRoom(socket, code, existingPlayer);
   // Emit back to the player that rejoined
   socket.emit("room-reconnected", {
     roomInfo: buildRoomInfo(room),
