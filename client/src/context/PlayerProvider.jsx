@@ -45,6 +45,10 @@ const PlayerProvider = ({ children }) => {
       toast.dismiss(toastIdRef.current);
       setPlayer(identity);
       setConnectionStatus("connected");
+      // If guest, store guest id in localStorage
+      if (identity.isGuest && localStorage.getItem("guestId") !== identity.id) {
+        localStorage.setItem("guestId", identity.id);
+      }
     };
 
     const onConnect = () => {
