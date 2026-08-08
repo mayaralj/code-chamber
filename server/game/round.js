@@ -7,7 +7,6 @@ import {
   calculateScore,
 } from "./submission.js";
 import { determinePlayerEliminated, eliminatePlayer } from "./elimination.js";
-import checkRoom from "../room/checkRoom.js";
 import { sendResults, gameOver } from "./results.js";
 import { rooms, playersInRooms } from "../globals.js";
 
@@ -156,7 +155,7 @@ const startRound = async (io, socket, code) => {
 
   // Wait for countdown to finish before sending question
   await sleep(COUNTDOWN_TIMER * 1000);
-  if (!checkRoom(code)) {
+  if (!rooms[code]) {
     return;
   }
 
@@ -195,7 +194,7 @@ const startRound = async (io, socket, code) => {
     // Clear the cancel function from the room
     roundData.cancelRoundTimer = null;
   }
-  if (!checkRoom(code)) {
+  if (!rooms[code]) {
     return;
   }
 
@@ -234,7 +233,7 @@ const startRound = async (io, socket, code) => {
   );
 
   // Check if room still exists
-  if (!checkRoom(code)) {
+  if (!rooms[code]) {
     return;
   }
 
@@ -257,7 +256,7 @@ const startRound = async (io, socket, code) => {
   );
 
   // Check if room still exists
-  if (!checkRoom(code)) {
+  if (!rooms[code]) {
     return;
   }
 
@@ -275,7 +274,7 @@ const startRound = async (io, socket, code) => {
   );
 
   // Check room
-  if (!checkRoom(code)) {
+  if (!rooms[code]) {
     return;
   }
 
@@ -352,7 +351,7 @@ const startRound = async (io, socket, code) => {
   await sendResults(io, code, roundData);
 
   // Check if room still exists
-  if (!checkRoom(code)) {
+  if (!rooms[code]) {
     return;
   }
 };

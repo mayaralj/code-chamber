@@ -50,9 +50,9 @@ const RoomWait = () => {
 
   // Check with server if user is supposed to be in this room
   useEffect(() => {
-    socket.emit("check-room", { code });
+    socket.emit("check-player", { code });
     console.log(code, "checking room");
-    socket.once("check-room-response", ({ message, valid }) => {
+    socket.once("check-player-response", ({ message, valid }) => {
       if (!valid) {
         console.log(
           "User not valid for this room, redirecting to home",
@@ -63,7 +63,7 @@ const RoomWait = () => {
     });
 
     return () => {
-      socket.off("check-room-response");
+      socket.off("check-player-response");
     };
   }, [code, navigate]);
 
@@ -144,7 +144,7 @@ const RoomWait = () => {
       setPlayers(players);
     });
 
-    socket.on("player-rejoined", ({ roomInfo }) => {
+    socket.on("player-reconnected", ({ roomInfo }) => {
       setPlayers(roomInfo.players);
       setRoomInfo(roomInfo);
     });
@@ -168,34 +168,34 @@ const RoomWait = () => {
     // Cleanup listeners on unmount
     return () => {
       socket.off("player-reconnecting");
-      socket.off("player-rejoined");
+      socket.off("player-reconnected");
     };
   }, []);
 
   // Handle rejoins
   useEffect(() => {
-    const rejoin = () => {
-      console.log("Socket reconnected, attempting to rejoin room");
-      socket.emit("rejoin-room", { code });
+    const reconnect = () => {
+      console.log("Socket reconnected, attempting to reconnect to room");
+      socket.emit("reconnect-room", { code });
     };
-    const onRoomRejoined = ({ roomInfo }) => {
-      console.log("Room rejoined");
+    const onRoomReconnected = ({ roomInfo }) => {
+      console.log("Room reconnected");
       setPlayers(roomInfo.players);
       setRoomInfo(roomInfo);
     };
     const rejoinError = () => {
-      console.log("Room rejoin error, redirecting to browse");
+      console.log("Room reconnected error, redirecting to browse");
       navigate("/browse", { replace: true });
     };
 
-    socket.on("connect", rejoin);
-    socket.on("room-rejoined", onRoomRejoined);
-    socket.on("room-rejoin-error", rejoinError);
+    socket.on("connect", reconnect);
+    socket.on("room-reconnected", onRoomReconnected);
+    socket.on("room-reconnect-error", rejoinError);
 
     return () => {
-      socket.off("connect", rejoin);
-      socket.off("room-rejoined", onRoomRejoined);
-      socket.off("room-rejoin-error", rejoinError);
+      socket.off("connect", reconnect);
+      socket.off("room-reconnected", onRoomReconnected);
+      socket.off("room-reconnect-error", rejoinError);
     };
   }, [code, navigate]);
 

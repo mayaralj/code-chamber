@@ -22,7 +22,6 @@ const generateGuestSuffix = () => {
 export const getGuestId = (socket) => {
   // Reuse guest id from client if it exists
   const providedGuestId = socket.handshake.auth?.guestId;
-  console.log("Provided guest ID:", providedGuestId);
   const guestId = providedGuestId?.startsWith("guest-")
     ? providedGuestId
     : `guest-${randomUUID()}`;
