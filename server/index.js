@@ -13,24 +13,6 @@ const PORT = process.env.PORT || 5000;
 // Server startup function
 const serverStartup = async () => {
   try {
-    // List out all of the queries
-    const queries = {
-      //questions: "SELECT * FROM questions",
-    };
-
-    // Run all of the queries
-    const keys = Object.keys(queries);
-    const results = await Promise.all(
-      keys.map((key) => db.query(queries[key])),
-    );
-
-    // Store the results in a data object
-    const data = Object.fromEntries(
-      keys.map((key, index) => [key, results[index].rows]),
-    );
-
-    console.log("All queries executed successfully");
-
     // Start the container pool
     await startPool();
 
@@ -42,7 +24,7 @@ const serverStartup = async () => {
     startBatchTimer(io);
 
     // Socket initialization
-    initSocket(io, { ...data });
+    initSocket(io);
 
     // Start the server
     server.listen(PORT, () => {

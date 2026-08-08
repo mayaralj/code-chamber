@@ -25,7 +25,7 @@ const generateGuestSuffix = () => {
 };
 
 // Initialize socket.io with all socket event handlers
-const initSocket = (io, info) => {
+const initSocket = (io) => {
   io.use(async (socket, next) => {
     // Authenticate user session and attach user data to socket
     try {
