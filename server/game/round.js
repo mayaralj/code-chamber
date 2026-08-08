@@ -9,7 +9,7 @@ import {
 import { determinePlayerEliminated, eliminatePlayer } from "./elimination.js";
 import checkRoom from "../room/checkRoom.js";
 import { sendResults, gameOver } from "./results.js";
-import { rooms, playersInRooms } from "../index.js";
+import { rooms, playersInRooms } from "../globals.js";
 
 // Config
 // Timers (s)

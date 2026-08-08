@@ -1,7 +1,7 @@
 // Imports
 import beforeGame from "./beforeGame.js";
 import startRound from "./round.js";
-import { rooms } from "../index.js";
+import { rooms } from "../globals.js";
 
 // Start game
 const startGame = async (io, socket, code) => {

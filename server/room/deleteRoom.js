@@ -1,4 +1,4 @@
-import { roomIdToCode } from "../index.js";
+import { roomIdToCode } from "../globals.js";
 import { broadcastRemoveRoom } from "../broadcast/broadcastRooms.js";
 
 // Helper to delete room

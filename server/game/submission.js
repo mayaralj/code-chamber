@@ -1,7 +1,7 @@
 import db from "../db.js";
 import runCode from "../executor/executor.js";
 import { buildPlayerList } from "../utils/playerList.js";
-import { rooms } from "../index.js";
+import { rooms } from "../globals.js";
 
 // Helper to notify players of code judging
 export const notifyJudging = (io, socketId, room, code) => {

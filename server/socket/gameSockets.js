@@ -8,7 +8,7 @@ import { buildPlayerList } from "../utils/playerList.js";
 import startGame from "../game/startGame.js";
 
 // Import rooms and playersInRooms from index.js
-import { rooms, playersInRooms, roomIdToCode } from "../index.js";
+import { rooms, playersInRooms, roomIdToCode } from "../globals.js";
 
 // Import broadcast functions
 import {

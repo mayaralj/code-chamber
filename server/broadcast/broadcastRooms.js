@@ -1,4 +1,4 @@
-import { rooms } from "../index.js";
+import { rooms } from "../globals.js";
 
 // Batch Config
 const BATCH_INTERVAL = 500;

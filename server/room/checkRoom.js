@@ -1,4 +1,4 @@
-import { rooms } from "../index.js";
+import { rooms } from "../globals.js";
 
 // Helper to check if room exists and delete it if not
 const checkRoom = (code) => {

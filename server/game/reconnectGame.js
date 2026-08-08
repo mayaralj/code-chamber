@@ -1,5 +1,5 @@
 // Imports
-import { rooms } from "../index.js";
+import { rooms } from "../globals.js";
 
 // Helper to wait for pending code
 const waitForPendingCode = (rooms, code, existingPlayer, socket) => {

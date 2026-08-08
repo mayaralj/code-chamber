@@ -1,5 +1,5 @@
 import { buildPlayerList } from "../utils/playerList.js";
-import { rooms, playersInRooms, roomIdToCode } from "../index.js";
+import { rooms, playersInRooms, roomIdToCode } from "../globals.js";
 import {
   broadcastRooms,
   broadcastAddRoom,
