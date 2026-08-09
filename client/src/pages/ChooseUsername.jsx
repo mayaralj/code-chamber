@@ -1,15 +1,20 @@
+// Imports
 import { useState } from "react";
 import { useNavigate } from "react-router";
 import authClient from "../authClient";
 import { refreshSocketConnection } from "../socket";
 
+// ChooseUsername component
 const ChooseUsername = () => {
+  // Navigate
   const navigate = useNavigate();
 
+  // States
   const [username, setUsername] = useState("");
   const [error, setError] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
 
+  // Handle submit function
   const handleSubmit = async (e) => {
     e.preventDefault();
 
@@ -48,6 +53,7 @@ const ChooseUsername = () => {
     navigate("/profile", { replace: true });
   };
 
+  // Render
   return (
     <main className="relative flex min-h-[calc(100vh-72px)] justify-center overflow-hidden bg-[#0b0b0b] px-5 py-32 text-[#e8d9c0]">
       <div
