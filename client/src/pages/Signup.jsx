@@ -1,3 +1,4 @@
+// Imports
 import { useState } from "react";
 import { FaDiscord, FaGithub, FaGoogle } from "react-icons/fa";
 import { NavLink, useNavigate, useSearchParams } from "react-router";
@@ -5,15 +6,19 @@ import authClient from "../authClient";
 import { refreshSocketConnection } from "../socket";
 import { withTimeout } from "../utils/timeout";
 
+// Signup component
 const Signup = () => {
+  // Navigate and search params
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
 
+  // States
   const [form, setForm] = useState({
     username: "",
     password: "",
   });
-
+  const [isLoading, setIsLoading] = useState(false);
+  // Error message from query params (if any)
   const initialError = searchParams.get("error");
   const [errorMessage, setErrorMessage] = useState(
     initialError === "account_not_linked"
@@ -21,8 +26,7 @@ const Signup = () => {
       : initialError,
   );
 
-  const [isLoading, setIsLoading] = useState(false);
-
+  // Handle change function
   const handleChange = (e) => {
     setForm((currentForm) => ({
       ...currentForm,
@@ -30,6 +34,7 @@ const Signup = () => {
     }));
   };
 
+  // Handle social signup function
   const continueWithSocial = async (provider) => {
     const appUrl = window.location.origin;
 
@@ -58,6 +63,7 @@ const Signup = () => {
     }
   };
 
+  // Handle submit function (manual signup)
   const handleSubmit = async (e) => {
     e.preventDefault();
 
@@ -96,6 +102,7 @@ const Signup = () => {
     }
   };
 
+  // Render
   return (
     <main className="relative min-h-screen overflow-hidden bg-[#0b0b0b] px-5 py-12 text-[#e8d9c0]">
       <div
