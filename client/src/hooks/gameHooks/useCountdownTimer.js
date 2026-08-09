@@ -1,10 +1,10 @@
+// Imports
 import { useState, useEffect, useRef } from "react";
 import { socket } from "../../socket";
-
-// Import timer utils
 import { playAnyTimer } from "../../utils/timers.js";
 
-export const useCountdownTimer = (initEndsAt) => {
+// Custom hook to handle countdown timer
+const useCountdownTimer = (initEndsAt) => {
   const [timeLeft, setTimeLeft] = useState(5);
   const [timerFinished, setTimerFinished] = useState(() =>
     Boolean(initEndsAt && initEndsAt > Date.now() ? false : true),
@@ -68,3 +68,5 @@ export const useCountdownTimer = (initEndsAt) => {
 
   return { timeLeft, timerFinished, setTimerFinished, setTimerEndsAt };
 };
+
+export default useCountdownTimer;

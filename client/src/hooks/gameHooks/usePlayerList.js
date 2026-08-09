@@ -1,7 +1,9 @@
+// Custom hook to handle player list updates
 import { useState, useEffect } from "react";
 import { socket } from "../../socket";
 
-export const usePlayerList = (players) => {
+// Custom hook to handle player list updates
+const usePlayerList = (players) => {
   // Player list
   const [playerList, setPlayerList] = useState(players || []);
 
@@ -47,3 +49,5 @@ export const usePlayerList = (players) => {
 
   return { playerList, setPlayerList };
 };
+
+export default usePlayerList;

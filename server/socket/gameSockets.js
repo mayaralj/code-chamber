@@ -16,7 +16,8 @@ const setUpGameSockets = (io, socket) => {
   });
 
   // on game leave room
-  socket.on("game-leave-room", ({ code }) => {
+  socket.on("leave-game", ({ code }) => {
+    console.log("Player leaving game:", socket.id, "from room:", code);
     leaveGame(io, socket, code);
   });
 
@@ -27,6 +28,7 @@ const setUpGameSockets = (io, socket) => {
 
   // Handle disconnection
   socket.on("disconnect", () => {
+    console.log("Player disconnected:", socket.id);
     startReconnectTimeout(io, socket);
   });
 };

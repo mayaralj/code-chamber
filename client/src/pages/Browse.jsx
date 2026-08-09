@@ -1,9 +1,14 @@
+// Imports
 import { useNavigate } from "react-router";
 import { useState, useEffect } from "react";
 import { socket } from "../socket";
 
+// Browse component
 const Browse = () => {
+  // Navigate
   const navigate = useNavigate();
+
+  // States
   const [rooms, setRooms] = useState([]);
   const [error, setError] = useState({ code: "", message: "" });
   const [search, setSearch] = useState("");
@@ -371,6 +376,7 @@ const Browse = () => {
   );
 };
 
+// Room detail component for the browse page
 const RoomDetail = ({ label, value, valueClass = "text-[#f1eee7]" }) => (
   <div className="flex items-center justify-between border-b border-[#39342c] pb-4">
     <span className="tracking-wider text-[#a9977e]">{label}</span>

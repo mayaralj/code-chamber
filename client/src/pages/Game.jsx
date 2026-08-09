@@ -1,32 +1,30 @@
-// Import from react
-import { useEffect, useState, useRef } from "react";
+// Imports
+import { useEffect, useRef } from "react";
 import { useNavigate, useLocation, useParams } from "react-router";
-// Import socket
 import { socket } from "../socket";
-// Import from components
 import Question from "../components/GameComponents/Question";
 import CodeEditor from "../components/GameComponents/CodeEditor";
 import Timer from "../components/GameComponents/Timer";
 import Results from "../components/GameComponents/Results";
-// Navbar
 import GameNavbar from "../components/GameComponents/GameNavbar";
-// Hooks
-import { useCountdownTimer } from "../hooks/gameHooks/useCountdownTimer";
-import { useRoundTimer } from "../hooks/gameHooks/useRoundTimer";
-import { useGameQuestion } from "../hooks/gameHooks/useGameQuestion";
-import { useCodeSubmission } from "../hooks/gameHooks/useCodeSubmission";
-import { useResults } from "../hooks/gameHooks/useResults";
-import { useCodeEditor } from "../hooks/gameHooks/useCodeEditor";
-import { useRoundEvents } from "../hooks/gameHooks/useRoundEvents";
-import { usePlayerList } from "../hooks/gameHooks/usePlayerList";
-// Player
+import useCountdownTimer from "../hooks/gameHooks/useCountdownTimer";
+import useRoundTimer from "../hooks/gameHooks/useRoundTimer";
+import useGameQuestion from "../hooks/gameHooks/useGameQuestion";
+import useCodeSubmission from "../hooks/gameHooks/useCodeSubmission";
+import useResults from "../hooks/gameHooks/useResults";
+import useCodeEditor from "../hooks/gameHooks/useCodeEditor";
+import useRoundEvents from "../hooks/gameHooks/useRoundEvents";
+import usePlayerList from "../hooks/gameHooks/usePlayerList";
+import usePlayerLeave from "../hooks/gameHooks/usePlayerLeave";
+import useReconnection from "../hooks/gameHooks/useReconnection";
+import useDisconnection from "../hooks/gameHooks/useDisconnection";
 import usePlayer from "../hooks/usePlayer";
-// toast
-import toast from "react-hot-toast";
 
+// Game component
 const Game = () => {
   // Game Code
   const { code } = useParams();
+
   // Get Info passed from RoomWait
   const location = useLocation();
   const {
@@ -37,13 +35,15 @@ const Game = () => {
     roundEndsAt,
     timeMultiplier,
   } = location.state || {};
-  const navigate = useNavigate();
-  // conncetion status
-  const { connectionStatus } = usePlayer();
-  // Local status
-  const isReconnecting = connectionStatus === "reconnecting";
 
-  // Player list state
+  // Navigate
+  const navigate = useNavigate();
+
+  // Connection status
+  const { connectionStatus } = usePlayer();
+
+  // Hooks
+  // Player List
   const { playerList, setPlayerList } = usePlayerList(players);
   // Countdown Timer
   const { timeLeft, timerFinished, setTimerFinished, setTimerEndsAt } =
@@ -66,8 +66,7 @@ const Game = () => {
     language,
     handleSubmit,
     handleLanguageChange,
-    submitError,
-  } = useCodeSubmission(code, isReconnecting);
+  } = useCodeSubmission(code);
   // Question
   const { question, setQuestion, starterCode, setStarterCode } =
     useGameQuestion(initQuestion);
@@ -90,7 +89,29 @@ const Game = () => {
     setWinner,
   } = useResults(code);
 
-  const toastIdRef = useRef(null);
+  // Refs
+  const roomDeletedRef = useRef(false);
+
+  // Hooks with no state
+  usePlayerLeave(socket, code, setPlayerList, roomDeletedRef);
+  useReconnection(code, setPlayerList, {
+    setCurrentRound,
+    setBeforeRoundEvents,
+    setQuestion,
+    setStarterCode,
+    setIsSubmitted,
+    setIsJudging,
+    setTimerEndsAt,
+    setTimerFinished,
+    setRoundEndsAt,
+    setTimeMultiplier,
+    setResults,
+    setResultsReady,
+    setEliminatedPlayers,
+    setMissedPlayer,
+    setWinner,
+  });
+  useDisconnection(code, roomDeletedRef);
 
   // Check with server if user is supposed to be here
   // useEffect(() => {
@@ -103,148 +124,6 @@ const Game = () => {
   //   });
   // }, []);
 
-  // Player left
-  useEffect(() => {
-    socket.on("player-left", ({ players }) => {
-      console.log("Player left, updating players list");
-      // Update players list
-      setPlayerList(players);
-    });
-
-    // Cleanup
-    return () => {
-      socket.off("player-left");
-    };
-  }, []);
-
-  // Handle leaving game on page unload
-  useEffect(() => {
-    const handleUnload = () => {
-      console.log("Page unload, leaving game room");
-      socket.emit("game-leave-room", { code });
-    };
-
-    window.addEventListener("pagehide", handleUnload);
-    return () => window.removeEventListener("pagehide", handleUnload);
-  }, [code]);
-
-  // Kick them out on player eliminated
-  useEffect(() => {
-    socket.once("player-eliminated", () => {
-      console.log("You have been eliminated, redirecting to home");
-      navigate("/", { replace: true });
-    });
-
-    return () => {
-      socket.off("player-eliminated");
-    };
-  }, []);
-
-  // Room Deletion
-  const roomDeletedRef = useRef(false);
-  useEffect(() => {
-    socket.once("room-deleted", () => {
-      console.log("Room has been deleted, redirecting to home");
-      roomDeletedRef.current = true;
-      navigate("/", { replace: true });
-    });
-
-    return () => {
-      socket.off("room-deleted");
-    };
-  }, []);
-
-  // Reconnection sockets
-  useEffect(() => {
-    // Handle reconnect success and failure
-    socket.once("reconnect-game-success", (reconnectData) => {
-      console.log("Reconnected to game successfully");
-      // Update the base regardless of phase
-      const { phase } = reconnectData;
-      setPlayerList(reconnectData.players);
-      setCurrentRound(reconnectData.curRound);
-      setBeforeRoundEvents(reconnectData.beforeRoundEvents);
-      setQuestion(reconnectData.question);
-      setStarterCode(reconnectData.question.starterCode);
-
-      // Update player states
-      setIsSubmitted(reconnectData.submitted);
-      setIsJudging(reconnectData.judging);
-
-      // Handle phase specific updates
-      switch (phase) {
-        case "countdown":
-        case "game-started":
-        case "new-round":
-          // Update ends at
-          setTimerEndsAt(reconnectData.endsAt);
-          break;
-        case "round-tick":
-          // Disable countdown timer and update round timer
-          setTimerFinished(true);
-          setTimerEndsAt(null);
-          // Update round timer
-          setRoundEndsAt(reconnectData.roundEndsAt);
-          setTimeMultiplier(reconnectData.timeMultiplier);
-          break;
-        case "results":
-          setResults(reconnectData.results);
-          setResultsReady(true);
-          setEliminatedPlayers(reconnectData.eliminatedPlayers);
-          setMissedPlayer(reconnectData.missedPlayer);
-          setWinner(reconnectData.winner);
-          break;
-      }
-    });
-    socket.once("reconnect-failure", () => {
-      console.log("Failed to reconnect to game, redirecting to home");
-      navigate("/browse", { replace: true });
-    });
-
-    // On connection, attempt to reconnect to game
-    socket.on("connect", () => {
-      console.log("Socket reconnected, attempting to reconnect to game");
-      socket.emit("reconnect-game", { code });
-    });
-
-    // On waiting-for-reconnect, show toast notification
-    socket.on("waiting-for-reconnect", () => {
-      console.log("Waiting for server to reconnect you to game");
-      toastIdRef.current = toast.error(
-        "Waiting for players to reconnect before proceeding...",
-        {
-          duration: 1000000,
-        },
-      );
-    });
-
-    // Players reconnected
-    socket.on("players-reconnected", ({ players }) => {
-      console.log("Players reconnected to game successfully");
-      setPlayerList(players);
-      toast.dismiss(toastIdRef.current);
-    });
-
-    // Cleanup
-    return () => {
-      socket.off("reconnect-success");
-      socket.off("reconnect-failure");
-      socket.off("waiting-for-reconnect");
-      socket.off("players-reconnected");
-    };
-  }, []);
-
-  // Disconnection
-  useEffect(() => {
-    return () => {
-      if (roomDeletedRef.current) {
-        return;
-      }
-      console.log("Game component unmounting, leaving room with code:", code);
-      socket.emit("game-leave-room", { code });
-    };
-  }, [code]);
-
   // State check
   useEffect(() => {
     if (!location.state) {
@@ -253,6 +132,10 @@ const Game = () => {
   }, []);
   if (!location.state) return null;
 
+  // Vars
+  const isReconnecting = connectionStatus === "reconnecting";
+
+  // Render
   return (
     <>
       {isReconnecting && (

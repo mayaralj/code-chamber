@@ -1,10 +1,10 @@
+// Imports
 import { useState, useEffect } from "react";
 import { socket } from "../../socket";
 
 // Round Timer
-export const useRoundEvents = (firstBeforeEvents) => {
-  console.log(`useRoundEvents firstBeforeEvents: ${firstBeforeEvents}`);
-  // Initial before round events (from game started)
+const useRoundEvents = (firstBeforeEvents) => {
+  // States
   const [beforeRoundEvents, setBeforeRoundEvents] = useState(firstBeforeEvents);
   const [afterRoundEvents, setAfterRoundEvents] = useState(null);
 
@@ -26,3 +26,5 @@ export const useRoundEvents = (firstBeforeEvents) => {
   // Return
   return { beforeRoundEvents, setBeforeRoundEvents, afterRoundEvents };
 };
+
+export default useRoundEvents;

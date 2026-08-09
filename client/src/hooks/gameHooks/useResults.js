@@ -1,21 +1,20 @@
+// Custom hook to handle game results and related states
 import { useState, useEffect, useRef } from "react";
 import { socket } from "../../socket";
 import { playAnyTimer } from "../../utils/timers.js";
 
-export const useResults = () => {
+// Custom hook to handle game results and related states
+const useResults = () => {
+  // States
   const [results, setResults] = useState(null);
   const [resultsTimer, setResultsTimer] = useState(null);
   const [resultsReady, setResultsReady] = useState(false);
-  // Cleanup ref
-  const cleanupRef = useRef(null);
-
-  // Player Eliminated
   const [eliminatedPlayers, setEliminatedPlayers] = useState([]);
-  // Missed Player
   const [missedPlayer, setMissedPlayer] = useState(null);
-
-  // Winner
   const [winner, setWinner] = useState(null);
+
+  // refs
+  const cleanupRef = useRef(null);
 
   // Handle new round start by resetting states
   useEffect(() => {
@@ -120,3 +119,5 @@ export const useResults = () => {
     setWinner,
   };
 };
+
+export default useResults;

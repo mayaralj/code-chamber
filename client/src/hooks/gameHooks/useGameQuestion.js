@@ -2,7 +2,8 @@
 import { useState, useEffect } from "react";
 import { socket } from "../../socket";
 
-export const useGameQuestion = (initQuestion) => {
+// Custom hook to handle game question and starter code
+const useGameQuestion = (initQuestion) => {
   const [question, setQuestion] = useState(initQuestion || null);
   const [starterCode, setStarterCode] = useState(
     initQuestion?.starterCode || "",
@@ -26,3 +27,5 @@ export const useGameQuestion = (initQuestion) => {
 
   return { question, setQuestion, starterCode, setStarterCode };
 };
+
+export default useGameQuestion;

@@ -1,7 +1,9 @@
+// Imports
 import { useState, useEffect, useRef, useCallback } from "react";
 import { socket } from "../../socket";
 
-export const useCodeSubmission = (code) => {
+// Hook to handle code submission
+const useCodeSubmission = (code) => {
   // Code input (ref because its faster to update + no need the actual state for any ui)
   const codeInputRef = useRef("");
 
@@ -12,9 +14,6 @@ export const useCodeSubmission = (code) => {
   // Judging status
   const [isJudging, setIsJudging] = useState(false);
   const isJudgingRef = useRef(false);
-
-  // Submit error
-  const [submitError, setSubmitError] = useState(null);
 
   // Language
   const [language, setLanguage] = useState("javascript");
@@ -121,7 +120,6 @@ export const useCodeSubmission = (code) => {
 
     socket.once("submit-code-error", ({ message }) => {
       console.error("Error submitting code:", message);
-      setSubmitError(message);
       // Reset is submitted and is judging to false
       setIsSubmitted(false);
       isSubmittedRef.current = false;
@@ -145,6 +143,7 @@ export const useCodeSubmission = (code) => {
     language,
     handleSubmit,
     handleLanguageChange,
-    submitError,
   };
 };
+
+export default useCodeSubmission;

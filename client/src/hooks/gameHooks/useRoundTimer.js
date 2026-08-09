@@ -1,16 +1,18 @@
+// Imports
 import { useState, useEffect, useRef } from "react";
 import { socket } from "../../socket";
-
-// Import timer utils
 import { playAnyTimer } from "../../utils/timers.js";
 
 // Round Timer
-export const useRoundTimer = (initRoundEndsAt, initTimeMultiplier) => {
+const useRoundTimer = (initRoundEndsAt, initTimeMultiplier) => {
+  // States
   const [roundTimeLeft, setRoundTimeLeft] = useState(0);
   const [roundTimerFinished, setRoundTimerFinished] = useState(false);
   const [timeMultiplier, setTimeMultiplier] = useState(initTimeMultiplier);
   const [roundEndsAt, setRoundEndsAt] = useState(initRoundEndsAt);
-  const [currentRound, setCurrentRound] = useState(1); // Set 1 initially, will be updated on new round event
+  const [currentRound, setCurrentRound] = useState(1);
+
+  // Refs
   const roundTimerCleanupRef = useRef(null);
 
   // If initial roundEndsAt and multiplier are provided, start the timer
@@ -82,3 +84,5 @@ export const useRoundTimer = (initRoundEndsAt, initTimeMultiplier) => {
     setTimeMultiplier,
   };
 };
+
+export default useRoundTimer;
