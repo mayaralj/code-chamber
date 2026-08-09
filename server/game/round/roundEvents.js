@@ -73,6 +73,7 @@ export const determineAllEvents = (room) => {
     if (roundData?.roundEvents?.beforeRound?.doubleElimination) {
       remaining -= 2;
     } else {
+      // If no double elimination, subtract 1 from remaining players (regular elim)
       remaining -= 1;
     }
   }

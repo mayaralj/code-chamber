@@ -1,4 +1,4 @@
-import { rooms, playersInRooms } from "../globals.js";
+import { rooms, playersInRooms } from "../../globals.js";
 
 // Helper to determine player eliminated
 export const determinePlayerEliminated = (roundData, ignorePlayer) => {

@@ -2,7 +2,7 @@
 import handleStartGame from "../game/startGame.js";
 import reconnectGame from "../game/reconnectGame.js";
 import leaveGame from "../game/leaveGame.js";
-import { handleSubmitCode } from "../game/submission.js";
+import { handleSubmitCode } from "../game/round/submission.js";
 import { startReconnectTimeout } from "../game/reconnectGame.js";
 
 const setUpGameSockets = (io, socket) => {

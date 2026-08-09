@@ -1,6 +1,6 @@
 // Imports
-import { sleep, cancellableSleep } from "../utils/timers.js";
-import { buildPlayerList } from "../utils/playerList.js";
+import { sleep, cancellableSleep } from "../../utils/timers.js";
+import { buildPlayerList } from "../../utils/playerList.js";
 import {
   processSubmission,
   getPlayerCode,
@@ -8,7 +8,7 @@ import {
 } from "./submission.js";
 import { determinePlayerEliminated, eliminatePlayer } from "./elimination.js";
 import { sendResults, gameOver } from "./results.js";
-import { rooms, playersInRooms } from "../globals.js";
+import { rooms, playersInRooms } from "../../globals.js";
 
 // Config
 // Timers (s)

@@ -1,6 +1,6 @@
 // Imports
 import beforeGame from "./beforeGame.js";
-import startRound from "./round.js";
+import startRound from "./round/round.js";
 import { rooms } from "../globals.js";
 import { broadcastUpdateRoom } from "../broadcast/broadcastRooms.js";
 

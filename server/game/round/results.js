@@ -1,9 +1,9 @@
 // Imports
-import { sleep } from "../utils/timers.js";
-import { buildPlayerList } from "../utils/playerList.js";
-import deleteRoom from "../room/deleteRoom.js";
-import db from "../db.js";
-import { rooms, playersInRooms } from "../globals.js";
+import { sleep } from "../../utils/timers.js";
+import { buildPlayerList } from "../../utils/playerList.js";
+import deleteRoom from "../../room/deleteRoom.js";
+import db from "../../db.js";
+import { rooms, playersInRooms } from "../../globals.js";
 
 // CONFIG
 const RESULTS_TIMER = 10;

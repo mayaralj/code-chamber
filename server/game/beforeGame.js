@@ -1,6 +1,6 @@
 // Imports
 import { setUpGameQuestions } from "./questionHandler.js";
-import { determineAllEvents } from "./roundEvents.js";
+import { determineAllEvents } from "./round/roundEvents.js";
 import { sleep } from "../utils/timers.js";
 import db from "../db.js";
 import { rooms, playersInRooms, roomIdToCode } from "../globals.js";
