@@ -61,7 +61,11 @@ const waitForPendingCode = (rooms, code, existingPlayer, socket) => {
       clearTimeout(pending.timeoutHandle);
       rooms[code].pendingCodeRequests.delete(existingPlayer.userId);
       // Resolve with the code and language received from the server
-      pending.resolve({ userId: existingPlayer.userId, code: response.code });
+      pending.resolve({
+        userId: existingPlayer.userId,
+        code: response.code,
+        language: response.language,
+      });
       // Resolve this promise to indicate that the pending code has been handled
       resolve();
     });
