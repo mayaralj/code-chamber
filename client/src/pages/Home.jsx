@@ -1,21 +1,23 @@
+// Imports
 import { useNavigate } from "react-router";
 
+// Home component
 const Home = () => {
+  // Navigate
   const navigate = useNavigate();
 
+  // REST OF LOGIC TODO
   // Bunch of placeholder data for now
   const activeChambers = [
     { code: "#X-772_VOID", players: "4/6" },
     { code: "#K-001_CORE", players: "5/6" },
     { code: "#N-912_GRID", players: "2/6" },
   ];
-
   const rankings = [
     { rank: "01", name: "NULL_POINTER", rate: "98.4%" },
     { rank: "02", name: "STACK_OVERLORD", rate: "94.1%" },
     { rank: "03", name: "HEX_REAPER", rate: "92.8%" },
   ];
-
   const tickerText = (
     <>
       <span className="mr-8">ACTIVE BATTLES: 124</span>
