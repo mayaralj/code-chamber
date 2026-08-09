@@ -1,3 +1,4 @@
+// Imports
 import { useState } from "react";
 import { NavLink, useNavigate } from "react-router";
 import authClient from "../authClient";
@@ -5,17 +6,20 @@ import { refreshSocketConnection } from "../socket";
 import { FaGoogle, FaGithub, FaDiscord } from "react-icons/fa";
 import { withTimeout } from "../utils/timeout";
 
+// Login component
 const Login = () => {
+  // Navigate
   const navigate = useNavigate();
 
+  // States
   const [form, setForm] = useState({
     username: "",
     password: "",
   });
-
   const [errorMessage, setErrorMessage] = useState("");
   const [isLoading, setIsLoading] = useState(false);
 
+  // Handle change function
   const handleChange = (e) => {
     setForm((currentForm) => ({
       ...currentForm,
@@ -23,6 +27,7 @@ const Login = () => {
     }));
   };
 
+  // Handle social login function
   const loginWithSocial = async (provider) => {
     const appUrl = window.location.origin;
 
@@ -50,6 +55,7 @@ const Login = () => {
     }
   };
 
+  // Handle submit function (manual login)
   const handleSubmit = async (e) => {
     e.preventDefault();
     setErrorMessage("");
@@ -84,6 +90,7 @@ const Login = () => {
     navigate("/profile", { replace: true });
   };
 
+  // Render
   return (
     <main className="relative min-h-screen overflow-hidden bg-[#0b0b0b] px-5 py-12 text-[#e8d9c0]">
       <div

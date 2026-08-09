@@ -15,6 +15,7 @@ export const socket = io("http://localhost:5000", {
   },
 });
 
+// Function to refresh the socket connection
 export const refreshSocketConnection = () => {
   return new Promise((resolve, reject) => {
     const handleConnect = () => {
