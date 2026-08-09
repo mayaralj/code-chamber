@@ -12,7 +12,6 @@ const setUpGameSockets = (io, socket) => {
 
   // Listen for code submission
   socket.on("submit-code", (submitData) => {
-    console.log("submit-code event received:", submitData);
     handleSubmitCode(io, socket, submitData);
   });
 

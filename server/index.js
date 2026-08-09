@@ -4,7 +4,6 @@ import { createApp } from "./app.js";
 import { startPool } from "./executor/containerPool.js";
 import { registerShutdownSignals } from "./shutdown.js";
 import initSocket from "./socket/socket.js";
-import db from "./db.js";
 import { startBatchTimer } from "./broadcast/broadcastRooms.js";
 
 // Port

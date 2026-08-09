@@ -10,8 +10,9 @@ export const createServer = (app) => {
       origin: "http://localhost:3000",
       credentials: true,
     },
-    pingInterval: 5000, // 10 seconds
-    pingTimeout: 5000, // 5 seconds
+    // adjust ping interval and timeout to 5 seconds for faster detection of disconnects
+    pingInterval: 5000,
+    pingTimeout: 5000,
   });
   return { server, io };
 };
