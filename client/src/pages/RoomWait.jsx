@@ -1,3 +1,4 @@
+// Imports
 import { useNavigate, useLocation, useParams } from "react-router";
 import { socket } from "../socket";
 import { useState, useEffect, useRef } from "react";
@@ -5,41 +6,28 @@ import { LoaderCircle, Crown } from "lucide-react";
 import usePlayer from "../hooks/usePlayer.js";
 import toast from "react-hot-toast";
 
+// RoomWait component
 const RoomWait = () => {
-  // Code
+  // Code and navigate
   const { code } = useParams();
   const navigate = useNavigate();
 
   // Get Info passed from Join or CreateRoom
   const location = useLocation();
   const { roomInfo: origRoomInfo } = location.state || {};
+
   // Get player and connection status from context
   const { player, connectionStatus } = usePlayer();
-  // ROom info state
+
+  // States
   const [roomInfo, setRoomInfo] = useState(origRoomInfo || null);
-  // Host starting state
   const [hostStarting, setHostStarting] = useState(false);
-
-  // Game started ref
-  const gameStartedRef = useRef(false);
-
-  // Players state to track current players in this room
   const [players, setPlayers] = useState(roomInfo?.players || []);
-
-  // Game starting state
   const [gameStarting, setGameStarting] = useState(false);
-
-  // Game starting error
   const [gameStartingError, setGameStartingError] = useState("");
 
-  // Check if the current player is the host
-  console.log(
-    "Host username:",
-    roomInfo?.host,
-    "Current player username:",
-    player?.username,
-  );
-  const isHost = roomInfo?.host === player?.username;
+  // Refs
+  const gameStartedRef = useRef(false);
 
   // Check code
   useEffect(() => {
@@ -247,11 +235,16 @@ const RoomWait = () => {
     navigate("/browse", { replace: true });
   };
 
+  // Vars
   // Check if there exists a reconnecting player
   const hasReconnectingPlayer = players.some((player) => player.isReconnecting);
-  //Check local status
+
+  // Check local status
   const isConnected = connectionStatus === "connected";
   const isReconnecting = connectionStatus === "reconnecting";
+
+  // Check if the current player is the host
+  const isHost = roomInfo?.host === player?.username;
 
   return (
     <div className="relative h-dvh overflow-hidden bg-[#0b0b0b] px-4 py-20 font-mono text-[#e7c49d] [background-image:radial-gradient(#5b4e3e_0.55px,transparent_0.55px)] [background-size:20px_20px] sm:px-6">
