@@ -31,38 +31,6 @@ export const notifySubmission = (io, socketId, room, code) => {
   });
 };
 
-// Helper to calculate score based on results
-export const calculateScore = (result, averageExecutionTime) => {
-  let { passed, testCasesPassed, executionTime, submitTime } = result;
-
-  // Ratio of test cases passed
-  const testCaseRatio = testCasesPassed / result.numOfTestCases;
-
-  // Track score
-  let score = 0;
-
-  // Score is based on test cases passed, execution time, and submission time
-  score += passed ? 60 : 0;
-  score += testCaseRatio * 50;
-  // If execution time is less than average, give bonus points
-  score += (averageExecutionTime - executionTime) * 5;
-  score -= submitTime;
-
-  // Clamp score to a minimum of 0
-  score = Math.max(0, Math.round(score));
-
-  // Clamp score to a maximum of 100
-  score = Math.min(100, score);
-
-  // Ceil the score to the nearest integer
-  score = Math.ceil(score);
-
-  console.log(
-    `Calculated score for player  ${score} (passed: ${passed}, testCasesPassed: ${testCasesPassed}, executionTime: ${executionTime}, averageExecutionTime: ${averageExecutionTime}, submitTime: ${submitTime})`,
-  );
-  return score;
-};
-
 // Helper to process player submission
 export const processSubmission = async (
   io,
@@ -147,7 +115,7 @@ export const processSubmission = async (
 };
 
 // Helper to get player code
-export const getPlayerCode = (
+const getPlayerCode = (
   player,
   io,
   pendingCodeRequests,
@@ -194,6 +162,46 @@ export const getPlayerCode = (
       });
     });
   });
+};
+
+const getUnsubmittedPlayers = (room, code, curRound) => {
+  // List all unsubmitted players (not submitted and not judging)
+  const unsubmittedPlayers = rooms[code].players.filter((p) => {
+    const playerRoundData = p?.gameData?.roundData?.[curRound];
+    return !playerRoundData?.submitted && !playerRoundData?.judging;
+  });
+  return unsubmittedPlayers;
+};
+
+// Helper to get player code all
+export const getPlayerCodeAll = async (
+  io,
+  code,
+  roundData,
+  curRound,
+  FORCE_SUBMIT_TIMEOUT,
+) => {
+  // Get all unsubmitted players
+  const unsubmittedPlayers = getUnsubmittedPlayers(rooms[code], code, curRound);
+
+  // Force submit all players
+  const allPlayerCode = await Promise.all(
+    unsubmittedPlayers.map((player) => {
+      console.log(
+        `Requesting force submit for player ${player.username} in room ${code}`,
+      );
+      return getPlayerCode(
+        player,
+        io,
+        rooms[code].pendingCodeRequests,
+        roundData.question.starterCode,
+        FORCE_SUBMIT_TIMEOUT,
+      );
+    }),
+  );
+
+  // Return all player code
+  return allPlayerCode;
 };
 
 // Helper to handle code submission (only from manual submission)
@@ -295,4 +303,27 @@ export const handleSubmitCode = async (io, socket, submitData) => {
       roundData.cancelRoundTimer();
     }
   }
+};
+
+// Helper to force submit all players (used when round timer finishes)
+export const forceSubmitAll = async (
+  io,
+  code,
+  unsubmittedPlayersCode,
+  ROUND_TIMER,
+) => {
+  // Process all of the unsubmitted players code and force submit them
+  await Promise.all(
+    unsubmittedPlayersCode.map(({ player, codeInput, language }) => {
+      console.log(`Force submitting player ${player.username} in room ${code}`);
+      return processSubmission(
+        io,
+        code,
+        player,
+        codeInput,
+        language,
+        ROUND_TIMER,
+      );
+    }),
+  );
 };

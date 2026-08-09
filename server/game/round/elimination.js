@@ -67,3 +67,44 @@ export const eliminatePlayer = (io, code, roundData, playerEliminated) => {
   // Remove player from playersInRooms
   delete playersInRooms[playerEliminated.userId];
 };
+
+// Helper to process round elims
+export const processRoundElims = (io, code, roundData, roundEvents) => {
+  // Ignore if only one player left
+  if (rooms[code].players.length <= 1) {
+    return;
+  }
+
+  // Determine player eliminated (if more than 1 player left)
+  const playerEliminated = determinePlayerEliminated(roundData);
+  // If double elimination determine a second player eliminated
+  if (
+    roundEvents?.beforeRound?.doubleElimination &&
+    rooms[code].players.length > 2
+  ) {
+    const secondPlayerEliminated = determinePlayerEliminated(
+      roundData,
+      playerEliminated,
+    );
+    // Eliminate second player
+    eliminatePlayer(
+      io,
+      rooms[code],
+      code,
+      roundData,
+      secondPlayerEliminated,
+      playersInRooms,
+    );
+  }
+  // Dont eliminate first player if missed bullet
+  if (roundEvents?.afterRound?.missedBullet) {
+    // Emit to all players in room
+    io.to(code).emit("missed-player", {
+      player: playerEliminated,
+    });
+    roundData.missedPlayer = playerEliminated;
+  } else {
+    // Eliminate player if bullet did not miss
+    eliminatePlayer(io, code, roundData, playerEliminated);
+  }
+};

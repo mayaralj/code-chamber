@@ -1,0 +1,29 @@
+// Before Round
+const beforeRound = (room, COUNTDOWN_TIMER) => {
+  // Increment current round
+  const curRound = room.currentRound + 1;
+  room.currentRound = curRound;
+
+  // Round Data
+  const roundData = room.roundData[curRound];
+
+  // Loop through all players and init their new round Data for this round
+  room.players.forEach((player) => {
+    const playerGameData = player.gameData;
+    if (!playerGameData.roundData) {
+      playerGameData.roundData = {};
+    }
+    playerGameData.roundData[curRound] = {
+      submitted: false,
+      judging: false,
+      codeInput: "",
+    };
+  });
+
+  // Begin initial countdown
+  roundData.endsAt = Date.now() + 1000 * COUNTDOWN_TIMER;
+
+  return [curRound, roundData, roundData.roundEvents];
+};
+
+export default beforeRound;

@@ -9,6 +9,51 @@ import { rooms, playersInRooms } from "../../globals.js";
 const RESULTS_TIMER = 10;
 const GAME_OVER_TIMER = 5;
 
+// Helper to calculate score based on results
+export const calculateScore = (result, averageExecutionTime) => {
+  let { passed, testCasesPassed, executionTime, submitTime } = result;
+
+  // Ratio of test cases passed
+  const testCaseRatio = testCasesPassed / result.numOfTestCases;
+
+  // Track score
+  let score = 0;
+
+  // Score is based on test cases passed, execution time, and submission time
+  score += passed ? 60 : 0;
+  score += testCaseRatio * 50;
+  // If execution time is less than average, give bonus points
+  score += (averageExecutionTime - executionTime) * 5;
+  score -= submitTime;
+
+  // Clamp score to a minimum of 0
+  score = Math.max(0, Math.round(score));
+
+  // Clamp score to a maximum of 100
+  score = Math.min(100, score);
+
+  // Ceil the score to the nearest integer
+  score = Math.ceil(score);
+
+  console.log(
+    `Calculated score for player  ${score} (passed: ${passed}, testCasesPassed: ${testCasesPassed}, executionTime: ${executionTime}, averageExecutionTime: ${averageExecutionTime}, submitTime: ${submitTime})`,
+  );
+  return score;
+};
+
+// Calculate scores
+export const calculateAllScores = (io, code, roundData) => {
+  // Calculate scores for all players
+  if (roundData.roundResults) {
+    roundData.roundResults.forEach((result) => {
+      result.score = calculateScore(
+        result,
+        roundData.averageExecutionTime[result.languageUsed],
+      );
+    });
+  }
+};
+
 // Send results
 export const sendResults = async (io, code, roundData) => {
   const room = rooms[code];
