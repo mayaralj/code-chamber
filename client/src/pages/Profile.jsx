@@ -1,3 +1,4 @@
+// Imports
 import { useEffect, useState } from "react";
 import {
   FaDiscord,
@@ -11,7 +12,7 @@ import { Link, useNavigate, useSearchParams } from "react-router";
 import authClient from "../authClient";
 import { refreshSocketConnection } from "../socket";
 
-// REturn the modified error message so users can better understand it
+// Return the modified error message so users can better understand it
 const returnProperErrorMessage = (error) => {
   if (!error) return "";
 
@@ -22,10 +23,13 @@ const returnProperErrorMessage = (error) => {
   return "";
 };
 
+// Profile component
 const Profile = () => {
+  // Navigate and search params
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
 
+  // States
   const [profileInfo, setProfileInfo] = useState(null);
   const [accounts, setAccounts] = useState([]);
   const [errorMessage, setErrorMessage] = useState("");
@@ -34,9 +38,11 @@ const Profile = () => {
   const [displayNameInput, setDisplayNameInput] = useState("");
   const [isSavingDisplayName, setIsSavingDisplayName] = useState(false);
 
+  // Handle OAuth error from query params
   const oauthError = searchParams.get("error");
   const oauthErrorMessage = returnProperErrorMessage(oauthError);
 
+  // Handle refresh accounts function
   const refreshAccounts = async () => {
     const { data, error } = await authClient.listAccounts();
 
@@ -49,6 +55,7 @@ const Profile = () => {
     setAccounts(data || []);
   };
 
+  // Handle link social function
   const linkSocial = async (provider) => {
     const appUrl = window.location.origin;
     setErrorMessage("");
@@ -65,6 +72,7 @@ const Profile = () => {
     }
   };
 
+  // Handle unlink social function
   const unlinkSocial = async (providerId) => {
     setErrorMessage("");
 
@@ -79,6 +87,7 @@ const Profile = () => {
     await refreshAccounts();
   };
 
+  // Handle logout function
   const handleLogout = async () => {
     setIsLoggingOut(true);
     setErrorMessage("");
@@ -134,6 +143,7 @@ const Profile = () => {
     setIsSavingDisplayName(false);
   };
 
+  // Fetch profile info on mount
   useEffect(() => {
     let cancelled = false;
 
@@ -177,6 +187,7 @@ const Profile = () => {
     };
   }, [navigate]);
 
+  // Fetch linked accounts on mount
   useEffect(() => {
     let cancelled = false;
 
@@ -197,6 +208,7 @@ const Profile = () => {
     };
   }, []);
 
+  // If profile info is not yet loaded, show a loading state
   if (!profileInfo) {
     return (
       <main className="min-h-[calc(100vh-72px)] grid place-items-center bg-[#0b0b0b] font-mono text-[#e7c49d]">
@@ -205,21 +217,22 @@ const Profile = () => {
     );
   }
 
+  // Determine which social accounts are linked
   const googleLinked = accounts.some(
     (account) => account.providerId === "google",
   );
-
   const githubLinked = accounts.some(
     (account) => account.providerId === "github",
   );
-
   const discordLinked = accounts.some(
     (account) => account.providerId === "discord",
   );
-
   const linkedCount = accounts.length;
+
+  // Check if the user has a username
   const hasUsername = Boolean(profileInfo.username?.trim());
 
+  // Define social accounts array for rendering
   const socialAccounts = [
     {
       provider: "google",
@@ -241,6 +254,7 @@ const Profile = () => {
     },
   ];
 
+  // Determine the visible error message to display (oAuth priority)
   const visibleError = oauthErrorMessage || errorMessage;
 
   return (
