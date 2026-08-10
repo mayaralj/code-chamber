@@ -5,6 +5,7 @@ import { buildRoomInfo, buildPlayerInfo } from "./roomUtils.js";
 import { buildPlayerList } from "../utils/playerList.js";
 import { broadcastUpdateRoom } from "../broadcast/broadcastRooms.js";
 import reconnectRoom from "./reconnectRoom.js";
+import leaveGame from "../game/leaveGame.js";
 
 // Join room method
 const joinRoom = (io, socket, code) => {
@@ -49,7 +50,13 @@ const joinRoom = (io, socket, code) => {
       clearTimeout(playerInExistingRoom.disconnectTimeout);
       playerInExistingRoom.disconnectTimeout = null;
       playerInExistingRoom.isReconnecting = false;
-      leaveRoom(io, socket, existingRoomCode);
+
+      // Check if game started to determine how to leave
+      if (existingRoom.isGameStarted) {
+        leaveGame(io, socket, existingRoomCode);
+      } else {
+        leaveRoom(io, socket, existingRoomCode);
+      }
       // Broadcast
       broadcastUpdateRoom(io, existingRoom);
     } else if (
