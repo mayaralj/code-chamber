@@ -1,8 +1,12 @@
 // Imports
 import { rooms, roomIdToCode, playersInRooms } from "../globals.js";
 import { buildRoomInfo, buildPlayerInfo } from "./roomUtils.js";
-import { broadcastAddRoom } from "../broadcast/broadcastRooms.js";
+import {
+  broadcastAddRoom,
+  broadcastUpdateRoom,
+} from "../broadcast/broadcastRooms.js";
 import leaveRoom from "./leaveRoom.js";
+import leaveGame from "../game/leaveGame.js";
 
 // Helper to cancel room creation
 export const cancelRoomCreation = (io, socket, roomId) => {
@@ -22,6 +26,38 @@ const createRoom = (io, socket, roomData, callback) => {
   if (!username) {
     console.log("Username is required to create a room");
     return callback({ error: "Username is Required to Create a Room" });
+  }
+
+  // Check if player trying create room while reconnecting in a room (this will kick them out of current and join the new one, should rarely ever happen)
+  const existingRoomCode = playersInRooms[socket.data.id];
+  const existingRoom = rooms[existingRoomCode];
+  let playerInExistingRoom = null;
+  if (!existingRoom) {
+    // If the existing room doesn't exist, just remove them from playersInRooms and continue
+    delete playersInRooms[socket.data.id];
+  } else {
+    playerInExistingRoom = existingRoom.players.find(
+      (p) => p.userId === socket.data.id,
+    );
+  }
+
+  // If the player is reconnecting in a room, kick them out of the old room
+  if (playerInExistingRoom && playerInExistingRoom.isReconnecting) {
+    console.log(
+      `Player ${username} is trying to create new room while reconnecting in room ${existingRoomCode}, kicking them from the old room`,
+    );
+    clearTimeout(playerInExistingRoom.disconnectTimeout);
+    playerInExistingRoom.disconnectTimeout = null;
+    playerInExistingRoom.isReconnecting = false;
+
+    // Check if game started to determine how to leave
+    if (existingRoom.isGameStarted) {
+      leaveGame(io, socket, existingRoomCode);
+    } else {
+      leaveRoom(io, socket, existingRoomCode);
+    }
+    // Broadcast
+    broadcastUpdateRoom(io, existingRoom);
   }
 
   // Check if player is already in a room
