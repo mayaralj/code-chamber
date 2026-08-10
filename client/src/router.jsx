@@ -9,6 +9,7 @@ import Signup from "./pages/Signup";
 import Login from "./pages/Login";
 import Profile from "./pages/Profile";
 import ChooseUsername from "./pages/ChooseUsername";
+import Leaderboard from "./pages/Leaderboard";
 
 import RequireUsername from "./components/RequireUsername";
 import RequireNoUsername from "./components/RequireNoUsername";
@@ -24,6 +25,7 @@ const router = createBrowserRouter([
     children: [
       // Anyone allowed
       { index: true, element: <Home /> },
+      { path: "leaderboard", element: <Leaderboard /> },
 
       // Must not be logged in
       {
