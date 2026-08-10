@@ -31,6 +31,54 @@ export const notifySubmission = (io, socketId, room, code) => {
   });
 };
 
+// Helper to update players db with submission results
+export const updateSubmissionStats = async (player, result) => {
+  // If guest ignore
+  if (player.isGuest) {
+    console.log(`Player ${player.username} is a guest, skipping db update`);
+    return;
+  }
+
+  // List out the stats to be updated
+  const { testCasesPassed, executionTime, submitTime } = result;
+
+  // Grab total matches played
+  const { rows } = await db.query(
+    `SELECT matches_played
+     FROM profile_stats
+     WHERE user_id = $1`,
+    [player.userId],
+  );
+  const matchesPlayed = rows[0]?.matches_played || 0;
+  // Grab current average execution time and average submit time
+  const { rows: avgRows } = await db.query(
+    `SELECT avg_execution_time, avg_submit_time
+     FROM profile_stats
+     WHERE user_id = $1`,
+    [player.userId],
+  );
+  const currAvgExecutionTime = avgRows[0]?.avg_execution_time || 0;
+  const currAvgSubmitTime = avgRows[0]?.avg_submit_time || 0;
+
+  // Calculate new times
+  const newAvgExecutionTime =
+    currAvgExecutionTime +
+    (executionTime - currAvgExecutionTime) / matchesPlayed;
+  const newAvgSubmitTime =
+    currAvgSubmitTime + (submitTime - currAvgSubmitTime) / matchesPlayed;
+
+  // Update
+  await db.query(
+    `UPDATE profile_stats
+   SET avg_execution_time = $1,
+       avg_submit_time = $2,
+       test_cases_passed = test_cases_passed + $3,
+       updated_at = NOW()
+   WHERE user_id = $4`,
+    [newAvgExecutionTime, newAvgSubmitTime, testCasesPassed, player.userId],
+  );
+};
+
 // Helper to process player submission
 export const processSubmission = async (
   io,
@@ -90,6 +138,9 @@ export const processSubmission = async (
   result.submitTime = submitTime;
   result.player = player;
   result.numOfTestCases = testCases.length;
+
+  // Update player stats in the database
+  await updateSubmissionStats(player, result);
 
   // Update player status
   playerRoundData.judging = false;
