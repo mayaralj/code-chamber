@@ -23,7 +23,10 @@ export const calculateScore = (result, averageExecutionTime) => {
   score += passed ? 60 : 0;
   score += testCaseRatio * 50;
   // If execution time is less than average, give bonus points
-  score += (averageExecutionTime - executionTime) * 5;
+  // Ensure execution time exists (if code execution errored, it will not exist)
+  if (averageExecutionTime && executionTime) {
+    score += (averageExecutionTime - executionTime) * 5;
+  }
   score -= submitTime;
 
   // Clamp score to a minimum of 0
@@ -35,9 +38,6 @@ export const calculateScore = (result, averageExecutionTime) => {
   // Ceil the score to the nearest integer
   score = Math.ceil(score);
 
-  console.log(
-    `Calculated score for player  ${score} (passed: ${passed}, testCasesPassed: ${testCasesPassed}, executionTime: ${executionTime}, averageExecutionTime: ${averageExecutionTime}, submitTime: ${submitTime})`,
-  );
   return score;
 };
 

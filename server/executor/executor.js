@@ -7,6 +7,7 @@ import { execAsync, execWithStdin } from "./execHelper.js";
 import languageConfig from "./languageConfig.js";
 import { getParamTypes } from "./cpp/cppHelpers.js";
 import { getContainer } from "./containerPool.js";
+import { error } from "console";
 
 // Config
 const MAX_CONCURRENT_EXECUTIONS = 3;
@@ -25,8 +26,7 @@ const runCode = async (language, userCode, functionName, testCases) => {
       languageUsed: language,
       passed: false,
       testCasesPassed: 0,
-      executionTime: 0,
-      testResult: "Language not supported",
+      error: "Language not supported",
     };
   }
 
@@ -52,8 +52,7 @@ const runCode = async (language, userCode, functionName, testCases) => {
       languageUsed: language,
       passed: false,
       testCasesPassed: 0,
-      executionTime: 0,
-      testResult: "No container available for execution",
+      error: "No container available for execution",
     };
   }
 
@@ -82,8 +81,7 @@ const runCode = async (language, userCode, functionName, testCases) => {
         languageUsed: language,
         passed: false,
         testCasesPassed: 0,
-        executionTime: 0,
-        testResult: `Compilation error: ${err.message}`,
+        error: `Compilation Error`,
       };
     }
   }
@@ -154,7 +152,6 @@ const runCode = async (language, userCode, functionName, testCases) => {
     passed: testResult.every((r) => r.passed),
     testCasesPassed,
     executionTime,
-    testResult,
   };
 };
 

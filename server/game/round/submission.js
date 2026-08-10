@@ -42,6 +42,21 @@ export const updateSubmissionStats = async (player, result) => {
   // List out the stats to be updated
   const { testCasesPassed, executionTime, submitTime } = result;
 
+  // Ensure they all exist and are numbers
+  if (
+    !testCasesPassed ||
+    !executionTime ||
+    !submitTime ||
+    typeof testCasesPassed !== "number" ||
+    typeof executionTime !== "number" ||
+    typeof submitTime !== "number"
+  ) {
+    console.error(
+      `Invalid submission stats for player ${player.username}, skipping db update`,
+    );
+    return;
+  }
+
   // Grab total matches played
   const { rows } = await db.query(
     `SELECT matches_played
@@ -57,8 +72,8 @@ export const updateSubmissionStats = async (player, result) => {
      WHERE user_id = $1`,
     [player.userId],
   );
-  const currAvgExecutionTime = avgRows[0]?.avg_execution_time || 0;
-  const currAvgSubmitTime = avgRows[0]?.avg_submit_time || 0;
+  const currAvgExecutionTime = parseFloat(avgRows[0]?.avg_execution_time) || 0;
+  const currAvgSubmitTime = parseFloat(avgRows[0]?.avg_submit_time) || 0;
 
   // Calculate new times
   const newAvgExecutionTime =
@@ -132,15 +147,31 @@ export const processSubmission = async (
   // Run the code against the test cases (handle missing code gracefully)
   const result = codeInput
     ? await runCode(language, codeInput, functionName, testCases)
-    : { testResult: [], passed: false };
+    : {
+        languageUsed: language,
+        passed: false,
+        testCasesPassed: 0,
+        error: "Failed to run code",
+      };
 
   // Fill in the result object with additional information
   result.submitTime = submitTime;
   result.player = player;
   result.numOfTestCases = testCases.length;
 
+  // For test
+  result.error = "frf";
+  result.executionTime = null;
+
   // Update player stats in the database
-  await updateSubmissionStats(player, result);
+  // Dont update if execution error'd
+  if (result?.error) {
+    console.log(
+      `Player ${player.username} had an execution error, skipping db update`,
+    );
+  } else {
+    await updateSubmissionStats(player, result);
+  }
 
   // Update player status
   playerRoundData.judging = false;
@@ -155,8 +186,8 @@ export const processSubmission = async (
     roundData.averageExecutionTime = {};
   }
   if (!roundData.averageExecutionTime[language]) {
-    roundData.averageExecutionTime[language] = result.executionTime;
-  } else {
+    roundData.averageExecutionTime[language] = result.executionTime || 0;
+  } else if (result.executionTime) {
     roundData.averageExecutionTime[language] =
       (roundData.averageExecutionTime[language] + result.executionTime) /
       roundData.roundResults.length;
