@@ -7,6 +7,7 @@ import {
   FaLink,
   FaShieldAlt,
   FaSignOutAlt,
+  FaTimes,
 } from "react-icons/fa";
 import { Link, useNavigate, useSearchParams } from "react-router";
 import authClient from "../authClient";
@@ -23,6 +24,45 @@ const returnProperErrorMessage = (error) => {
   return "";
 };
 
+// Placeholder stats (replace with real data later)
+const PLACEHOLDER_ALL_STATS = {
+  total_submissions: 94,
+  passed_submissions: 63,
+  avg_execution_time: 1520,
+  avg_submit_time: 118,
+};
+
+const PLACEHOLDER_LANGUAGE_STATS = [
+  {
+    language: "JavaScript",
+    total_submissions: 42,
+    passed_submissions: 31,
+    avg_execution_time: 1840,
+    avg_submit_time: 96,
+  },
+  {
+    language: "Python",
+    total_submissions: 37,
+    passed_submissions: 24,
+    avg_execution_time: 2210,
+    avg_submit_time: 118,
+  },
+  {
+    language: "C++",
+    total_submissions: 15,
+    passed_submissions: 8,
+    avg_execution_time: 320,
+    avg_submit_time: 140,
+  },
+  {
+    language: "C++",
+    total_submissions: 15,
+    passed_submissions: 8,
+    avg_execution_time: 320,
+    avg_submit_time: 140,
+  },
+];
+
 // Profile component
 const Profile = () => {
   // Navigate and search params
@@ -37,6 +77,7 @@ const Profile = () => {
   const [isEditingDisplayName, setIsEditingDisplayName] = useState(false);
   const [displayNameInput, setDisplayNameInput] = useState("");
   const [isSavingDisplayName, setIsSavingDisplayName] = useState(false);
+  const [isLanguageStatsOpen, setIsLanguageStatsOpen] = useState(false);
 
   // Handle OAuth error from query params
   const oauthError = searchParams.get("error");
@@ -208,6 +249,18 @@ const Profile = () => {
     };
   }, []);
 
+  // Close modal on Escape key
+  useEffect(() => {
+    if (!isLanguageStatsOpen) return;
+
+    const handleKeyDown = (e) => {
+      if (e.key === "Escape") setIsLanguageStatsOpen(false);
+    };
+
+    window.addEventListener("keydown", handleKeyDown);
+    return () => window.removeEventListener("keydown", handleKeyDown);
+  }, [isLanguageStatsOpen]);
+
   // If profile info is not yet loaded, show a loading state
   if (!profileInfo) {
     return (
@@ -256,6 +309,14 @@ const Profile = () => {
 
   // Determine the visible error message to display (oAuth priority)
   const visibleError = oauthErrorMessage || errorMessage;
+
+  // Derived game stat placeholders (replace with real fields later)
+  const totalSubmissions = profileInfo.total_submissions || 0;
+  const passedSubmissions = profileInfo.passed_submissions || 0;
+  const passRate =
+    totalSubmissions > 0
+      ? `${Math.round((passedSubmissions / totalSubmissions) * 100)}%`
+      : "0%";
 
   return (
     <main className="relative min-h-screen overflow-hidden bg-[#0b0b0b] px-5 py-12 text-[#e8d9c0]">
@@ -448,6 +509,39 @@ const Profile = () => {
               </p>
             </div>
           </div>
+
+          <div className="mt-6 grid grid-cols-3 border-t border-[#5d5549] pt-6">
+            <div>
+              <p className="mb-2 font-mono text-sm text-[#c6baa5]">
+                Submissions
+              </p>
+              <p className="font-mono text-3xl font-black text-[#ffd89a]">
+                {totalSubmissions}
+              </p>
+            </div>
+
+            <div className="border-l border-[#5d5549] pl-7">
+              <p className="mb-2 font-mono text-sm text-[#c6baa5]">Passed</p>
+              <p className="font-mono text-3xl font-black text-[#ffd89a]">
+                {passedSubmissions}
+              </p>
+            </div>
+
+            <div className="border-l border-[#5d5549] pl-7">
+              <p className="mb-2 font-mono text-sm text-[#c6baa5]">Pass Rate</p>
+              <p className="font-mono text-3xl font-black text-[#ffd89a]">
+                {passRate}
+              </p>
+            </div>
+          </div>
+
+          <button
+            className="mt-6 w-full cursor-pointer border border-[#5d5549] py-3 font-mono text-xs font-bold tracking-[0.17em] text-[#d9bd8f] transition hover:border-[#ffd89a] hover:text-[#ffd89a]"
+            type="button"
+            onClick={() => setIsLanguageStatsOpen(true)}
+          >
+            SHOW MORE
+          </button>
         </section>
 
         <div className="mt-10 text-center">
@@ -466,6 +560,89 @@ const Profile = () => {
           CODE_CHAMBER.v1.0.0 // SESSION_SECURE
         </footer>
       </section>
+      {isLanguageStatsOpen && (
+        <div
+          className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 px-5"
+          onClick={() => setIsLanguageStatsOpen(false)}
+        >
+          <div
+            className="modal-scroll relative max-h-[80vh] w-full max-w-[640px] overflow-y-auto border border-[#5d5549] bg-[#0e0e0e] p-7 [scrollbar-color:#5d5549_#0e0e0e] [scrollbar-width:thin]"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div className="mb-6 flex items-center justify-between">
+              <h2 className="font-mono text-xs font-bold tracking-[0.17em] text-[#d9bd8f]">
+                LANGUAGE STATISTICS
+              </h2>
+              <button
+                className="cursor-pointer text-[#b9a282] transition hover:text-[#ffd89a]"
+                type="button"
+                onClick={() => setIsLanguageStatsOpen(false)}
+              >
+                <FaTimes size={16} />
+              </button>
+            </div>
+
+            <div className="flex flex-col gap-4">
+              {[
+                { language: "ALL", ...PLACEHOLDER_ALL_STATS },
+                ...PLACEHOLDER_LANGUAGE_STATS,
+              ].map((stat) => {
+                const rate =
+                  stat.total_submissions > 0
+                    ? `${Math.round(
+                        (stat.passed_submissions / stat.total_submissions) *
+                          100,
+                      )}%`
+                    : "0%";
+
+                return (
+                  <div
+                    key={stat.language}
+                    className={`border p-5 ${
+                      stat.language === "ALL"
+                        ? "border-[#ffd89a] bg-[#211a12]"
+                        : "border-[#5d5549] bg-[#181716]"
+                    }`}
+                  >
+                    <p className="mb-4 font-mono text-sm font-bold tracking-[0.1em] text-[#ffd89a]">
+                      {stat.language.toUpperCase()}
+                    </p>
+
+                    <div className="grid grid-cols-4 gap-3 font-mono">
+                      <div>
+                        <p className="mb-1 text-xs text-[#c6baa5]">
+                          Submissions
+                        </p>
+                        <p className="text-lg font-bold text-[#e8d9c0]">
+                          {stat.total_submissions}
+                        </p>
+                      </div>
+                      <div>
+                        <p className="mb-1 text-xs text-[#c6baa5]">Passed</p>
+                        <p className="text-lg font-bold text-[#e8d9c0]">
+                          {stat.passed_submissions}
+                        </p>
+                      </div>
+                      <div>
+                        <p className="mb-1 text-xs text-[#c6baa5]">Pass Rate</p>
+                        <p className="text-lg font-bold text-[#e8d9c0]">
+                          {rate}
+                        </p>
+                      </div>
+                      <div>
+                        <p className="mb-1 text-xs text-[#c6baa5]">Avg Exec</p>
+                        <p className="text-lg font-bold text-[#e8d9c0]">
+                          {stat.avg_execution_time}ms
+                        </p>
+                      </div>
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          </div>
+        </div>
+      )}
     </main>
   );
 };
