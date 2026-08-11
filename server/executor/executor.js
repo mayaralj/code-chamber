@@ -135,7 +135,7 @@ const runCode = async (language, userCode, functionName, testCases) => {
   const testCasesPassed = testResult.filter((r) => r.passed).length;
 
   // Calculate full execution time
-  const executionTime = (Date.now() - startTime) / 1000;
+  const executionTime = Date.now() - startTime;
 
   // Cleanup
   await execAsync(`docker rm -f ${containerId}`, { timeout: 5000 });

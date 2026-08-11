@@ -16,7 +16,7 @@ const Results = ({
           <span className="text-gray-400">Player</span>
           <span className="text-gray-400">Passed</span>
           <span className="text-gray-400">Test Cases Passed</span>
-          <span className="text-gray-400">Execution Time (s)</span>
+          <span className="text-gray-400">Execution Time (ms)</span>
           <span className="text-gray-400">Submit Time (s)</span>
           <span className="text-gray-400">Score</span>
         </div>
