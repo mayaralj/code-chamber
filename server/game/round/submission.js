@@ -33,16 +33,13 @@ export const notifySubmission = (io, socketId, room, code) => {
 
 // Helper to update players db with submission results
 export const updateSubmissionStats = async (player, result) => {
-  // If guest ignore
   if (player.isGuest) {
     console.log(`Player ${player.username} is a guest, skipping db update`);
     return;
   }
 
-  // List out the stats to be updated
   const { testCasesPassed, executionTime, submitTime } = result;
 
-  // Ensure they all exist and are numbers
   if (
     !Number.isFinite(testCasesPassed) ||
     !Number.isFinite(executionTime) ||
@@ -54,49 +51,17 @@ export const updateSubmissionStats = async (player, result) => {
     return;
   }
 
-  // Update total submissions
   await db.query(
     `UPDATE profile_stats
      SET total_submissions = total_submissions + 1,
-          updated_at = NOW()
-      WHERE user_id = $1`,
-    [player.userId],
-  );
-
-  // Grab total submissions
-  const { rows } = await db.query(
-    `SELECT total_submissions
-     FROM profile_stats
-     WHERE user_id = $1`,
-    [player.userId],
-  );
-  const totalSubmissions = rows[0]?.total_submissions || 0;
-  // Grab current average execution time and average submit time
-  const { rows: avgRows } = await db.query(
-    `SELECT avg_execution_time, avg_submit_time
-     FROM profile_stats
-     WHERE user_id = $1`,
-    [player.userId],
-  );
-  const currAvgExecutionTime = parseFloat(avgRows[0]?.avg_execution_time) || 0;
-  const currAvgSubmitTime = parseFloat(avgRows[0]?.avg_submit_time) || 0;
-
-  // Calculate new times
-  const newAvgExecutionTime =
-    currAvgExecutionTime +
-    (executionTime - currAvgExecutionTime) / totalSubmissions;
-  const newAvgSubmitTime =
-    currAvgSubmitTime + (submitTime - currAvgSubmitTime) / totalSubmissions;
-
-  // Update
-  await db.query(
-    `UPDATE profile_stats
-   SET avg_execution_time = $1,
-       avg_submit_time = $2,
-       test_cases_passed = test_cases_passed + $3,
-       updated_at = NOW()
-   WHERE user_id = $4`,
-    [newAvgExecutionTime, newAvgSubmitTime, testCasesPassed, player.userId],
+         test_cases_passed = test_cases_passed + $1,
+         avg_execution_time = COALESCE(avg_execution_time, 0)
+           + ($2 - COALESCE(avg_execution_time, 0)) / (total_submissions + 1),
+         avg_submit_time = COALESCE(avg_submit_time, 0)
+           + ($3 - COALESCE(avg_submit_time, 0)) / (total_submissions + 1),
+         updated_at = NOW()
+     WHERE user_id = $4`,
+    [testCasesPassed, executionTime, submitTime, player.userId],
   );
 };
 
