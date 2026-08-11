@@ -44,12 +44,9 @@ export const updateSubmissionStats = async (player, result) => {
 
   // Ensure they all exist and are numbers
   if (
-    !testCasesPassed ||
-    !executionTime ||
-    !submitTime ||
-    typeof testCasesPassed !== "number" ||
-    typeof executionTime !== "number" ||
-    typeof submitTime !== "number"
+    !Number.isFinite(testCasesPassed) ||
+    !Number.isFinite(executionTime) ||
+    !Number.isFinite(submitTime)
   ) {
     console.error(
       `Invalid submission stats for player ${player.username}, skipping db update`,
@@ -57,14 +54,23 @@ export const updateSubmissionStats = async (player, result) => {
     return;
   }
 
-  // Grab total matches played
+  // Update total submissions
+  await db.query(
+    `UPDATE profile_stats
+     SET total_submissions = total_submissions + 1,
+          updated_at = NOW()
+      WHERE user_id = $1`,
+    [player.userId],
+  );
+
+  // Grab total submissions
   const { rows } = await db.query(
-    `SELECT matches_played
+    `SELECT total_submissions
      FROM profile_stats
      WHERE user_id = $1`,
     [player.userId],
   );
-  const matchesPlayed = rows[0]?.matches_played || 0;
+  const totalSubmissions = rows[0]?.total_submissions || 0;
   // Grab current average execution time and average submit time
   const { rows: avgRows } = await db.query(
     `SELECT avg_execution_time, avg_submit_time
@@ -78,9 +84,9 @@ export const updateSubmissionStats = async (player, result) => {
   // Calculate new times
   const newAvgExecutionTime =
     currAvgExecutionTime +
-    (executionTime - currAvgExecutionTime) / matchesPlayed;
+    (executionTime - currAvgExecutionTime) / totalSubmissions;
   const newAvgSubmitTime =
-    currAvgSubmitTime + (submitTime - currAvgSubmitTime) / matchesPlayed;
+    currAvgSubmitTime + (submitTime - currAvgSubmitTime) / totalSubmissions;
 
   // Update
   await db.query(
@@ -158,10 +164,6 @@ export const processSubmission = async (
   result.submitTime = submitTime;
   result.player = player;
   result.numOfTestCases = testCases.length;
-
-  // For test
-  result.error = "frf";
-  result.executionTime = null;
 
   // Update player stats in the database
   // Dont update if execution error'd
