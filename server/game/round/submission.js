@@ -38,13 +38,15 @@ export const updateSubmissionStats = async (player, result) => {
     return;
   }
 
-  const { testCasesPassed, executionTime, submitTime, passed } = result;
+  const { testCasesPassed, executionTime, submitTime, passed, languageUsed } =
+    result;
 
   if (
     !Number.isFinite(testCasesPassed) ||
     !Number.isFinite(executionTime) ||
     !Number.isFinite(submitTime) ||
-    typeof passed !== "boolean"
+    typeof passed !== "boolean" ||
+    typeof languageUsed !== "string"
   ) {
     console.error(
       `Invalid submission stats for player ${player.username}, skipping db update`,
@@ -52,19 +54,53 @@ export const updateSubmissionStats = async (player, result) => {
     return;
   }
 
-  await db.query(
-    `UPDATE profile_stats
-     SET total_submissions = total_submissions + 1,
-         test_cases_passed = test_cases_passed + $1,
-         passed_submissions = passed_submissions + $2,
-         avg_execution_time = COALESCE(avg_execution_time, 0)
-           + ($3 - COALESCE(avg_execution_time, 0)) / (total_submissions + 1),
-         avg_submit_time = COALESCE(avg_submit_time, 0)
-           + ($4 - COALESCE(avg_submit_time, 0)) / (total_submissions + 1),
-         updated_at = NOW()
-     WHERE user_id = $5`,
-    [testCasesPassed, passed ? 1 : 0, executionTime, submitTime, player.userId],
-  );
+  await Promise.all([
+    db.query(
+      `UPDATE profile_stats
+       SET total_submissions = total_submissions + 1,
+           test_cases_passed = test_cases_passed + $1,
+           passed_submissions = passed_submissions + $2,
+           avg_execution_time = COALESCE(avg_execution_time, 0)
+             + ($3 - COALESCE(avg_execution_time, 0)) / (total_submissions + 1),
+           avg_submit_time = COALESCE(avg_submit_time, 0)
+             + ($4 - COALESCE(avg_submit_time, 0)) / (total_submissions + 1),
+           updated_at = NOW()
+       WHERE user_id = $5`,
+      [
+        testCasesPassed,
+        passed ? 1 : 0,
+        executionTime,
+        submitTime,
+        player.userId,
+      ],
+    ),
+    db.query(
+      `INSERT INTO language_stats (
+         user_id, language, total_submissions, test_cases_passed,
+         passed_submissions, avg_execution_time, avg_submit_time, updated_at
+       )
+       VALUES ($1, $2, 1, $3, $4, $5, $6, NOW())
+       ON CONFLICT (user_id, language) DO UPDATE
+       SET total_submissions = language_stats.total_submissions + 1,
+           test_cases_passed = language_stats.test_cases_passed + $3,
+           passed_submissions = language_stats.passed_submissions + $4,
+           avg_execution_time = COALESCE(language_stats.avg_execution_time, 0)
+             + ($5 - COALESCE(language_stats.avg_execution_time, 0))
+               / (language_stats.total_submissions + 1),
+           avg_submit_time = COALESCE(language_stats.avg_submit_time, 0)
+             + ($6 - COALESCE(language_stats.avg_submit_time, 0))
+               / (language_stats.total_submissions + 1),
+           updated_at = NOW()`,
+      [
+        player.userId,
+        languageUsed,
+        testCasesPassed,
+        passed ? 1 : 0,
+        executionTime,
+        submitTime,
+      ],
+    ),
+  ]);
 };
 
 // Helper to process player submission
