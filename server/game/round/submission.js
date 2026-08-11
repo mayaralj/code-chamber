@@ -38,12 +38,13 @@ export const updateSubmissionStats = async (player, result) => {
     return;
   }
 
-  const { testCasesPassed, executionTime, submitTime } = result;
+  const { testCasesPassed, executionTime, submitTime, passed } = result;
 
   if (
     !Number.isFinite(testCasesPassed) ||
     !Number.isFinite(executionTime) ||
-    !Number.isFinite(submitTime)
+    !Number.isFinite(submitTime) ||
+    typeof passed !== "boolean"
   ) {
     console.error(
       `Invalid submission stats for player ${player.username}, skipping db update`,
@@ -55,13 +56,14 @@ export const updateSubmissionStats = async (player, result) => {
     `UPDATE profile_stats
      SET total_submissions = total_submissions + 1,
          test_cases_passed = test_cases_passed + $1,
+         passed_submissions = passed_submissions + $2,
          avg_execution_time = COALESCE(avg_execution_time, 0)
-           + ($2 - COALESCE(avg_execution_time, 0)) / (total_submissions + 1),
+           + ($3 - COALESCE(avg_execution_time, 0)) / (total_submissions + 1),
          avg_submit_time = COALESCE(avg_submit_time, 0)
-           + ($3 - COALESCE(avg_submit_time, 0)) / (total_submissions + 1),
+           + ($4 - COALESCE(avg_submit_time, 0)) / (total_submissions + 1),
          updated_at = NOW()
-     WHERE user_id = $4`,
-    [testCasesPassed, executionTime, submitTime, player.userId],
+     WHERE user_id = $5`,
+    [testCasesPassed, passed ? 1 : 0, executionTime, submitTime, player.userId],
   );
 };
 
