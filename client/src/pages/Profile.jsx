@@ -54,13 +54,6 @@ const PLACEHOLDER_LANGUAGE_STATS = [
     avg_execution_time: 320,
     avg_submit_time: 140,
   },
-  {
-    language: "C++",
-    total_submissions: 15,
-    passed_submissions: 8,
-    avg_execution_time: 320,
-    avg_submit_time: 140,
-  },
 ];
 
 // Profile component

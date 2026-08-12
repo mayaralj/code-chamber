@@ -86,7 +86,7 @@ const runCode = async (language, userCode, functionName, testCases) => {
     }
   }
 
-  // Start time (ignore compilation since unfair)
+  // Start time
   const startTime = Date.now();
 
   // Run each input in parallel

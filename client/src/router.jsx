@@ -11,11 +11,12 @@ import Profile from "./pages/Profile";
 import ChooseUsername from "./pages/ChooseUsername";
 import Leaderboard from "./pages/Leaderboard";
 
-import RequireUsername from "./components/RequireUsername";
-import RequireNoUsername from "./components/RequireNoUsername";
-import RequireSocket from "./components/RequireSocket";
-import RequireLogin from "./components/RequireLogin";
-import RequireNotLoggedIn from "./components/RequireNotLoggedIn";
+import RequireUsername from "./components/RouteCheckers/RequireUsername";
+import RequireNoUsername from "./components/RouteCheckers/RequireNoUsername";
+import RequireSocket from "./components/RouteCheckers/RequireSocket";
+import RequireLogin from "./components/RouteCheckers/RequireLogin";
+import RequireNotLoggedIn from "./components/RouteCheckers/RequireNotLoggedIn";
+import RequireServer from "./components/RouteCheckers/RequireServer";
 import MainLayout from "./layouts/MainLayout";
 
 const router = createBrowserRouter([
@@ -25,27 +26,32 @@ const router = createBrowserRouter([
     children: [
       // Anyone allowed
       { index: true, element: <Home /> },
-      { path: "leaderboard", element: <Leaderboard /> },
 
-      // Must not be logged in
       {
-        element: <RequireNotLoggedIn />,
+        // Need a server connection to access these routes
+        element: <RequireServer />,
         children: [
-          { path: "signup", element: <Signup /> },
-          { path: "login", element: <Login /> },
-        ],
-      },
-
-      // Must be logged in
-      {
-        element: <RequireLogin />,
-        children: [
-          { path: "profile", element: <Profile /> },
+          { path: "leaderboard", element: <Leaderboard /> },
+          // Must not be logged in
           {
-            // Must be logged in and have no username
-            element: <RequireNoUsername />,
+            element: <RequireNotLoggedIn />,
             children: [
-              { path: "choose-username", element: <ChooseUsername /> },
+              { path: "signup", element: <Signup /> },
+              { path: "login", element: <Login /> },
+            ],
+          },
+          // Must be logged in
+          {
+            element: <RequireLogin />,
+            children: [
+              { path: "profile", element: <Profile /> },
+              {
+                // Must be logged in and have no username
+                element: <RequireNoUsername />,
+                children: [
+                  { path: "choose-username", element: <ChooseUsername /> },
+                ],
+              },
             ],
           },
         ],
@@ -54,7 +60,11 @@ const router = createBrowserRouter([
       // Need a socket connection
       {
         path: "/",
-        element: <RequireSocket />,
+        element: (
+          <RequireServer>
+            <RequireSocket />
+          </RequireServer>
+        ),
         children: [
           {
             // Need a socket connection and a username to play
@@ -72,10 +82,14 @@ const router = createBrowserRouter([
   // Outside of main layout
   {
     path: "/",
-    element: <RequireSocket />,
+    element: (
+      // Need server and socket connection to access these routes
+      <RequireServer>
+        <RequireSocket />
+      </RequireServer>
+    ),
     children: [
       {
-        // Need a socket connection and a username to play
         element: <RequireUsername />,
         children: [
           { path: "room-wait/:code", element: <RoomWait /> },
