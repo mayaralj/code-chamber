@@ -15,12 +15,9 @@ const RequireNotLoggedIn = () => {
   }
 
   if (error) {
-    const isNetworkFailure = !error.status || error.status === 0;
     return (
       <main className="min-h-[calc(100vh-72px)] grid place-items-center bg-[#0b0b0b] font-mono text-[#e7c49d]">
-        {isNetworkFailure
-          ? "SERVER TEMPORARILY DOWN — RETRYING..."
-          : "SESSION ERROR — PLEASE LOG IN AGAIN"}
+        "SESSION ERROR — PLEASE LOG IN AGAIN"
       </main>
     );
   }
