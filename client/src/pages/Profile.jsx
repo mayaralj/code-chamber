@@ -1,5 +1,5 @@
 // Imports
-import { useEffect, useState } from "react";
+import { useEffect, useState, useRef, useCallback } from "react";
 import {
   FaDiscord,
   FaGithub,
@@ -38,6 +38,7 @@ const Profile = () => {
 
   // States
   const [profileInfo, setProfileInfo] = useState(null);
+  const [profileFetchStatus, setProfileFetchStatus] = useState("fetching");
   const [accounts, setAccounts] = useState([]);
   const [errorMessage, setErrorMessage] = useState("");
   const [isLoggingOut, setIsLoggingOut] = useState(false);
@@ -45,6 +46,9 @@ const Profile = () => {
   const [displayNameInput, setDisplayNameInput] = useState("");
   const [isSavingDisplayName, setIsSavingDisplayName] = useState(false);
   const [isLanguageStatsOpen, setIsLanguageStatsOpen] = useState(false);
+
+  // Refs
+  const abortControllerRef = useRef(null);
 
   // Handle OAuth error from query params
   const oauthError = searchParams.get("error");
@@ -151,49 +155,52 @@ const Profile = () => {
     setIsSavingDisplayName(false);
   };
 
+  const fetchProfileInfo = useCallback(async () => {
+    // Cancel any ongoing fetch if it exists
+    abortControllerRef.current?.abort();
+    // Create new controller
+    abortControllerRef.current = new AbortController();
+
+    // Fetch profile info
+    try {
+      const response = await fetch("/api/profile", {
+        method: "GET",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        credentials: "include",
+        // Add the signal from the abort controller to the fetch request
+        signal: abortControllerRef.current.signal,
+      });
+
+      // Log repsonse text
+      // if (response.status === 401) {
+      //   navigate("/login", { replace: true });
+      //   return;
+      // }
+
+      if (!response.ok) {
+        throw new Error(`HTTP error: ${response.status}`);
+      }
+
+      const data = await response.json();
+      setProfileInfo(data);
+      setProfileFetchStatus("success");
+    } catch (error) {
+      console.log("Error fetching profile info:", error);
+      setProfileFetchStatus("error");
+    }
+  }, [navigate]);
+
   // Fetch profile info on mount
   useEffect(() => {
-    let cancelled = false;
-
-    const fetchProfileInfo = async () => {
-      try {
-        const response = await fetch("/api/profile", {
-          method: "GET",
-          headers: {
-            "Content-Type": "application/json",
-          },
-          credentials: "include",
-        });
-
-        if (response.status === 401) {
-          navigate("/login", { replace: true });
-          return;
-        }
-
-        if (!response.ok) {
-          throw new Error(`HTTP error: ${response.status}`);
-        }
-
-        const data = await response.json();
-
-        if (!cancelled) {
-          setProfileInfo(data);
-        }
-      } catch (error) {
-        console.error("Error fetching profile info:", error);
-
-        if (!cancelled) {
-          setErrorMessage("Could not load profile data.");
-        }
-      }
-    };
-
     fetchProfileInfo();
 
     return () => {
-      cancelled = true;
+      // Abort any ongoing fetch when the component unmounts
+      abortControllerRef.current?.abort();
     };
-  }, [navigate]);
+  }, [fetchProfileInfo]);
 
   // Fetch linked accounts on mount
   useEffect(() => {
@@ -216,8 +223,54 @@ const Profile = () => {
     };
   }, []);
 
-  // If profile info is not yet loaded, show a loading state
-  if (!profileInfo) {
+  // helper to handle retry profile fetch
+  const refetchProfileInfo = () => {
+    setProfileFetchStatus("fetching");
+    fetchProfileInfo();
+  };
+
+  // If profile info fetch error'd out, show an error message with a retry button
+  if (profileFetchStatus === "error") {
+    return (
+      <main className="min-h-[calc(100vh-72px)] grid place-items-center bg-[#0b0b0b] px-4 font-mono text-[#e7c49d]">
+        <div className="flex max-w-sm flex-col items-center gap-3 text-center">
+          <div className="flex h-12 w-12 items-center justify-center rounded-full border border-[#ffd89a]/40 bg-[#ffd89a]/5">
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              strokeWidth="1.75"
+              className="h-6 w-6 text-[#ffd89a]"
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                d="M12 9v3.75m0 3.75h.007M12 3.75a8.25 8.25 0 100 16.5 8.25 8.25 0 000-16.5z"
+              />
+            </svg>
+          </div>
+
+          <p className="text-sm font-bold uppercase tracking-wide text-[#ffd89a]">
+            Couldn't load profile
+          </p>
+          <p className="text-xs text-[#e7c49d]/70">
+            Something went wrong while fetching your profile. Please wait and
+            try again.
+          </p>
+
+          <button
+            type="button"
+            onClick={refetchProfileInfo}
+            className="mt-2 cursor-pointer rounded border border-[#ffd89a] px-5 py-2 font-mono text-sm font-bold text-[#ffd89a] transition-colors duration-150 hover:bg-[#ffd89a] hover:text-[#241d14] active:scale-[0.98] focus:outline-none focus-visible:ring-2 focus-visible:ring-[#ffd89a]/60"
+          >
+            RETRY
+          </button>
+        </div>
+      </main>
+    );
+  } else if (profileFetchStatus === "fetching" || !profileInfo) {
+    // If profile info is still being fetched, show a loading state
     return (
       <main className="min-h-[calc(100vh-72px)] grid place-items-center bg-[#0b0b0b] font-mono text-[#e7c49d]">
         LOADING PROFILE...
