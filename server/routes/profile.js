@@ -20,22 +20,64 @@ const profileRouter = () => {
         return res.status(401).json({ message: "You must be logged in" });
       }
 
-      // Get more info from profile stats via db query
-      let profileStats = await db.query(
-        "SELECT matches_played, matches_won FROM profile_stats WHERE user_id = $1",
-        [session.user.id],
-      );
-      profileStats = profileStats.rows[0] || {
+      // Place both in promise.all to run in parallel
+      let [profileStats, languageStats] = await Promise.all([
+        // Get more info from profile stats via db query
+        db.query(
+          "SELECT matches_played, matches_won, test_cases_passed, avg_execution_time, avg_submit_time, total_submissions, passed_submissions FROM profile_stats WHERE user_id = $1",
+          [session.user.id],
+        ),
+        // Get language stats
+        db.query(
+          "SELECT language, total_submissions, passed_submissions, avg_execution_time, avg_submit_time, test_cases_passed FROM language_stats WHERE user_id = $1",
+          [session.user.id],
+        ),
+      ]);
+
+      profileStats = profileStats.rows[0] ?? {
         matches_played: 0,
         matches_won: 0,
+        test_cases_passed: 0,
+        avg_execution_time: null,
+        avg_submit_time: null,
+        total_submissions: 0,
+        passed_submissions: 0,
       };
+      languageStats = languageStats.rows;
 
       // Build profile info and return it
       const profileInfo = {
         displayName: session.user.displayUsername ?? session.user.name,
         username: session.user.username,
-        matches_played: profileStats.matches_played,
-        matches_won: profileStats.matches_won,
+        gameStats: {
+          matches_played: profileStats.matches_played ?? 0,
+          matches_won: profileStats.matches_won ?? 0,
+          test_cases_passed: profileStats.test_cases_passed ?? 0,
+          avg_execution_time:
+            profileStats.avg_execution_time !== null
+              ? parseFloat(profileStats.avg_execution_time)
+              : "N/A",
+          avg_submit_time:
+            profileStats.avg_submit_time !== null
+              ? parseFloat(profileStats.avg_submit_time)
+              : "N/A",
+          total_submissions: profileStats.total_submissions ?? 0,
+          passed_submissions: profileStats.passed_submissions ?? 0,
+          languageStats: languageStats.map((lang) => ({
+            language: lang.language ?? "N/A",
+            total_submissions: lang.total_submissions ?? 0,
+            passed_submissions: lang.passed_submissions ?? 0,
+            avg_execution_time:
+              lang.avg_execution_time !== null
+                ? parseFloat(lang.avg_execution_time)
+                : "N/A",
+            avg_submit_time:
+              lang.avg_submit_time !== null
+                ? parseFloat(lang.avg_submit_time)
+                : "N/A",
+            test_cases_passed: lang.test_cases_passed ?? 0,
+          })),
+        },
       };
       console.log("Profile info fetched for user:", profileInfo);
       return res.json(profileInfo);
