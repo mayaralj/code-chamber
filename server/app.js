@@ -3,6 +3,7 @@ import { toNodeHandler } from "better-auth/node";
 import auth from "./auth.js";
 import profileRouter from "./routes/profile.js";
 import leaderboardRouter from "./routes/leaderboard.js";
+import serverHealthRouter from "./routes/serverHealth.js";
 import cors from "cors";
 
 export const createApp = () => {
@@ -12,5 +13,6 @@ export const createApp = () => {
   app.use(express.json());
   app.use("/api/profile", profileRouter());
   app.use("/api/leaderboard", leaderboardRouter());
+  app.use("/api/health", serverHealthRouter());
   return app;
 };
