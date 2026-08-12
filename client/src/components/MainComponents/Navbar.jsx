@@ -1,6 +1,6 @@
 import { NavLink } from "react-router";
 import { useLocation, useNavigate } from "react-router";
-import useStableSession from "../hooks/useStableSession";
+import useStableSession from "../../hooks/useStableSession";
 
 const Navbar = () => {
   const location = useLocation();

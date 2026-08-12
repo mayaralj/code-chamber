@@ -1,6 +1,6 @@
 // RequireNoUsername.jsx
 import { Navigate, Outlet } from "react-router";
-import useStableSession from "../hooks/useStableSession";
+import useStableSession from "../../hooks/useStableSession";
 
 const RequireNoUsername = () => {
   const { session, isPending, error } = useStableSession();

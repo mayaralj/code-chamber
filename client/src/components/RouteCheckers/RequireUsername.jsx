@@ -1,6 +1,6 @@
 import { Navigate, Outlet } from "react-router";
-import useStableSession from "../hooks/useStableSession";
-import authClient from "../authClient";
+import useStableSession from "../../hooks/useStableSession";
+import authClient from "../../authClient";
 
 const RequireUsername = () => {
   const { session, isPending } = useStableSession();

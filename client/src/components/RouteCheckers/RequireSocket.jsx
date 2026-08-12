@@ -1,5 +1,5 @@
 import { Navigate, Outlet } from "react-router";
-import usePlayer from "../hooks/usePlayer";
+import usePlayer from "../../hooks/usePlayer";
 
 const RequireSocket = () => {
   const { connectionStatus } = usePlayer();
