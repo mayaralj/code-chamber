@@ -6,7 +6,7 @@ const Navbar = () => {
   const location = useLocation();
   const navigate = useNavigate();
   const isLogin = location.pathname === "/login";
-  const { session, isPending } = useStableSession();
+  const { session } = useStableSession();
 
   // Link class
   const linkClass =
@@ -42,6 +42,9 @@ const Navbar = () => {
         </NavLink>
         <NavLink to="/browse" className={linkClass("/browse")}>
           Browse
+        </NavLink>
+        <NavLink to="/leaderboard" className={linkClass("/leaderboard")}>
+          Leaderboard
         </NavLink>
         {session ? (
           <>
