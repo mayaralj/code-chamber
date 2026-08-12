@@ -8,6 +8,7 @@ const authClient = createAuthClient({
   baseURL: "http://localhost:5000",
   fetchOptions: {
     credentials: "include",
+    timeout: 5000,
   },
   plugins: [usernameClient()],
 });
