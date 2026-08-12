@@ -24,37 +24,11 @@ const returnProperErrorMessage = (error) => {
   return "";
 };
 
-// Placeholder stats (replace with real data later)
-const PLACEHOLDER_ALL_STATS = {
-  total_submissions: 94,
-  passed_submissions: 63,
-  avg_execution_time: 1520,
-  avg_submit_time: 118,
-};
-
-const PLACEHOLDER_LANGUAGE_STATS = [
-  {
-    language: "JavaScript",
-    total_submissions: 42,
-    passed_submissions: 31,
-    avg_execution_time: 1840,
-    avg_submit_time: 96,
-  },
-  {
-    language: "Python",
-    total_submissions: 37,
-    passed_submissions: 24,
-    avg_execution_time: 2210,
-    avg_submit_time: 118,
-  },
-  {
-    language: "C++",
-    total_submissions: 15,
-    passed_submissions: 8,
-    avg_execution_time: 320,
-    avg_submit_time: 140,
-  },
-];
+// Format a numeric-or-"N/A" stat for display
+const formatStat = (value, suffix = "") =>
+  value === "N/A" || value === null || value === undefined
+    ? "N/A"
+    : `${value}${suffix}`;
 
 // Profile component
 const Profile = () => {
@@ -242,18 +216,6 @@ const Profile = () => {
     };
   }, []);
 
-  // Close modal on Escape key
-  useEffect(() => {
-    if (!isLanguageStatsOpen) return;
-
-    const handleKeyDown = (e) => {
-      if (e.key === "Escape") setIsLanguageStatsOpen(false);
-    };
-
-    window.addEventListener("keydown", handleKeyDown);
-    return () => window.removeEventListener("keydown", handleKeyDown);
-  }, [isLanguageStatsOpen]);
-
   // If profile info is not yet loaded, show a loading state
   if (!profileInfo) {
     return (
@@ -303,13 +265,39 @@ const Profile = () => {
   // Determine the visible error message to display (oAuth priority)
   const visibleError = oauthErrorMessage || errorMessage;
 
-  // Derived game stat placeholders (replace with real fields later)
-  const totalSubmissions = profileInfo.total_submissions || 0;
-  const passedSubmissions = profileInfo.passed_submissions || 0;
+  // Pull game stats from the profle info
+  const gameStats = profileInfo.gameStats ?? {};
+  const {
+    matches_played: matchesPlayed = 0,
+    matches_won: matchesWon = 0,
+    total_submissions: totalSubmissions = 0,
+    passed_submissions: passedSubmissions = 0,
+    avg_execution_time: avgExecutionTime = "N/A",
+    avg_submit_time: avgSubmitTime = "N/A",
+    languageStats = [],
+  } = gameStats;
+
+  // Calculate win and pass rate
+  const winRate =
+    matchesWon && matchesPlayed
+      ? `${Math.round((matchesWon / matchesPlayed) * 100)}%`
+      : "0%";
   const passRate =
     totalSubmissions > 0
       ? `${Math.round((passedSubmissions / totalSubmissions) * 100)}%`
       : "0%";
+
+  // Build the "ALL" summary card plus one card per language for the modal
+  const allLanguageStatsForModal = [
+    {
+      language: "ALL",
+      total_submissions: totalSubmissions,
+      passed_submissions: passedSubmissions,
+      avg_execution_time: avgExecutionTime,
+      avg_submit_time: avgSubmitTime,
+    },
+    ...languageStats,
+  ];
 
   return (
     <main className="relative min-h-screen overflow-hidden bg-[#0b0b0b] px-5 py-12 text-[#e8d9c0]">
@@ -482,23 +470,21 @@ const Profile = () => {
             <div>
               <p className="mb-2 font-mono text-sm text-[#c6baa5]">Played</p>
               <p className="font-mono text-3xl font-black text-[#ffd89a]">
-                {profileInfo.matches_played || 0}
+                {matchesPlayed}
               </p>
             </div>
 
             <div className="border-l border-[#5d5549] pl-7">
               <p className="mb-2 font-mono text-sm text-[#c6baa5]">Won</p>
               <p className="font-mono text-3xl font-black text-[#ffd89a]">
-                {profileInfo.matches_won || 0}
+                {matchesWon}
               </p>
             </div>
 
             <div className="border-l border-[#5d5549] pl-7">
               <p className="mb-2 font-mono text-sm text-[#c6baa5]">Win Rate</p>
               <p className="font-mono text-3xl font-black text-[#ffd89a]">
-                {profileInfo.matches_won && profileInfo.matches_played
-                  ? `${Math.round((profileInfo.matches_won / profileInfo.matches_played) * 100)}%`
-                  : "0%"}
+                {winRate}
               </p>
             </div>
           </div>
@@ -553,6 +539,7 @@ const Profile = () => {
           CODE_CHAMBER.v1.0.0 // SESSION_SECURE
         </footer>
       </section>
+
       {isLanguageStatsOpen && (
         <div
           className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 px-5"
@@ -575,64 +562,85 @@ const Profile = () => {
               </button>
             </div>
 
-            <div className="flex flex-col gap-4">
-              {[
-                { language: "ALL", ...PLACEHOLDER_ALL_STATS },
-                ...PLACEHOLDER_LANGUAGE_STATS,
-              ].map((stat) => {
-                const rate =
-                  stat.total_submissions > 0
-                    ? `${Math.round(
-                        (stat.passed_submissions / stat.total_submissions) *
-                          100,
-                      )}%`
-                    : "0%";
+            {languageStats.length === 0 ? (
+              <p className="font-mono text-sm text-[#c6baa5]">
+                No submissions yet.
+              </p>
+            ) : (
+              <div className="flex flex-col gap-4">
+                {allLanguageStatsForModal.map((stat) => {
+                  const rate =
+                    stat.total_submissions > 0
+                      ? `${Math.round(
+                          (stat.passed_submissions / stat.total_submissions) *
+                            100,
+                        )}%`
+                      : "0%";
 
-                return (
-                  <div
-                    key={stat.language}
-                    className={`border p-5 ${
-                      stat.language === "ALL"
-                        ? "border-[#ffd89a] bg-[#211a12]"
-                        : "border-[#5d5549] bg-[#181716]"
-                    }`}
-                  >
-                    <p className="mb-4 font-mono text-sm font-bold tracking-[0.1em] text-[#ffd89a]">
-                      {stat.language.toUpperCase()}
-                    </p>
+                  return (
+                    <div
+                      key={stat.language}
+                      className={`border p-5 ${
+                        stat.language === "ALL"
+                          ? "border-[#ffd89a] bg-[#211a12]"
+                          : "border-[#5d5549] bg-[#181716]"
+                      }`}
+                    >
+                      <p className="mb-4 font-mono text-sm font-bold tracking-[0.1em] text-[#ffd89a]">
+                        {stat.language.toLowerCase() === "cpp"
+                          ? "C++"
+                          : stat.language.toUpperCase()}
+                      </p>
 
-                    <div className="grid grid-cols-4 gap-3 font-mono">
-                      <div>
-                        <p className="mb-1 text-xs text-[#c6baa5]">
-                          Submissions
-                        </p>
-                        <p className="text-lg font-bold text-[#e8d9c0]">
-                          {stat.total_submissions}
-                        </p>
-                      </div>
-                      <div>
-                        <p className="mb-1 text-xs text-[#c6baa5]">Passed</p>
-                        <p className="text-lg font-bold text-[#e8d9c0]">
-                          {stat.passed_submissions}
-                        </p>
-                      </div>
-                      <div>
-                        <p className="mb-1 text-xs text-[#c6baa5]">Pass Rate</p>
-                        <p className="text-lg font-bold text-[#e8d9c0]">
-                          {rate}
-                        </p>
-                      </div>
-                      <div>
-                        <p className="mb-1 text-xs text-[#c6baa5]">Avg Exec</p>
-                        <p className="text-lg font-bold text-[#e8d9c0]">
-                          {stat.avg_execution_time}ms
-                        </p>
+                      <div className="grid grid-cols-5 gap-3 font-mono">
+                        <div>
+                          <p className="mb-1 text-xs text-[#c6baa5]">
+                            Submissions
+                          </p>
+                          <p className="text-lg font-bold text-[#e8d9c0]">
+                            {stat.total_submissions}
+                          </p>
+                        </div>
+                        <div>
+                          <p className="mb-1 text-xs text-[#c6baa5]">Passed</p>
+                          <p className="text-lg font-bold text-[#e8d9c0]">
+                            {stat.passed_submissions}
+                          </p>
+                        </div>
+                        <div>
+                          <p className="mb-1 text-xs text-[#c6baa5]">
+                            Pass Rate
+                          </p>
+                          <p className="text-lg font-bold text-[#e8d9c0]">
+                            {rate}
+                          </p>
+                        </div>
+                        <div>
+                          <p className="mb-1 text-xs text-[#c6baa5]">
+                            Avg Exec
+                          </p>
+                          <p className="text-lg font-bold text-[#e8d9c0]">
+                            {formatStat(stat.avg_execution_time, "ms")}
+                          </p>
+                        </div>
+                        <div>
+                          <p className="mb-1 text-xs text-[#c6baa5]">
+                            Avg Submit
+                          </p>
+                          <p className="text-lg font-bold text-[#e8d9c0]">
+                            {/* Submit time rounded to 2 decimal places */}
+                            {formatStat(
+                              Math.round(stat.avg_submit_time * 100) / 100,
+                              "s",
+                            )}
+                          </p>
+                        </div>
                       </div>
                     </div>
-                  </div>
-                );
-              })}
-            </div>
+                  );
+                })}
+              </div>
+            )}
           </div>
         </div>
       )}
