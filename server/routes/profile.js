@@ -53,28 +53,16 @@ const profileRouter = () => {
           matches_played: profileStats.matches_played ?? 0,
           matches_won: profileStats.matches_won ?? 0,
           test_cases_passed: profileStats.test_cases_passed ?? 0,
-          avg_execution_time:
-            profileStats.avg_execution_time !== null
-              ? parseFloat(profileStats.avg_execution_time)
-              : "N/A",
-          avg_submission_time:
-            profileStats.avg_submission_time !== null
-              ? parseFloat(profileStats.avg_submission_time)
-              : "N/A",
+          avg_execution_time: profileStats.avg_execution_time ?? "N/A",
+          avg_submission_time: profileStats.avg_submission_time ?? "N/A",
           total_submissions: profileStats.total_submissions ?? 0,
           passed_submissions: profileStats.passed_submissions ?? 0,
           languageStats: languageStats.map((lang) => ({
             language: lang.language ?? "N/A",
             total_submissions: lang.total_submissions ?? 0,
             passed_submissions: lang.passed_submissions ?? 0,
-            avg_execution_time:
-              lang.avg_execution_time !== null
-                ? parseFloat(lang.avg_execution_time)
-                : "N/A",
-            avg_submission_time:
-              lang.avg_submission_time !== null
-                ? parseFloat(lang.avg_submission_time)
-                : "N/A",
+            avg_execution_time: lang.avg_execution_time ?? "N/A",
+            avg_submission_time: lang.avg_submission_time ?? "N/A",
             test_cases_passed: lang.test_cases_passed ?? 0,
           })),
         },

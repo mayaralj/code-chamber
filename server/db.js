@@ -1,4 +1,7 @@
-import { Pool } from "pg";
+import { Pool, types } from "pg";
+
+// Override the default parsing of numeric types to return them as JavaScript numbers instead of strings
+types.setTypeParser(1700, (value) => parseFloat(value));
 
 const pool = new Pool({
   user: process.env.DB_USER,

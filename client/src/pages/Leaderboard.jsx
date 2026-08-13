@@ -13,7 +13,7 @@ const overallMetrics = {
   win_rate: {
     label: "Win Rate",
     field: "win_rate",
-    format: (v) => `${(Number(v) * 100).toFixed(2)}%`,
+    format: (v) => `${(v * 100).toFixed(2)}%`,
   },
   total_submissions: {
     label: "Total Submissions",
@@ -28,17 +28,17 @@ const overallMetrics = {
   pass_rate: {
     label: "Pass Rate",
     field: "pass_rate",
-    format: (v) => `${(Number(v) * 100).toFixed(2)}%`,
+    format: (v) => `${(v * 100).toFixed(2)}%`,
   },
   avg_submission_time: {
     label: "Avg Submission Time (s)",
     field: "avg_submission_time",
-    format: (v) => Number(v).toFixed(2),
+    format: (v) => v.toFixed(2),
   },
   avg_execution_time: {
     label: "Avg Execution Time (ms)",
     field: "avg_execution_time",
-    format: (v) => Number(v).toFixed(2),
+    format: (v) => v.toFixed(2),
   },
   test_cases_passed: {
     label: "Test Cases Passed",
@@ -62,17 +62,17 @@ const languageMetrics = {
   pass_rate: {
     label: "Pass Rate",
     field: "pass_rate",
-    format: (v) => `${(Number(v) * 100).toFixed(2)}%`,
+    format: (v) => `${(v * 100).toFixed(2)}%`,
   },
   avg_submission_time: {
     label: "Avg Submission Time (s)",
     field: "avg_submission_time",
-    format: (v) => Number(v).toFixed(2),
+    format: (v) => v.toFixed(2),
   },
   avg_execution_time: {
     label: "Avg Execution Time (ms)",
     field: "avg_execution_time",
-    format: (v) => Number(v).toFixed(2),
+    format: (v) => v.toFixed(2),
   },
   test_cases_passed: {
     label: "Test Cases Passed",
