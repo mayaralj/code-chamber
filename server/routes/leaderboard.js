@@ -44,6 +44,13 @@ const getTotalStats = () => {
       JOIN "user" u ON p.user_id = u.id
       ORDER BY p.passed_submissions DESC LIMIT 10`),
 
+    db.query(`SELECT u.username, u."displayUsername",
+          (p.passed_submissions::float / p.total_submissions) AS pass_rate
+      FROM profile_stats p
+      JOIN "user" u ON p.user_id = u.id
+      WHERE p.total_submissions > 0
+      ORDER BY pass_rate DESC LIMIT 10`),
+
     db.query(`SELECT u.username, u."displayUsername", p.test_cases_passed
       FROM profile_stats p
       JOIN "user" u ON p.user_id = u.id
@@ -75,6 +82,20 @@ const getAllLanguageStats = () => {
                ROW_NUMBER() OVER (PARTITION BY ls.language ORDER BY ls.passed_submissions DESC) AS rn
         FROM language_stats ls
         JOIN "user" u ON ls.user_id = u.id
+      ) ranked
+      WHERE rn <= 10
+      ORDER BY language, rn;
+    `),
+
+    db.query(`
+      SELECT username, "displayUsername", language, (passed_submissions::float / total_submissions) AS pass_rate, rn
+      FROM (
+        SELECT u.username, u."displayUsername", ls.language,
+               ls.passed_submissions, ls.total_submissions,
+               ROW_NUMBER() OVER (PARTITION BY ls.language ORDER BY (ls.passed_submissions::float / ls.total_submissions) DESC) AS rn
+        FROM language_stats ls
+        JOIN "user" u ON ls.user_id = u.id
+        WHERE ls.total_submissions > 0
       ) ranked
       WHERE rn <= 10
       ORDER BY language, rn;
@@ -152,6 +173,7 @@ const leaderboardRouter = () => {
         avg_submission_time,
         total_submissions,
         passed_submissions,
+        pass_rate,
         test_cases_passed,
       ] = totalStatsResults;
 
@@ -159,9 +181,10 @@ const leaderboardRouter = () => {
       const groupedLanguageStats = {
         total_submissions: groupByLanguage(languageStatsResults[0].rows),
         passed_submissions: groupByLanguage(languageStatsResults[1].rows),
-        avg_execution_time: groupByLanguage(languageStatsResults[2].rows),
-        avg_submission_time: groupByLanguage(languageStatsResults[3].rows),
-        test_cases_passed: groupByLanguage(languageStatsResults[4].rows),
+        pass_rate: groupByLanguage(languageStatsResults[2].rows),
+        avg_execution_time: groupByLanguage(languageStatsResults[3].rows),
+        avg_submission_time: groupByLanguage(languageStatsResults[4].rows),
+        test_cases_passed: groupByLanguage(languageStatsResults[5].rows),
       };
 
       res.json({
@@ -170,6 +193,7 @@ const leaderboardRouter = () => {
         win_rate: win_rate.rows,
         total_submissions: total_submissions.rows,
         passed_submissions: passed_submissions.rows,
+        pass_rate: pass_rate.rows,
         avg_submission_time: avg_submission_time.rows,
         avg_execution_time: avg_execution_time.rows,
         test_cases_passed: test_cases_passed.rows,

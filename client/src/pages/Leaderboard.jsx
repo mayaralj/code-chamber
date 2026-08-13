@@ -25,6 +25,11 @@ const overallMetrics = {
     field: "passed_submissions",
     format: (v) => v,
   },
+  pass_rate: {
+    label: "Pass Rate",
+    field: "pass_rate",
+    format: (v) => `${(Number(v) * 100).toFixed(2)}%`,
+  },
   avg_submission_time: {
     label: "Avg Submission Time (s)",
     field: "avg_submission_time",
@@ -53,6 +58,11 @@ const languageMetrics = {
     label: "Passed Submissions",
     field: "passed_submissions",
     format: (v) => v,
+  },
+  pass_rate: {
+    label: "Pass Rate",
+    field: "pass_rate",
+    format: (v) => `${(Number(v) * 100).toFixed(2)}%`,
   },
   avg_submission_time: {
     label: "Avg Submission Time (s)",
