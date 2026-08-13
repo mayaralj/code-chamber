@@ -673,7 +673,11 @@ const Profile = () => {
                             Avg Exec
                           </p>
                           <p className="text-lg font-bold text-[#e8d9c0]">
-                            {formatStat(stat.avg_execution_time, "ms")}
+                            {/* Execution time rounded to 2 decimal places */}
+                            {formatStat(
+                              Math.round(stat.avg_execution_time * 100) / 100,
+                              "ms",
+                            )}
                           </p>
                         </div>
                         <div>
