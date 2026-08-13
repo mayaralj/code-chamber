@@ -28,11 +28,11 @@ const getTotalStats = () => {
       WHERE p.avg_execution_time IS NOT NULL
       ORDER BY p.avg_execution_time ASC LIMIT 10`),
 
-    db.query(`SELECT u.username, u."displayUsername", p.avg_submit_time
+    db.query(`SELECT u.username, u."displayUsername", p.avg_submission_time
       FROM profile_stats p
       JOIN "user" u ON p.user_id = u.id
-      WHERE p.avg_submit_time IS NOT NULL
-      ORDER BY p.avg_submit_time ASC LIMIT 10`),
+      WHERE p.avg_submission_time IS NOT NULL
+      ORDER BY p.avg_submission_time ASC LIMIT 10`),
 
     db.query(`SELECT u.username, u."displayUsername", p.total_submissions
       FROM profile_stats p
@@ -81,14 +81,14 @@ const getAllLanguageStats = () => {
     `),
 
     db.query(`
-      SELECT username, "displayUsername", language, avg_submit_time, rn
+      SELECT username, "displayUsername", language, avg_submission_time, rn
       FROM (
         SELECT u.username, u."displayUsername", ls.language,
-               ls.avg_submit_time,
-               ROW_NUMBER() OVER (PARTITION BY ls.language ORDER BY ls.avg_submit_time ASC) AS rn
+               ls.avg_submission_time,
+               ROW_NUMBER() OVER (PARTITION BY ls.language ORDER BY ls.avg_submission_time ASC) AS rn
         FROM language_stats ls
         JOIN "user" u ON ls.user_id = u.id
-        WHERE ls.avg_submit_time IS NOT NULL
+        WHERE ls.avg_submission_time IS NOT NULL
       ) ranked
       WHERE rn <= 10
       ORDER BY language, rn;
@@ -169,8 +169,8 @@ const leaderboardRouter = () => {
         win_rate: win_rate.rows,
         total_submissions: total_submissions.rows,
         passed_submissions: passed_submissions.rows,
-        submission_time: avg_submission_time.rows,
-        execution_time: avg_execution_time.rows,
+        avg_submission_time: avg_submission_time.rows,
+        avg_execution_time: avg_execution_time.rows,
         languageStats: groupedLanguageStats,
       });
     } catch (err) {

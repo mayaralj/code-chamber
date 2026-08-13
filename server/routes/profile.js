@@ -24,12 +24,12 @@ const profileRouter = () => {
       let [profileStats, languageStats] = await Promise.all([
         // Get more info from profile stats via db query
         db.query(
-          "SELECT matches_played, matches_won, test_cases_passed, avg_execution_time, avg_submit_time, total_submissions, passed_submissions FROM profile_stats WHERE user_id = $1",
+          "SELECT matches_played, matches_won, test_cases_passed, avg_execution_time, avg_submission_time, total_submissions, passed_submissions FROM profile_stats WHERE user_id = $1",
           [session.user.id],
         ),
         // Get language stats
         db.query(
-          "SELECT language, total_submissions, passed_submissions, avg_execution_time, avg_submit_time, test_cases_passed FROM language_stats WHERE user_id = $1",
+          "SELECT language, total_submissions, passed_submissions, avg_execution_time, avg_submission_time, test_cases_passed FROM language_stats WHERE user_id = $1",
           [session.user.id],
         ),
       ]);
@@ -39,7 +39,7 @@ const profileRouter = () => {
         matches_won: 0,
         test_cases_passed: 0,
         avg_execution_time: null,
-        avg_submit_time: null,
+        avg_submission_time: null,
         total_submissions: 0,
         passed_submissions: 0,
       };
@@ -57,9 +57,9 @@ const profileRouter = () => {
             profileStats.avg_execution_time !== null
               ? parseFloat(profileStats.avg_execution_time)
               : "N/A",
-          avg_submit_time:
-            profileStats.avg_submit_time !== null
-              ? parseFloat(profileStats.avg_submit_time)
+          avg_submission_time:
+            profileStats.avg_submission_time !== null
+              ? parseFloat(profileStats.avg_submission_time)
               : "N/A",
           total_submissions: profileStats.total_submissions ?? 0,
           passed_submissions: profileStats.passed_submissions ?? 0,
@@ -71,9 +71,9 @@ const profileRouter = () => {
               lang.avg_execution_time !== null
                 ? parseFloat(lang.avg_execution_time)
                 : "N/A",
-            avg_submit_time:
-              lang.avg_submit_time !== null
-                ? parseFloat(lang.avg_submit_time)
+            avg_submission_time:
+              lang.avg_submission_time !== null
+                ? parseFloat(lang.avg_submission_time)
                 : "N/A",
             test_cases_passed: lang.test_cases_passed ?? 0,
           })),

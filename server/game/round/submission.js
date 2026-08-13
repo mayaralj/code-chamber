@@ -62,8 +62,8 @@ export const updateSubmissionStats = async (player, result) => {
            passed_submissions = passed_submissions + $2,
            avg_execution_time = COALESCE(avg_execution_time, 0)
              + ($3 - COALESCE(avg_execution_time, 0)) / (total_submissions + 1),
-           avg_submit_time = COALESCE(avg_submit_time, 0)
-             + ($4 - COALESCE(avg_submit_time, 0)) / (total_submissions + 1),
+           avg_submission_time = COALESCE(avg_submission_time, 0)
+             + ($4 - COALESCE(avg_submission_time, 0)) / (total_submissions + 1),
            updated_at = NOW()
        WHERE user_id = $5`,
       [
@@ -77,7 +77,7 @@ export const updateSubmissionStats = async (player, result) => {
     db.query(
       `INSERT INTO language_stats (
          user_id, language, total_submissions, test_cases_passed,
-         passed_submissions, avg_execution_time, avg_submit_time, updated_at
+         passed_submissions, avg_execution_time, avg_submission_time, updated_at
        )
        VALUES ($1, $2, 1, $3, $4, $5, $6, NOW())
        ON CONFLICT (user_id, language) DO UPDATE
@@ -87,8 +87,8 @@ export const updateSubmissionStats = async (player, result) => {
            avg_execution_time = COALESCE(language_stats.avg_execution_time, 0)
              + ($5 - COALESCE(language_stats.avg_execution_time, 0))
                / (language_stats.total_submissions + 1),
-           avg_submit_time = COALESCE(language_stats.avg_submit_time, 0)
-             + ($6 - COALESCE(language_stats.avg_submit_time, 0))
+           avg_submission_time = COALESCE(language_stats.avg_submission_time, 0)
+             + ($6 - COALESCE(language_stats.avg_submission_time, 0))
                / (language_stats.total_submissions + 1),
            updated_at = NOW()`,
       [

@@ -326,7 +326,7 @@ const Profile = () => {
     total_submissions: totalSubmissions = 0,
     passed_submissions: passedSubmissions = 0,
     avg_execution_time: avgExecutionTime = "N/A",
-    avg_submit_time: avgSubmitTime = "N/A",
+    avg_submission_time: avgSubmissionTime = "N/A",
     languageStats = [],
   } = gameStats;
 
@@ -347,7 +347,7 @@ const Profile = () => {
       total_submissions: totalSubmissions,
       passed_submissions: passedSubmissions,
       avg_execution_time: avgExecutionTime,
-      avg_submit_time: avgSubmitTime,
+      avg_submission_time: avgSubmissionTime,
     },
     ...languageStats,
   ];
@@ -683,7 +683,7 @@ const Profile = () => {
                           <p className="text-lg font-bold text-[#e8d9c0]">
                             {/* Submit time rounded to 2 decimal places */}
                             {formatStat(
-                              Math.round(stat.avg_submit_time * 100) / 100,
+                              Math.round(stat.avg_submission_time * 100) / 100,
                               "s",
                             )}
                           </p>
