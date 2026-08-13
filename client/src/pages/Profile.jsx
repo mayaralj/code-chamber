@@ -323,22 +323,14 @@ const Profile = () => {
   const {
     matches_played: matchesPlayed = 0,
     matches_won: matchesWon = 0,
+    win_rate: winRate = "N/A",
     total_submissions: totalSubmissions = 0,
     passed_submissions: passedSubmissions = 0,
+    pass_rate: passRate = "N/A",
     avg_execution_time: avgExecutionTime = "N/A",
     avg_submission_time: avgSubmissionTime = "N/A",
     languageStats = [],
   } = gameStats;
-
-  // Calculate win and pass rate
-  const winRate =
-    matchesWon && matchesPlayed
-      ? `${Math.round((matchesWon / matchesPlayed) * 100)}%`
-      : "0%";
-  const passRate =
-    totalSubmissions > 0
-      ? `${Math.round((passedSubmissions / totalSubmissions) * 100)}%`
-      : "0%";
 
   // Build the "ALL" summary card plus one card per language for the modal
   const allLanguageStatsForModal = [
@@ -346,6 +338,7 @@ const Profile = () => {
       language: "ALL",
       total_submissions: totalSubmissions,
       passed_submissions: passedSubmissions,
+      pass_rate: passRate,
       avg_execution_time: avgExecutionTime,
       avg_submission_time: avgSubmissionTime,
     },
@@ -537,7 +530,7 @@ const Profile = () => {
             <div className="border-l border-[#5d5549] pl-7">
               <p className="mb-2 font-mono text-sm text-[#c6baa5]">Win Rate</p>
               <p className="font-mono text-3xl font-black text-[#ffd89a]">
-                {winRate}
+                {Math.round(winRate * 100)}%
               </p>
             </div>
           </div>
@@ -562,7 +555,7 @@ const Profile = () => {
             <div className="border-l border-[#5d5549] pl-7">
               <p className="mb-2 font-mono text-sm text-[#c6baa5]">Pass Rate</p>
               <p className="font-mono text-3xl font-black text-[#ffd89a]">
-                {passRate}
+                {Math.round(passRate * 100)}%
               </p>
             </div>
           </div>
@@ -622,14 +615,6 @@ const Profile = () => {
             ) : (
               <div className="flex flex-col gap-4">
                 {allLanguageStatsForModal.map((stat) => {
-                  const rate =
-                    stat.total_submissions > 0
-                      ? `${Math.round(
-                          (stat.passed_submissions / stat.total_submissions) *
-                            100,
-                        )}%`
-                      : "0%";
-
                   return (
                     <div
                       key={stat.language}
@@ -665,7 +650,7 @@ const Profile = () => {
                             Pass Rate
                           </p>
                           <p className="text-lg font-bold text-[#e8d9c0]">
-                            {rate}
+                            {Math.round(stat.pass_rate * 100)}%
                           </p>
                         </div>
                         <div>

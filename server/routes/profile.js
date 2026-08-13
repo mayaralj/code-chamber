@@ -22,14 +22,32 @@ const profileRouter = () => {
 
       // Place both in promise.all to run in parallel
       let [profileStats, languageStats] = await Promise.all([
-        // Get more info from profile stats via db query
         db.query(
-          "SELECT matches_played, matches_won, test_cases_passed, avg_execution_time, avg_submission_time, total_submissions, passed_submissions FROM profile_stats WHERE user_id = $1",
+          `SELECT
+       matches_played,
+       matches_won,
+       test_cases_passed,
+       avg_execution_time,
+       avg_submission_time,
+       total_submissions,
+       passed_submissions,
+       (matches_won::float / NULLIF(matches_played, 0)) AS win_rate,
+       (passed_submissions::float / NULLIF(total_submissions, 0)) AS pass_rate
+     FROM profile_stats
+     WHERE user_id = $1`,
           [session.user.id],
         ),
-        // Get language stats
         db.query(
-          "SELECT language, total_submissions, passed_submissions, avg_execution_time, avg_submission_time, test_cases_passed FROM language_stats WHERE user_id = $1",
+          `SELECT
+       language,
+       total_submissions,
+       passed_submissions,
+       avg_execution_time,
+       avg_submission_time,
+       test_cases_passed,
+       (passed_submissions::float / NULLIF(total_submissions, 0)) AS pass_rate
+     FROM language_stats
+     WHERE user_id = $1`,
           [session.user.id],
         ),
       ]);
@@ -42,10 +60,11 @@ const profileRouter = () => {
         avg_submission_time: null,
         total_submissions: 0,
         passed_submissions: 0,
+        win_rate: null,
+        pass_rate: null,
       };
       languageStats = languageStats.rows;
 
-      // Build profile info and return it
       const profileInfo = {
         displayName: session.user.displayUsername ?? session.user.name,
         username: session.user.username,
@@ -57,6 +76,8 @@ const profileRouter = () => {
           avg_submission_time: profileStats.avg_submission_time ?? "N/A",
           total_submissions: profileStats.total_submissions ?? 0,
           passed_submissions: profileStats.passed_submissions ?? 0,
+          win_rate: profileStats.win_rate ?? "N/A",
+          pass_rate: profileStats.pass_rate ?? "N/A",
           languageStats: languageStats.map((lang) => ({
             language: lang.language ?? "N/A",
             total_submissions: lang.total_submissions ?? 0,
@@ -64,6 +85,7 @@ const profileRouter = () => {
             avg_execution_time: lang.avg_execution_time ?? "N/A",
             avg_submission_time: lang.avg_submission_time ?? "N/A",
             test_cases_passed: lang.test_cases_passed ?? 0,
+            pass_rate: lang.pass_rate ?? "N/A",
           })),
         },
       };
