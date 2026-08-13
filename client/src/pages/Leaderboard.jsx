@@ -282,12 +282,17 @@ const Leaderboard = () => {
 
         {/* Results */}
         <div className="overflow-x-auto rounded border border-[#4b4133] bg-[#0f0f0f]">
-          <table className="w-full text-left text-sm text-[#e7c49d]">
+          <table className="w-full table-fixed text-left text-sm text-[#e7c49d]">
+            <colgroup>
+              <col className="w-14" />
+              <col className="w-1/2" />
+              <col />
+            </colgroup>
             <thead>
               <tr className="border-b border-[#4b4133] text-xs uppercase tracking-wide text-[#c7b499]">
                 <th className="px-4 py-3">#</th>
                 <th className="px-4 py-3">Player</th>
-                <th className="px-4 py-3">{config.label}</th>
+                <th className="px-4 py-3 text-center">{config.label}</th>
               </tr>
             </thead>
             <tbody>
@@ -297,10 +302,10 @@ const Leaderboard = () => {
                   className="border-b border-[#2a2419]/60 last:border-none"
                 >
                   <td className="px-4 py-3 text-[#e7c49d]/50">{index + 1}</td>
-                  <td className="px-4 py-3 font-bold text-[#ffd89a]">
+                  <td className="truncate px-4 py-3 font-bold text-[#ffd89a]">
                     {row.username}
                   </td>
-                  <td className="px-4 py-3">{formatValue(row)}</td>
+                  <td className="px-4 py-3 text-center">{formatValue(row)}</td>
                 </tr>
               ))}
             </tbody>
