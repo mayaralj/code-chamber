@@ -81,20 +81,6 @@ const getAllLanguageStats = () => {
     `),
 
     db.query(`
-      SELECT username, "displayUsername", language, avg_submission_time, rn
-      FROM (
-        SELECT u.username, u."displayUsername", ls.language,
-               ls.avg_submission_time,
-               ROW_NUMBER() OVER (PARTITION BY ls.language ORDER BY ls.avg_submission_time ASC) AS rn
-        FROM language_stats ls
-        JOIN "user" u ON ls.user_id = u.id
-        WHERE ls.avg_submission_time IS NOT NULL
-      ) ranked
-      WHERE rn <= 10
-      ORDER BY language, rn;
-    `),
-
-    db.query(`
       SELECT username, "displayUsername", language, avg_execution_time, rn
       FROM (
         SELECT u.username, u."displayUsername", ls.language,
@@ -103,6 +89,20 @@ const getAllLanguageStats = () => {
         FROM language_stats ls
         JOIN "user" u ON ls.user_id = u.id
         WHERE ls.avg_execution_time IS NOT NULL
+      ) ranked
+      WHERE rn <= 10
+      ORDER BY language, rn;
+    `),
+
+    db.query(`
+      SELECT username, "displayUsername", language, avg_submission_time, rn
+      FROM (
+        SELECT u.username, u."displayUsername", ls.language,
+               ls.avg_submission_time,
+               ROW_NUMBER() OVER (PARTITION BY ls.language ORDER BY ls.avg_submission_time ASC) AS rn
+        FROM language_stats ls
+        JOIN "user" u ON ls.user_id = u.id
+        WHERE ls.avg_submission_time IS NOT NULL
       ) ranked
       WHERE rn <= 10
       ORDER BY language, rn;
@@ -152,6 +152,7 @@ const leaderboardRouter = () => {
         avg_submission_time,
         total_submissions,
         passed_submissions,
+        test_cases_passed,
       ] = totalStatsResults;
 
       // Group language stats by language
@@ -171,6 +172,7 @@ const leaderboardRouter = () => {
         passed_submissions: passed_submissions.rows,
         avg_submission_time: avg_submission_time.rows,
         avg_execution_time: avg_execution_time.rows,
+        test_cases_passed: test_cases_passed.rows,
         languageStats: groupedLanguageStats,
       });
     } catch (err) {
