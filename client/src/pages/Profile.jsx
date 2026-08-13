@@ -174,10 +174,10 @@ const Profile = () => {
       });
 
       // Log repsonse text
-      // if (response.status === 401) {
-      //   navigate("/login", { replace: true });
-      //   return;
-      // }
+      if (response.status === 401) {
+        navigate("/login", { replace: true });
+        return;
+      }
 
       if (!response.ok) {
         throw new Error(`HTTP error: ${response.status}`);

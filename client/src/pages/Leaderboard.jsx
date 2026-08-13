@@ -1,5 +1,5 @@
 // Imports
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback, useRef } from "react";
 import { useNavigate } from "react-router";
 
 // Metrics available when viewing "ALL" (overall, cross-language stats)
@@ -98,60 +98,102 @@ const Leaderboard = () => {
   const [leaderboardData, setLeaderboardData] = useState(null);
   const [errorMessage, setErrorMessage] = useState("");
   const [fetchStatus, setFetchStatus] = useState("loading");
-
-  // Filter state
   const [language, setLanguage] = useState("ALL");
   const [metric, setMetric] = useState("matches_won");
 
+  // Refs
+  const abortController = useRef(null);
+
+  // Fetch leaderboard data from the server
+  const fetchLeaderboardData = useCallback(async () => {
+    // Abort any ongoing fetch
+    abortController.current?.abort();
+
+    // Create a new abort controller for this fetch
+    abortController.current = new AbortController();
+    try {
+      const response = await fetch("/api/leaderboard", {
+        method: "GET",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        credentials: "include",
+        signal: abortController.current?.signal,
+      });
+
+      if (!response.ok) {
+        throw new Error(`HTTP error: ${response.status}`);
+      }
+
+      // Set Data
+      const data = await response.json();
+      setLeaderboardData(data);
+      setFetchStatus("success");
+    } catch (error) {
+      console.error("Error fetching leaderboard data:", error);
+      setFetchStatus("error");
+      setErrorMessage("Could not load leaderboard data.");
+    }
+  }, []);
+
   // Fetch leaderboard data on mount
   useEffect(() => {
-    let cancelled = false;
-
-    const fetchLeaderboardData = async () => {
-      setFetchStatus("loading");
-      try {
-        const response = await fetch("/api/leaderboard", {
-          method: "GET",
-          headers: {
-            "Content-Type": "application/json",
-          },
-          credentials: "include",
-        });
-
-        if (response.status === 401) {
-          navigate("/", { replace: true });
-          return;
-        }
-
-        if (!response.ok) {
-          throw new Error(`HTTP error: ${response.status}`);
-        }
-
-        const data = await response.json();
-
-        if (!cancelled) {
-          setLeaderboardData(data);
-          setFetchStatus("success");
-        }
-      } catch (error) {
-        console.error("Error fetching leaderboard data:", error);
-
-        if (!cancelled) {
-          setFetchStatus("error");
-          setErrorMessage("Could not load leaderboard data.");
-        }
-      }
-    };
-
     fetchLeaderboardData();
 
     return () => {
-      cancelled = true;
+      // Abort any ongoing fetch when the component unmounts
+      abortController.current?.abort();
     };
-  }, [navigate]);
+  }, [fetchLeaderboardData, abortController]);
 
-  // If leaderboard data is not yet loaded, show a loading state
-  if (fetchStatus === "loading") {
+  // helper to handle retry profile fetch
+  const refetchLeaderboardData = () => {
+    setFetchStatus("fetching");
+    fetchLeaderboardData();
+  };
+
+  // If profile info fetch error'd out, show an error message with a retry button
+  if (fetchStatus === "error") {
+    return (
+      <main className="min-h-[calc(100vh-72px)] grid place-items-center bg-[#0b0b0b] px-4 font-mono text-[#e7c49d]">
+        <div className="flex max-w-sm flex-col items-center gap-3 text-center">
+          <div className="flex h-12 w-12 items-center justify-center rounded-full border border-[#ffd89a]/40 bg-[#ffd89a]/5">
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              strokeWidth="1.75"
+              className="h-6 w-6 text-[#ffd89a]"
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                d="M12 9v3.75m0 3.75h.007M12 3.75a8.25 8.25 0 100 16.5 8.25 8.25 0 000-16.5z"
+              />
+            </svg>
+          </div>
+
+          <p className="text-sm font-bold uppercase tracking-wide text-[#ffd89a]">
+            Couldn't load leaderboard
+          </p>
+          <p className="text-xs text-[#e7c49d]/70">
+            Something went wrong while fetching the leaderboard. Please wait and
+            try again.
+          </p>
+
+          <button
+            type="button"
+            onClick={refetchLeaderboardData}
+            className="mt-2 cursor-pointer rounded border border-[#ffd89a] px-5 py-2 font-mono text-sm font-bold text-[#ffd89a] transition-colors duration-150 hover:bg-[#ffd89a] hover:text-[#241d14] active:scale-[0.98] focus:outline-none focus-visible:ring-2 focus-visible:ring-[#ffd89a]/60"
+          >
+            RETRY
+          </button>
+        </div>
+      </main>
+    );
+  } else if (fetchStatus === "fetching" || !leaderboardData) {
+    // If profile info is still being fetched, show a loading state
     return (
       <main className="min-h-[calc(100vh-72px)] grid place-items-center bg-[#0b0b0b] font-mono text-[#e7c49d]">
         LOADING LEADERBOARD...
