@@ -42,9 +42,7 @@ const beforeGame = async (io, socket, code) => {
 
   // Insert matches for all players
   await Promise.all(
-    rooms[code].players.map((player) =>
-      trackBeforeMatch(player, rooms[code].roomId),
-    ),
+    rooms[code].players.map((player) => trackBeforeMatch(player, rooms[code])),
   );
 
   // Check if room still valid

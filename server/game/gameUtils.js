@@ -5,16 +5,19 @@ import { broadcastRemoveRoom } from "../broadcast/broadcastRooms.js";
 import { playersInRooms, roomIdToCode } from "../globals.js";
 
 // Function to update matches played for a player
-export const trackBeforeMatch = async (player, roomId) => {
+export const trackBeforeMatch = async (player, room) => {
   // Validate
   if (!player || !player.userId || player.isGuest) return;
-  if (!roomId) return;
+  if (!room || !room.roomId) return;
+
+  // destructure roomId and difficulty from the room object
+  const { roomId, difficulty } = room;
 
   // Insert match into the database (not full match data, just the fact that the player played a match in this room)
   await db.query(
-    `INSERT INTO matches (room_id, user_id, played_at)
-     VALUES ($1, $2, NOW())`,
-    [roomId, player.userId],
+    `INSERT INTO matches (room_id, user_id, difficulty, played_at)
+     VALUES ($1, $2, $3, NOW())`,
+    [roomId, player.userId, difficulty],
   );
 };
 
