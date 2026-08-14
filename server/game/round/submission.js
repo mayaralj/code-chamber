@@ -41,69 +41,46 @@ export const updateSubmissionStats = async (player, result) => {
     return;
   }
 
-  const { testCasesPassed, executionTime, submitTime, passed, languageUsed } =
-    result;
+  const {
+    testCasesPassed,
+    executionTime,
+    submitTime,
+    passed,
+    languageUsed,
+    difficulty,
+  } = result;
 
   if (
     !Number.isFinite(testCasesPassed) ||
     !Number.isFinite(executionTime) ||
     !Number.isFinite(submitTime) ||
     typeof passed !== "boolean" ||
+    typeof difficulty !== "string" ||
     typeof languageUsed !== "string"
   ) {
-    console.error(
+    console.log(
       `Invalid submission stats for player ${player.username}, skipping db update`,
     );
     return;
   }
 
-  await Promise.all([
-    db.query(
-      `UPDATE profile_stats
-       SET total_submissions = total_submissions + 1,
-           test_cases_passed = test_cases_passed + $1,
-           passed_submissions = passed_submissions + $2,
-           avg_execution_time = COALESCE(avg_execution_time, 0)
-             + ($3 - COALESCE(avg_execution_time, 0)) / (total_submissions + 1),
-           avg_submission_time = COALESCE(avg_submission_time, 0)
-             + ($4 - COALESCE(avg_submission_time, 0)) / (total_submissions + 1),
-           updated_at = NOW()
-       WHERE user_id = $5`,
-      [
-        testCasesPassed,
-        passed ? 1 : 0,
-        executionTime,
-        submitTime,
-        player.userId,
-      ],
-    ),
-    db.query(
-      `INSERT INTO language_stats (
-         user_id, language, total_submissions, test_cases_passed,
-         passed_submissions, avg_execution_time, avg_submission_time, updated_at
-       )
-       VALUES ($1, $2, 1, $3, $4, $5, $6, NOW())
-       ON CONFLICT (user_id, language) DO UPDATE
-       SET total_submissions = language_stats.total_submissions + 1,
-           test_cases_passed = language_stats.test_cases_passed + $3,
-           passed_submissions = language_stats.passed_submissions + $4,
-           avg_execution_time = COALESCE(language_stats.avg_execution_time, 0)
-             + ($5 - COALESCE(language_stats.avg_execution_time, 0))
-               / (language_stats.total_submissions + 1),
-           avg_submission_time = COALESCE(language_stats.avg_submission_time, 0)
-             + ($6 - COALESCE(language_stats.avg_submission_time, 0))
-               / (language_stats.total_submissions + 1),
-           updated_at = NOW()`,
-      [
-        player.userId,
-        languageUsed,
-        testCasesPassed,
-        passed ? 1 : 0,
-        executionTime,
-        submitTime,
-      ],
-    ),
-  ]);
+  // Add submissions into submissions table
+  await db.query(
+    `INSERT INTO submissions (
+     user_id, language, difficulty, passed,
+     execution_time, submit_time, test_cases_passed
+   )
+   VALUES ($1, $2, $3, $4, $5, $6, $7)`,
+    [
+      player.userId,
+      languageUsed,
+      difficulty,
+      passed,
+      executionTime,
+      submitTime,
+      testCasesPassed,
+    ],
+  );
 };
 
 // Helper to process player submission
@@ -148,7 +125,7 @@ export const processSubmission = async (
   if (!roundData.roundResults) {
     roundData.roundResults = [];
   }
-
+  console.log(`Round difficulty: ${roundData.question.difficulty}`);
   // Mark player as judging
   playerRoundData.judging = true;
   notifyJudging(io, player.socketId, room, code);
@@ -179,6 +156,7 @@ export const processSubmission = async (
   // Fill in the result object with additional information
   result.submitTime = submitTime;
   result.player = player;
+  result.difficulty = roundData.question.difficulty;
   result.numOfTestCases = testCases.length;
 
   // Update player stats in the database
