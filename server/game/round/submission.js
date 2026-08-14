@@ -3,6 +3,9 @@ import runCode from "../../executor/executor.js";
 import { buildPlayerList } from "../../utils/playerList.js";
 import { rooms } from "../../globals.js";
 
+// Config
+const availableLanguages = ["javascript", "python", "cpp"];
+
 // Helper to notify players of code judging
 export const notifyJudging = (io, socketId, room, code) => {
   // Build a player list with needed data
@@ -115,7 +118,9 @@ export const processSubmission = async (
   // Get room
   const room = rooms[code];
   if (!room) {
-    console.error(`Room ${code} not found`);
+    io.to(player.socketId).emit("submit-code-error", {
+      message: "Room not found",
+    });
     return;
   }
   // Ensure player hasnt been submitted or being processed
@@ -125,6 +130,14 @@ export const processSubmission = async (
     playerRoundData.submitted ||
     playerRoundData.judging
   ) {
+    return;
+  }
+
+  // Check if language is valid for this question
+  if (!availableLanguages.includes(language)) {
+    io.to(player.socketId).emit("submit-code-error", {
+      message: "Invalid language",
+    });
     return;
   }
 
