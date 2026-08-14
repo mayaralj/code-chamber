@@ -218,8 +218,8 @@ const Leaderboard = () => {
   // Get the rows to display based on the selected language and metric
   const rows =
     language === "ALL"
-      ? leaderboardData?.[metric]
-      : leaderboardData?.languageStats?.[metric]?.[language];
+      ? (leaderboardData?.[metric] ?? [])
+      : (leaderboardData?.languageStats?.[metric]?.[language] ?? []);
 
   return (
     <main className="min-h-[calc(100vh-72px)] bg-[#0b0b0b] px-6 py-10 font-mono text-[#e7c49d]">
