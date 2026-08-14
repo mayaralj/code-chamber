@@ -8,6 +8,9 @@ import {
 import leaveRoom from "./leaveRoom.js";
 import leaveGame from "../game/leaveGame.js";
 
+// Config
+const validDifficulties = ["easy", "medium", "hard"];
+
 // Helper to cancel room creation
 export const cancelRoomCreation = (io, socket, roomId) => {
   // Find the room with the matching roomId
@@ -94,8 +97,7 @@ const createRoom = (io, socket, roomData, callback) => {
   }
 
   // Verify difficulty is valid
-  const validDifficulties = ["Easy", "Medium", "Hard"];
-  if (!validDifficulties.includes(difficulty)) {
+  if (!validDifficulties.includes(difficulty.toLowerCase())) {
     return callback({ error: "Invalid difficulty level" });
   }
 

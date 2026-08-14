@@ -185,9 +185,9 @@ const Browse = () => {
             className="cursor-pointer border border-[#4b4133] bg-[#111111] px-4 py-4 text-sm font-bold tracking-wider text-[#e7c49d] outline-none focus:border-[#d8b77f]"
           >
             <option value="ALL">ALL DIFFICULTIES</option>
-            <option value="Easy">EASY</option>
-            <option value="Medium">MEDIUM</option>
-            <option value="Hard">HARD</option>
+            <option value="easy">EASY</option>
+            <option value="medium">MEDIUM</option>
+            <option value="hard">HARD</option>
           </select>
           <select
             value={maxPlayerCountFilter}
