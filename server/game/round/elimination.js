@@ -1,4 +1,5 @@
 import { rooms, playersInRooms } from "../../globals.js";
+import { trackMatch } from "./roundUtils.js";
 
 // Helper to determine player eliminated
 export const determinePlayerEliminated = (roundData, ignorePlayer) => {
@@ -44,6 +45,9 @@ export const eliminatePlayer = (io, code, roundData, playerEliminated) => {
     console.error(`Room ${code} not found`);
     return;
   }
+
+  // Track match for eliminated player
+  trackMatch(playerEliminated, room.roomId, false);
 
   // Remove player from room
   room.players = room.players.filter(

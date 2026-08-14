@@ -2,6 +2,7 @@
 import { cancellableSleep } from "../../utils/timers.js";
 import { buildPlayerList } from "../../utils/playerList.js";
 import { rooms } from "../../globals.js";
+import db from "../../db.js";
 
 // Helper to wait for reconnecting players to reconnect or timeout
 export const waitForReconnectingPlayers = async (io, code) => {
@@ -143,4 +144,19 @@ export const startRoundTimer = async (io, code, roundData, ROUND_TIMER) => {
     // Clear the cancel function from the room
     roundData.cancelRoundTimer = null;
   }
+};
+
+// Helper to update matches table for player
+export const trackMatch = async (player, roomId, isWinner) => {
+  // Validate
+  if (!player || !player.userId || player.isGuest) return;
+  if (!roomId) return;
+
+  await db.query(
+    `UPDATE matches SET won = $1 WHERE room_id = $2 AND user_id = $3`,
+    [isWinner, roomId, player.userId],
+  );
+  console.log(
+    `Updated match for player ${player.username} in room ${roomId}, won: ${isWinner}`,
+  );
 };

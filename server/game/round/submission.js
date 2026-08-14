@@ -35,9 +35,18 @@ export const notifySubmission = (io, socketId, room, code) => {
 };
 
 // Helper to update players db with submission results
-export const updateSubmissionStats = async (player, result) => {
-  if (player.isGuest) {
-    console.log(`Player ${player.username} is a guest, skipping db update`);
+export const trackSubmission = async (player, result, roomId, roundNumber) => {
+  // Validate
+  if (!player || !player.userId || player.isGuest) {
+    console.log("No player to update submission for");
+    return;
+  }
+  if (!result) {
+    console.log("No result to update submission for");
+    return;
+  }
+  if (!roomId || !roundNumber) {
+    console.log("No roomId or roundNumber to update submission for");
     return;
   }
 
@@ -55,24 +64,23 @@ export const updateSubmissionStats = async (player, result) => {
     !Number.isFinite(executionTime) ||
     !Number.isFinite(submitTime) ||
     typeof passed !== "boolean" ||
-    typeof difficulty !== "string" ||
-    typeof languageUsed !== "string"
+    typeof languageUsed !== "string" ||
+    typeof difficulty !== "string"
   ) {
-    console.log(
-      `Invalid submission stats for player ${player.username}, skipping db update`,
-    );
+    console.error(`Invalid submission stats for ${player.username}, skipping`);
     return;
   }
 
-  // Add submissions into submissions table
   await db.query(
     `INSERT INTO submissions (
-     user_id, language, difficulty, passed,
-     execution_time, submit_time, test_cases_passed
-   )
-   VALUES ($1, $2, $3, $4, $5, $6, $7)`,
+       user_id, room_id, round_number, language, difficulty, passed,
+       execution_time, submit_time, test_cases_passed
+     )
+     VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9)`,
     [
       player.userId,
+      roomId,
+      roundNumber,
       languageUsed,
       difficulty,
       passed,
@@ -166,7 +174,7 @@ export const processSubmission = async (
       `Player ${player.username} had an execution error, skipping db update`,
     );
   } else {
-    await updateSubmissionStats(player, result);
+    await trackSubmission(player, result, room.roomId, room.currentRound);
   }
 
   // Update player status

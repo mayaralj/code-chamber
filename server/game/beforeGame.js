@@ -4,7 +4,7 @@ import { determineAllEvents } from "./round/roundEvents.js";
 import { sleep } from "../utils/timers.js";
 import { rooms } from "../globals.js";
 import { broadcastUpdateRoom } from "../broadcast/broadcastRooms.js";
-import { updateMatchesPlayed, isRoomStillValid } from "./gameUtils.js";
+import { trackBeforeMatch, isRoomStillValid } from "./gameUtils.js";
 
 // Config
 const WAIT_TIME_BEFORE_GAME_START = 3500;
@@ -40,9 +40,11 @@ const beforeGame = async (io, socket, code) => {
     return;
   }
 
-  // Update matches played for all players
+  // Insert matches for all players
   await Promise.all(
-    rooms[code].players.map((player) => updateMatchesPlayed(player)),
+    rooms[code].players.map((player) =>
+      trackBeforeMatch(player, rooms[code].roomId),
+    ),
   );
 
   // Check if room still valid
