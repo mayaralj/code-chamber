@@ -78,6 +78,7 @@ export const startBatchTimer = (io) => {
   if (batchTimer) {
     return;
   }
+  console.log("Starting batch timer for room broadcasts");
   batchTimer = setInterval(() => {
     flushBroadcasts(io);
   }, BATCH_INTERVAL);
