@@ -1,6 +1,9 @@
 // Imports
 import { useState, useEffect, useCallback, useRef } from "react";
 
+// Config
+const FETCH_INTERVAL = 60 * 1000;
+
 // Metrics available when viewing "ALL" (overall, cross-language stats)
 const overallMetrics = {
   matches_won: { label: "Matches Won", field: "matches_won", format: (v) => v },
@@ -97,19 +100,9 @@ const Leaderboard = () => {
   const [language, setLanguage] = useState("ALL");
   const [metric, setMetric] = useState("matches_won");
   const [difficulty, setDifficulty] = useState("ALL");
-  const [prevParams, setPrevParams] = useState({ language, difficulty });
 
   // Refs
   const abortController = useRef(null);
-
-  // If filters changed set fetching to true
-  if (
-    prevParams.language !== language ||
-    prevParams.difficulty !== difficulty
-  ) {
-    setPrevParams({ language, difficulty });
-    setFetchStatus("fetching");
-  }
 
   // Fetch leaderboard data from the server
   const fetchLeaderboardData = useCallback(async () => {
@@ -119,20 +112,7 @@ const Leaderboard = () => {
     // Create a new abort controller for this fetch
     abortController.current = new AbortController();
     try {
-      const params = new URLSearchParams();
-      console.log("Fetching leaderboard data with params:", {
-        language,
-        difficulty,
-      });
-      if (difficulty !== "ALL") {
-        params.append("difficulty", difficulty);
-        console.log("Fetching leaderboard for difficulty:", difficulty);
-      }
-      if (language !== "ALL") {
-        params.append("language", language);
-        console.log("Fetching leaderboard for language:", language);
-      }
-      const response = await fetch(`/api/leaderboard?${params.toString()}`, {
+      const response = await fetch(`/api/leaderboard`, {
         method: "GET",
         headers: {
           "Content-Type": "application/json",
@@ -147,7 +127,6 @@ const Leaderboard = () => {
 
       // Set Data
       const data = await response.json();
-      console.log("Leaderboard data fetched:", data);
       setLeaderboardData(data);
       setFetchStatus("success");
       setErrorMessage("");
@@ -161,17 +140,26 @@ const Leaderboard = () => {
       setFetchStatus("error");
       setErrorMessage("Could not load leaderboard data.");
     }
-  }, [language, difficulty]);
+  }, []);
 
   // Fetch leaderboard data
   useEffect(() => {
+    // Initial fetch
     fetchLeaderboardData();
 
+    // Fetch on an interval
+    const interval = setInterval(() => {
+      fetchLeaderboardData();
+    }, FETCH_INTERVAL);
+
+    // Cleanup
     return () => {
       // Abort any ongoing fetch when the component unmounts
       abortController.current?.abort();
+      // Clear the interval when the component unmounts
+      clearInterval(interval);
     };
-  }, [fetchLeaderboardData, abortController, language, difficulty]);
+  }, [fetchLeaderboardData, abortController]);
 
   // helper to handle retry profile fetch
   const refetchLeaderboardData = () => {
@@ -243,8 +231,9 @@ const Leaderboard = () => {
   };
 
   // Get the rows to display based on the selected language and metric
-  const rows = leaderboardData?.[metric] ?? [];
+  const rows = leaderboardData?.[language]?.[difficulty]?.[metric] ?? [];
 
+  // Render
   return (
     <main className="min-h-[calc(100vh-72px)] bg-[#0b0b0b] px-6 py-10 font-mono text-[#e7c49d]">
       <div className="mx-auto max-w-xl">
