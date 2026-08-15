@@ -1,6 +1,5 @@
 // Imports
 import { useState, useEffect, useCallback, useRef } from "react";
-import { useNavigate } from "react-router";
 
 // Metrics available when viewing "ALL" (overall, cross-language stats)
 const overallMetrics = {
@@ -91,18 +90,26 @@ const languageOptions = {
 
 // Leaderboard.jsx
 const Leaderboard = () => {
-  // Navigate
-  const navigate = useNavigate();
-
   // States
   const [leaderboardData, setLeaderboardData] = useState(null);
   const [errorMessage, setErrorMessage] = useState("");
   const [fetchStatus, setFetchStatus] = useState("loading");
   const [language, setLanguage] = useState("ALL");
   const [metric, setMetric] = useState("matches_won");
+  const [difficulty, setDifficulty] = useState("ALL");
+  const [prevParams, setPrevParams] = useState({ language, difficulty });
 
   // Refs
   const abortController = useRef(null);
+
+  // If filters changed set fetching to true
+  if (
+    prevParams.language !== language ||
+    prevParams.difficulty !== difficulty
+  ) {
+    setPrevParams({ language, difficulty });
+    setFetchStatus("fetching");
+  }
 
   // Fetch leaderboard data from the server
   const fetchLeaderboardData = useCallback(async () => {
@@ -112,7 +119,20 @@ const Leaderboard = () => {
     // Create a new abort controller for this fetch
     abortController.current = new AbortController();
     try {
-      const response = await fetch("/api/leaderboard", {
+      const params = new URLSearchParams();
+      console.log("Fetching leaderboard data with params:", {
+        language,
+        difficulty,
+      });
+      if (difficulty !== "ALL") {
+        params.append("difficulty", difficulty);
+        console.log("Fetching leaderboard for difficulty:", difficulty);
+      }
+      if (language !== "ALL") {
+        params.append("language", language);
+        console.log("Fetching leaderboard for language:", language);
+      }
+      const response = await fetch(`/api/leaderboard?${params.toString()}`, {
         method: "GET",
         headers: {
           "Content-Type": "application/json",
@@ -127,16 +147,23 @@ const Leaderboard = () => {
 
       // Set Data
       const data = await response.json();
+      console.log("Leaderboard data fetched:", data);
       setLeaderboardData(data);
       setFetchStatus("success");
+      setErrorMessage("");
     } catch (error) {
+      // ignore abort errors
+      if (error.name === "AbortError") {
+        console.log("Leaderboard fetch aborted");
+        return;
+      }
       console.error("Error fetching leaderboard data:", error);
       setFetchStatus("error");
       setErrorMessage("Could not load leaderboard data.");
     }
-  }, []);
+  }, [language, difficulty]);
 
-  // Fetch leaderboard data on mount
+  // Fetch leaderboard data
   useEffect(() => {
     fetchLeaderboardData();
 
@@ -144,7 +171,7 @@ const Leaderboard = () => {
       // Abort any ongoing fetch when the component unmounts
       abortController.current?.abort();
     };
-  }, [fetchLeaderboardData, abortController]);
+  }, [fetchLeaderboardData, abortController, language, difficulty]);
 
   // helper to handle retry profile fetch
   const refetchLeaderboardData = () => {
@@ -192,7 +219,7 @@ const Leaderboard = () => {
         </div>
       </main>
     );
-  } else if (fetchStatus === "fetching" || !leaderboardData) {
+  } else if (fetchStatus === "fetching" && !leaderboardData) {
     // If profile info is still being fetched, show a loading state
     return (
       <main className="min-h-[calc(100vh-72px)] grid place-items-center bg-[#0b0b0b] font-mono text-[#e7c49d]">
@@ -216,10 +243,7 @@ const Leaderboard = () => {
   };
 
   // Get the rows to display based on the selected language and metric
-  const rows =
-    language === "ALL"
-      ? (leaderboardData?.[metric] ?? [])
-      : (leaderboardData?.languageStats?.[metric]?.[language] ?? []);
+  const rows = leaderboardData?.[metric] ?? [];
 
   return (
     <main className="min-h-[calc(100vh-72px)] bg-[#0b0b0b] px-6 py-10 font-mono text-[#e7c49d]">
@@ -239,7 +263,9 @@ const Leaderboard = () => {
         )}
 
         {/* Filter bar */}
-        <div className="mb-8 flex flex-col gap-4 rounded border border-[#4b4133] bg-[#0f0f0f] p-5 sm:flex-row sm:items-end sm:justify-between">
+        <div
+          className={`${fetchStatus === "fetching" ? "mb-3" : "mb-6"} flex flex-col gap-4 rounded border border-[#4b4133] bg-[#0f0f0f] p-5 sm:flex-row sm:items-end sm:justify-between`}
+        >
           <div className="flex flex-col gap-1">
             <label
               htmlFor="language-select"
@@ -259,6 +285,26 @@ const Leaderboard = () => {
                   {value}
                 </option>
               ))}
+            </select>
+          </div>
+
+          <div className="flex flex-col gap-1">
+            <label
+              htmlFor="difficulty-select"
+              className="text-xs font-bold uppercase tracking-wide text-[#c7b499]"
+            >
+              Difficulty
+            </label>
+            <select
+              id="difficulty-select"
+              value={difficulty}
+              onChange={(e) => setDifficulty(e.target.value)}
+              className="cursor-pointer rounded border border-[#4b4133] bg-[#0b0b0b] px-3 py-1.5 text-sm text-[#e7c49d] focus:outline-none focus-visible:ring-2 focus-visible:ring-[#ffd89a]/60"
+            >
+              <option value="ALL">ALL</option>
+              <option value="easy">EASY</option>
+              <option value="medium">MEDIUM</option>
+              <option value="hard">HARD</option>
             </select>
           </div>
 
@@ -284,8 +330,42 @@ const Leaderboard = () => {
           </div>
         </div>
 
+        {/* If data exists but is fetching show a loading indicator */}
+        {leaderboardData && fetchStatus === "fetching" && (
+          <div className="mb-3 flex items-center justify-center text-sm text-[#ffd89a]">
+            <svg
+              className="h-4 w-4 animate-spin text-[#ffd89a]"
+              xmlns="http://www.w3.org/2000/svg"
+              fill="none"
+              viewBox="0 0 24 24"
+            >
+              <circle
+                className="opacity-25"
+                cx="12"
+                cy="12"
+                r="10"
+                stroke="currentColor"
+                strokeWidth="4"
+              />
+              <path
+                className="opacity-75"
+                fill="currentColor"
+                d="M4 12a8 8 0 018-8v4a4 4 0 00-4 4H4z"
+              />
+            </svg>
+            <span className="uppercase tracking-wide">
+              Updating leaderboard...
+            </span>
+          </div>
+        )}
+
         {/* Results */}
-        <div className="overflow-x-auto rounded border border-[#4b4133] bg-[#0f0f0f]">
+        <div
+          className={`overflow-x-auto rounded border border-[#4b4133] bg-[#0f0f0f]  ${
+            fetchStatus === "fetching" ? "opacity-50" : "opacity-100"
+          }`}
+        >
+          {" "}
           <table className="w-full table-fixed text-left text-sm text-[#e7c49d]">
             <colgroup>
               <col className="w-14" />

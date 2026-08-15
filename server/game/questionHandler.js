@@ -51,7 +51,7 @@ export const setUpGameQuestions = async (rooms, code) => {
   while (currentRound <= totalRounds) {
     // if first force get celsiusToFahrenheit question for first round
     let randomQuestion;
-    if (first) {
+    if (first && rooms[code].difficulty === "Easy") {
       randomQuestion = questions.find(
         (q) => q.title === "Celsius to Fahrenheit",
       );
