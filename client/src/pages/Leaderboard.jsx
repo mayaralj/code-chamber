@@ -3,6 +3,7 @@ import { useState, useEffect, useCallback, useRef } from "react";
 
 // Config
 const FETCH_INTERVAL = 60 * 1000;
+const FETCH_TIMEOUT = 10 * 1000;
 
 // Metrics available when viewing "ALL" (overall, cross-language stats)
 const overallMetrics = {
@@ -112,13 +113,18 @@ const Leaderboard = () => {
     // Create a new abort controller for this fetch
     abortController.current = new AbortController();
     try {
+      // Combine signal with a timeout to ensure the fetch doesn't hang indefinitely
+      const combinedSignal = AbortSignal.any([
+        abortController.current.signal,
+        AbortSignal.timeout(FETCH_TIMEOUT),
+      ]);
       const response = await fetch(`/api/leaderboard`, {
         method: "GET",
         headers: {
           "Content-Type": "application/json",
         },
         credentials: "include",
-        signal: abortController.current?.signal,
+        signal: combinedSignal,
       });
 
       if (!response.ok) {

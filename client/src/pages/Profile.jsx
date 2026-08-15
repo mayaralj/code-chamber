@@ -13,6 +13,9 @@ import { Link, useNavigate, useSearchParams } from "react-router";
 import authClient from "../authClient";
 import { refreshSocketConnection } from "../socket";
 
+// Config
+const FETCH_TIMEOUT = 10 * 1000;
+
 // Return the modified error message so users can better understand it
 const returnProperErrorMessage = (error) => {
   if (!error) return "";
@@ -163,6 +166,11 @@ const Profile = () => {
 
     // Fetch profile info
     try {
+      // Combine the abort signal with a timeout to ensure the fetch doesn't hang indefinitely
+      const combinedSignal = AbortSignal.any([
+        abortControllerRef.current.signal,
+        AbortSignal.timeout(FETCH_TIMEOUT),
+      ]);
       const response = await fetch("/api/profile", {
         method: "GET",
         headers: {
@@ -170,7 +178,7 @@ const Profile = () => {
         },
         credentials: "include",
         // Add the signal from the abort controller to the fetch request
-        signal: abortControllerRef.current.signal,
+        signal: combinedSignal,
       });
 
       // Log repsonse text
@@ -187,6 +195,11 @@ const Profile = () => {
       setProfileInfo(data);
       setProfileFetchStatus("success");
     } catch (error) {
+      // ignore abort error
+      if (error.name === "AbortError") {
+        console.log("Profile fetch aborted");
+        return;
+      }
       console.log("Error fetching profile info:", error);
       setProfileFetchStatus("error");
     }
