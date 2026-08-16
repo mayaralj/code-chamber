@@ -8,6 +8,8 @@ import {
   FaShieldAlt,
   FaSignOutAlt,
   FaTimes,
+  FaClipboardList,
+  FaChevronDown,
 } from "react-icons/fa";
 import { Link, useNavigate, useSearchParams } from "react-router";
 import authClient from "../authClient";
@@ -49,6 +51,277 @@ const Profile = () => {
   const [displayNameInput, setDisplayNameInput] = useState("");
   const [isSavingDisplayName, setIsSavingDisplayName] = useState(false);
   const [isLanguageStatsOpen, setIsLanguageStatsOpen] = useState(false);
+  const [isMatchHistoryOpen, setIsMatchHistoryOpen] = useState(false);
+  const [expandedMatchId, setExpandedMatchId] = useState(null);
+
+  const placeholderMatches = [
+    {
+      id: "match_1",
+      won: true,
+      host: "shadowByte",
+      difficulty: "Medium",
+      date: "2026-08-14T18:22:00Z",
+      executions: [
+        {
+          id: "exec_1",
+          language: "python",
+          testCasesPassed: 14,
+          totalTestCases: 20,
+          executionTime: 96.4,
+          submissionTime: 18.2,
+          eliminated: [],
+        },
+        {
+          id: "exec_2",
+          language: "python",
+          testCasesPassed: 20,
+          totalTestCases: 20,
+          executionTime: 78.1,
+          submissionTime: 10.6,
+          eliminated: ["nullPointer99"],
+        },
+      ],
+    },
+    {
+      id: "match_2",
+      won: false,
+      host: "kernelPanic",
+      difficulty: "Hard",
+      date: "2026-08-12T21:05:00Z",
+      executions: [
+        {
+          id: "exec_1",
+          language: "cpp",
+          testCasesPassed: 8,
+          totalTestCases: 20,
+          executionTime: 150.3,
+          submissionTime: 30.8,
+          eliminated: [],
+        },
+        {
+          id: "exec_2",
+          language: "cpp",
+          testCasesPassed: 11,
+          totalTestCases: 20,
+          executionTime: 142.7,
+          submissionTime: 25.1,
+          eliminated: ["YOU"],
+        },
+      ],
+    },
+    {
+      id: "match_3",
+      won: true,
+      host: "byteBender",
+      difficulty: "Easy",
+      date: "2026-08-10T14:47:00Z",
+      executions: [
+        {
+          id: "exec_1",
+          language: "javascript",
+          testCasesPassed: 20,
+          totalTestCases: 20,
+          executionTime: 45.2,
+          submissionTime: 6.4,
+          eliminated: ["byteBender", "recursiveGoose"],
+        },
+      ],
+    },
+    {
+      id: "match_4",
+      won: false,
+      host: "stackOverflow_",
+      difficulty: "Medium",
+      date: "2026-08-08T09:15:00Z",
+      executions: [
+        {
+          id: "exec_1",
+          language: "python",
+          testCasesPassed: 12,
+          totalTestCases: 20,
+          executionTime: 110.5,
+          submissionTime: 22.3,
+          eliminated: [],
+        },
+        {
+          id: "exec_2",
+          language: "python",
+          testCasesPassed: 15,
+          totalTestCases: 20,
+          executionTime: 102.8,
+          submissionTime: 19.7,
+          eliminated: [],
+        },
+      ],
+    },
+    {
+      id: "match_5",
+      won: true,
+      host: "recursiveGoose",
+      difficulty: "Hard",
+      date: "2026-08-05T20:33:00Z",
+      executions: [
+        {
+          id: "exec_1",
+          language: "cpp",
+          testCasesPassed: 16,
+          totalTestCases: 20,
+          executionTime: 130.9,
+          submissionTime: 27.5,
+          eliminated: ["shadowByte"],
+        },
+        {
+          id: "exec_2",
+          language: "cpp",
+          testCasesPassed: 20,
+          totalTestCases: 20,
+          executionTime: 118.4,
+          submissionTime: 21.2,
+          eliminated: ["kernelPanic", "byteBender"],
+        },
+      ],
+    },
+    {
+      id: "match_6",
+      won: true,
+      host: "nullPointer99",
+      difficulty: "Easy",
+      date: "2026-08-02T16:10:00Z",
+      executions: [
+        {
+          id: "exec_1",
+          language: "javascript",
+          testCasesPassed: 18,
+          totalTestCases: 20,
+          executionTime: 52.7,
+          submissionTime: 8.9,
+          eliminated: [],
+        },
+      ],
+    },
+  ];
+
+  const renderMatchCard = (match) => {
+    const isExpanded = expandedMatchId === match.id;
+
+    return (
+      <div
+        key={match.id}
+        className={`border transition ${
+          match.won
+            ? "border-green-800 bg-green-950/30"
+            : "border-red-900 bg-red-950/30"
+        }`}
+      >
+        <button
+          type="button"
+          onClick={() => setExpandedMatchId(isExpanded ? null : match.id)}
+          className={`flex w-full cursor-pointer items-center justify-between px-5 py-4 text-left transition ${
+            match.won ? "hover:bg-green-950/50" : "hover:bg-red-950/50"
+          }`}
+        >
+          <div className="flex items-center gap-4">
+            <span
+              className={`font-mono text-xs font-black tracking-[0.1em] ${
+                match.won ? "text-green-400" : "text-red-400"
+              }`}
+            >
+              {match.won ? "WON" : "LOST"}
+            </span>
+            <div>
+              <p className="font-mono text-sm font-bold text-[#e8d9c0]">
+                HOST: {match.host}
+              </p>
+              <p className="font-mono text-xs text-[#c6baa5]">
+                {match.difficulty}
+              </p>
+            </div>
+          </div>
+
+          <div className="flex items-center gap-3">
+            <p className="font-mono text-xs text-[#b9a282]">
+              {new Date(match.date).toLocaleDateString()}
+            </p>
+            <FaChevronDown
+              className={`text-[#b9a282] transition-transform ${isExpanded ? "rotate-180" : ""}`}
+              size={12}
+            />
+          </div>
+        </button>
+
+        {isExpanded && (
+          <div className="space-y-3 border-t border-[#5d5549]/60 px-5 py-4">
+            {match.executions.map((execution, index) => {
+              const eliminatedList = execution.eliminated ?? [];
+
+              return (
+                <div
+                  key={execution.id}
+                  className="border border-[#5d5549] bg-[#181716] p-4"
+                >
+                  <p className="mb-3 font-mono text-xs font-bold tracking-[0.1em] text-[#ffd89a]">
+                    EXECUTION #{index + 1}
+                  </p>
+                  <div className="grid grid-cols-4 gap-3 font-mono">
+                    <div>
+                      <p className="mb-1 text-xs text-[#c6baa5]">Language</p>
+                      <p className="text-sm font-bold text-[#e8d9c0]">
+                        {execution.language.toLowerCase() === "cpp"
+                          ? "C++"
+                          : execution.language.toUpperCase()}
+                      </p>
+                    </div>
+                    <div>
+                      <p className="mb-1 text-xs text-[#c6baa5]">Test Cases</p>
+                      <p className="text-sm font-bold text-[#e8d9c0]">
+                        {execution.testCasesPassed}/{execution.totalTestCases}
+                      </p>
+                    </div>
+                    <div>
+                      <p className="mb-1 text-xs text-[#c6baa5]">Exec Time</p>
+                      <p className="text-sm font-bold text-[#e8d9c0]">
+                        {execution.executionTime.toFixed(2)}ms
+                      </p>
+                    </div>
+                    <div>
+                      <p className="mb-1 text-xs text-[#c6baa5]">Submit Time</p>
+                      <p className="text-sm font-bold text-[#e8d9c0]">
+                        {execution.submissionTime.toFixed(2)}s
+                      </p>
+                    </div>
+                  </div>
+
+                  <div className="mt-3 border-t border-[#5d5549]/50 pt-3">
+                    <p className="mb-1.5 text-xs text-[#c6baa5]">Eliminated</p>
+                    {eliminatedList.length === 0 ? (
+                      <span className="font-mono text-sm font-medium text-[#8a8071]">
+                        MISSED
+                      </span>
+                    ) : (
+                      <div className="flex flex-wrap gap-1.5">
+                        {eliminatedList.map((name) => (
+                          <span
+                            key={name}
+                            className={`rounded-sm border px-2 py-0.5 font-mono text-xs font-bold ${
+                              name === "YOU"
+                                ? "border-[#ffd89a]/50 bg-[#ffd89a]/10 text-[#ffd89a]"
+                                : "border-[#5d5549] bg-[#242322] text-[#e8d9c0]"
+                            }`}
+                          >
+                            {name}
+                          </span>
+                        ))}
+                      </div>
+                    )}
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+        )}
+      </div>
+    );
+  };
 
   // Refs
   const abortControllerRef = useRef(null);
@@ -582,6 +855,36 @@ const Profile = () => {
           </button>
         </section>
 
+        <section className="mt-7 border border-[#5d5549] bg-[#0e0e0e]/95 p-7">
+          <div className="mb-6 flex items-center justify-between">
+            <h2 className="font-mono text-xs font-bold tracking-[0.17em] text-[#d9bd8f]">
+              MATCH HISTORY
+            </h2>
+            <FaClipboardList className="text-[#b9a282]" size={14} />
+          </div>
+
+          {placeholderMatches.length === 0 ? (
+            <p className="font-mono text-sm text-[#c6baa5]">
+              No matches played yet.
+            </p>
+          ) : (
+            <>
+              <div className="space-y-3">
+                {placeholderMatches.slice(0, 3).map(renderMatchCard)}
+              </div>
+
+              {placeholderMatches.length > 3 && (
+                <button
+                  className="mt-6 w-full cursor-pointer border border-[#5d5549] py-3 font-mono text-xs font-bold tracking-[0.17em] text-[#d9bd8f] transition hover:border-[#ffd89a] hover:text-[#ffd89a]"
+                  type="button"
+                  onClick={() => setIsMatchHistoryOpen(true)}
+                >
+                  SHOW MORE
+                </button>
+              )}
+            </>
+          )}
+        </section>
         <div className="mt-10 text-center">
           <button
             className="inline-flex cursor-pointer items-center gap-3 border border-[#c9847c] px-8 py-3 font-mono text-sm font-bold tracking-[0.14em] text-[#e6aaa2] transition hover:bg-[#301c1b] disabled:cursor-not-allowed disabled:opacity-50"
@@ -696,6 +999,34 @@ const Profile = () => {
                 })}
               </div>
             )}
+          </div>
+        </div>
+      )}
+      {isMatchHistoryOpen && (
+        <div
+          className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 px-5"
+          onClick={() => setIsMatchHistoryOpen(false)}
+        >
+          <div
+            className="modal-scroll relative max-h-[80vh] w-full max-w-[560px] overflow-y-auto border border-[#5d5549] bg-[#0e0e0e] p-7 [scrollbar-color:#5d5549_#0e0e0e] [scrollbar-width:thin]"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div className="mb-6 flex items-center justify-between">
+              <h2 className="font-mono text-xs font-bold tracking-[0.17em] text-[#d9bd8f]">
+                ALL MATCHES
+              </h2>
+              <button
+                className="cursor-pointer text-[#b9a282] transition hover:text-[#ffd89a]"
+                type="button"
+                onClick={() => setIsMatchHistoryOpen(false)}
+              >
+                <FaTimes size={16} />
+              </button>
+            </div>
+
+            <div className="space-y-3">
+              {placeholderMatches.map(renderMatchCard)}
+            </div>
           </div>
         </div>
       )}
