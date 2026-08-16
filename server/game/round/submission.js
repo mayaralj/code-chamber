@@ -51,6 +51,7 @@ export const trackSubmission = async (player, result, roomId, roundNumber) => {
   }
 
   const {
+    numOfTestCases,
     testCasesPassed,
     executionTime,
     submitTime,
@@ -74,9 +75,9 @@ export const trackSubmission = async (player, result, roomId, roundNumber) => {
   const { rows } = await db.query(
     `INSERT INTO submissions (
        user_id, room_id, round_number, language, difficulty, passed,
-       execution_time, submit_time, test_cases_passed
+       execution_time, submit_time,  total_test_cases, test_cases_passed
      )
-     VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9)`,
+     VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10)`,
     [
       player.userId,
       roomId,
@@ -86,6 +87,7 @@ export const trackSubmission = async (player, result, roomId, roundNumber) => {
       passed,
       executionTime,
       submitTime,
+      numOfTestCases,
       testCasesPassed,
     ],
   );
