@@ -160,3 +160,26 @@ export const trackMatch = async (player, roomId, isWinner) => {
     `Updated match for player ${player.username} in room ${roomId}, won: ${isWinner}`,
   );
 };
+
+// Helper to update submission_eliminations table
+export const trackSubmissionElimination = async (
+  submissionId,
+  eliminatedIds = [],
+) => {
+  if (!eliminatedIds.length) return;
+
+  const values = [];
+  const placeholders = eliminatedIds
+    .map((userId) => {
+      values.push(submissionId, userId);
+      return `($${values.length - 1}, $${values.length})`;
+    })
+    .join(", ");
+
+  await db.query(
+    `INSERT INTO submission_eliminations (submission_id, eliminated_user_id)
+     VALUES ${placeholders}
+     ON CONFLICT (submission_id, eliminated_user_id) DO NOTHING`,
+    values,
+  );
+};

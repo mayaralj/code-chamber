@@ -71,7 +71,7 @@ export const trackSubmission = async (player, result, roomId, roundNumber) => {
     return;
   }
 
-  await db.query(
+  const { rows } = await db.query(
     `INSERT INTO submissions (
        user_id, room_id, round_number, language, difficulty, passed,
        execution_time, submit_time, test_cases_passed
@@ -89,6 +89,7 @@ export const trackSubmission = async (player, result, roomId, roundNumber) => {
       testCasesPassed,
     ],
   );
+  return rows[0]?.id;
 };
 
 // Helper to process player submission
@@ -174,7 +175,13 @@ export const processSubmission = async (
       `Player ${player.username} had an execution error, skipping db update`,
     );
   } else {
-    await trackSubmission(player, result, room.roomId, room.currentRound);
+    // Update the submission in the database and get the submission ID
+    result.submissionId = await trackSubmission(
+      player,
+      result,
+      room.roomId,
+      room.currentRound,
+    );
   }
 
   // Update player status

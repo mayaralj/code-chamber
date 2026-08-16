@@ -2,8 +2,8 @@
 import { sleep } from "../../utils/timers.js";
 import { buildPlayerList } from "../../utils/playerList.js";
 import deleteRoom from "../../room/deleteRoom.js";
-import db from "../../db.js";
 import { rooms, playersInRooms } from "../../globals.js";
+import { trackSubmissionElimination } from "./roundUtils.js";
 
 // CONFIG
 const RESULTS_TIMER = 10;
@@ -61,6 +61,21 @@ export const sendResults = async (io, code, roundData) => {
     console.error(`Room ${code} not found for sending results`);
     return;
   }
+
+  // Store eliminated players ids for tracking submission eliminations
+  const eliminatedPlayersIds =
+    roundData.eliminatedPlayers?.map((p) => p.userId) || [];
+  // track submission eliminations for each player in db
+  Promise.all(
+    roundData.roundResults.map((result) =>
+      trackSubmissionElimination(result.submissionId, eliminatedPlayersIds),
+    ),
+  ).catch((err) => {
+    console.error(
+      `Error tracking submission eliminations for room ${code}:`,
+      err,
+    );
+  });
 
   // Calculate results ends at
   roundData.resultsEndsAt = Date.now() + 1000 * RESULTS_TIMER;
