@@ -77,7 +77,8 @@ export const trackSubmission = async (player, result, roomId, roundNumber) => {
        user_id, room_id, round_number, language, difficulty, passed,
        execution_time, submit_time,  total_test_cases, test_cases_passed
      )
-     VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10)`,
+     VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10)
+     RETURNING id`,
     [
       player.userId,
       roomId,

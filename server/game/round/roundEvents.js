@@ -2,8 +2,7 @@
 const eventOdds = {
   doubleElimination: 0.35,
   fasterTimer: 0.35,
-  missedBullet: 1,
-  otherDifficulty: 0.35,
+  missedBullet: 0.35,
 };
 const events = {
   doubleElimination: {
@@ -17,11 +16,6 @@ const events = {
   missedBullet: {
     type: "afterRound",
     set: true,
-  },
-  // WIP to be done when questions for other difficulties get added
-  otherDifficulty: {
-    type: "beforeRound",
-    set: ["easy", "medium", "hard"],
   },
 };
 
