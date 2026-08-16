@@ -74,40 +74,45 @@ export const eliminatePlayer = (io, code, roundData, playerEliminated) => {
 
 // Helper to process round elims
 export const processRoundElims = (io, code, roundData, roundEvents) => {
-  // Ignore if only one player left
-  if (rooms[code].players.length <= 1) {
-    return;
+  // If more than 1 player left, determine player eliminated
+  if (rooms[code].players.length > 1) {
+    // Determine player eliminated (if more than 1 player left)
+    const playerEliminated = determinePlayerEliminated(roundData);
+    // If double elimination determine a second player eliminated
+    if (
+      roundEvents?.beforeRound?.doubleElimination &&
+      rooms[code].players.length > 2
+    ) {
+      const secondPlayerEliminated = determinePlayerEliminated(
+        roundData,
+        playerEliminated,
+      );
+      // Eliminate second player
+      eliminatePlayer(io, code, roundData, secondPlayerEliminated);
+    }
+    // Dont eliminate first player if missed bullet
+    if (roundEvents?.afterRound?.missedBullet) {
+      // Emit to all players in room
+      io.to(code).emit("missed-player", {
+        player: playerEliminated,
+      });
+      roundData.missedPlayer = playerEliminated;
+    } else {
+      // Eliminate player if bullet did not miss
+      eliminatePlayer(io, code, roundData, playerEliminated);
+    }
   }
 
-  // Determine player eliminated (if more than 1 player left)
-  const playerEliminated = determinePlayerEliminated(roundData);
-  // If double elimination determine a second player eliminated
-  if (
-    roundEvents?.beforeRound?.doubleElimination &&
-    rooms[code].players.length > 2
-  ) {
-    const secondPlayerEliminated = determinePlayerEliminated(
-      roundData,
-      playerEliminated,
-    );
-    // Eliminate second player
-    eliminatePlayer(io, code, roundData, secondPlayerEliminated);
-  }
-  // Dont eliminate first player if missed bullet
-  if (roundEvents?.afterRound?.missedBullet) {
-    // Emit to all players in room
-    io.to(code).emit("missed-player", {
-      player: playerEliminated,
-    });
-    roundData.missedPlayer = playerEliminated;
-  } else {
-    // Eliminate player if bullet did not miss
-    eliminatePlayer(io, code, roundData, playerEliminated);
-  }
+  // This code can run even if only 1 player left (because disconnected players will be flagged as eliminated and this is used to track submission eliminations in db)
 
   // Store eliminated players ids for tracking submission eliminations (eliminated player will also store this)
   const eliminatedPlayersIds =
     roundData.eliminatedPlayers?.map((p) => p.userId) || [];
+  console.log(
+    `Round ${rooms[code].currentRound} in room ${code} eliminated players: ${eliminatedPlayersIds.join(
+      ", ",
+    )}`,
+  );
   // track submission eliminations for each player in db
   Promise.all(
     roundData.roundResults.map((result) =>

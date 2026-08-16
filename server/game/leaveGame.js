@@ -37,6 +37,11 @@ const leaveGame = (io, socket, code) => {
   // Track match in db and flag them as lost
   trackMatch(player, room, false);
 
+  // Flag player as eliminated and remove from room
+  if (!room.roundData[room.currentRound || 1].eliminatedPlayers) {
+    room.roundData[room.currentRound || 1].eliminatedPlayers = [];
+  }
+  room.roundData[room.currentRound || 1].eliminatedPlayers.push(player);
   room.players = room.players.filter((p) => p.userId !== socket.data.id);
 
   // Leave from socket room
