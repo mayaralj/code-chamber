@@ -2,6 +2,7 @@
 import { rooms, roomIdToCode, playersInRooms } from "../globals.js";
 import { broadcastRemoveRoom } from "../broadcast/broadcastRooms.js";
 import { buildPlayerList } from "../utils/playerList.js";
+import { trackMatch } from "../game/round/roundUtils.js";
 
 // Game leave
 const leaveGame = (io, socket, code) => {
@@ -32,6 +33,10 @@ const leaveGame = (io, socket, code) => {
     );
     return;
   }
+
+  // Track match in db and flag them as lost
+  trackMatch(player, room, false);
+
   room.players = room.players.filter((p) => p.userId !== socket.data.id);
 
   // Leave from socket room
