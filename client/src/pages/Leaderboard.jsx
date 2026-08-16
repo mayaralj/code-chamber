@@ -247,8 +247,8 @@ const Leaderboard = () => {
           LEADERBOARDS
         </h1>
         <p className="mb-8 text-center text-sm font-bold tracking-[0.10em] text-[#c7b499]">
-          VIEW THE TOP CODERS AND THEIR STATS ACROSS DIFFERENT LANGUAGES AND
-          METRICS.
+          VIEW THE TOP CODERS AND THEIR STATS ACROSS DIFFERENT LANGUAGES,
+          DIFFICULTIES, AND METRICS.
         </p>
 
         {errorMessage && (
