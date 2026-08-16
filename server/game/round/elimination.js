@@ -1,5 +1,5 @@
 import { rooms, playersInRooms } from "../../globals.js";
-import { trackMatch } from "./roundUtils.js";
+import { trackMatch, trackSubmissionElimination } from "./roundUtils.js";
 
 // Helper to determine player eliminated
 export const determinePlayerEliminated = (roundData, ignorePlayer) => {
@@ -91,14 +91,7 @@ export const processRoundElims = (io, code, roundData, roundEvents) => {
       playerEliminated,
     );
     // Eliminate second player
-    eliminatePlayer(
-      io,
-      rooms[code],
-      code,
-      roundData,
-      secondPlayerEliminated,
-      playersInRooms,
-    );
+    eliminatePlayer(io, code, roundData, secondPlayerEliminated);
   }
   // Dont eliminate first player if missed bullet
   if (roundEvents?.afterRound?.missedBullet) {
@@ -111,4 +104,19 @@ export const processRoundElims = (io, code, roundData, roundEvents) => {
     // Eliminate player if bullet did not miss
     eliminatePlayer(io, code, roundData, playerEliminated);
   }
+
+  // Store eliminated players ids for tracking submission eliminations (eliminated player will also store this)
+  const eliminatedPlayersIds =
+    roundData.eliminatedPlayers?.map((p) => p.userId) || [];
+  // track submission eliminations for each player in db
+  Promise.all(
+    roundData.roundResults.map((result) =>
+      trackSubmissionElimination(result.submissionId, eliminatedPlayersIds),
+    ),
+  ).catch((err) => {
+    console.error(
+      `Error tracking submission eliminations for room ${code}:`,
+      err,
+    );
+  });
 };
