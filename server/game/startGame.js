@@ -3,6 +3,17 @@ import beforeGame from "./beforeGame.js";
 import startRound from "./round/round.js";
 import { rooms } from "../globals.js";
 import { broadcastUpdateRoom } from "../broadcast/broadcastRooms.js";
+import db from "../db.js";
+
+// Helper to track room in database (track now rather than earlier to reduce entries for rooms that never start)
+const trackRoomInDatabase = async (roomId) => {
+  try {
+    await db.query(`INSERT INTO rooms (room_id) VALUES ($1)`, [roomId]);
+    return { success: true };
+  } catch (error) {
+    return { success: false, error: error.message };
+  }
+};
 
 // Start game
 const startGame = async (io, socket, code) => {
@@ -56,6 +67,14 @@ const handleStartGame = async (io, socket, code) => {
   if (room.players.length < 1) {
     socket.emit("start-game-error", {
       message: "Not enough players to start game",
+    });
+    return;
+  }
+
+  // Track room in database
+  if (!(await trackRoomInDatabase(room.roomId)).success) {
+    socket.emit("start-game-error", {
+      message: "Failed to track room in database",
     });
     return;
   }

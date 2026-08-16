@@ -7,6 +7,7 @@ import {
 } from "../broadcast/broadcastRooms.js";
 import leaveRoom from "./leaveRoom.js";
 import leaveGame from "../game/leaveGame.js";
+import db from "../db.js";
 
 // Config
 const validDifficulties = ["easy", "medium", "hard"];
@@ -23,7 +24,7 @@ export const cancelRoomCreation = (io, socket, roomId) => {
 };
 
 // Helper to create a room
-const createRoom = (io, socket, roomData, callback) => {
+const createRoom = async (io, socket, roomData, callback) => {
   // Get host username
   const username = socket.data.username;
   if (!username) {
@@ -82,6 +83,25 @@ const createRoom = (io, socket, roomData, callback) => {
     !difficulty
   ) {
     return callback({ error: "Missing required room data" });
+  }
+
+  // Verify room isnt somehow already in active rooms (should never happen but just in case)
+  if (roomIdToCode[roomId]) {
+    return callback({ error: "Room ID already exists in active rooms" });
+  }
+
+  // Verify room id to not already exist in db
+  try {
+    const { rows } = await db.query(
+      "SELECT room_id FROM rooms WHERE room_id = $1",
+      [roomId],
+    );
+    if (rows.length > 0) {
+      return callback({ error: "Room ID already exists in database" });
+    }
+  } catch (error) {
+    console.error("Error checking room ID:", error);
+    return callback({ error: "Could not verify room ID. Please try again." });
   }
 
   // Check if room name is valid
