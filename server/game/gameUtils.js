@@ -15,9 +15,9 @@ export const trackBeforeMatch = async (player, room) => {
 
   // Insert match into the database (not full match data, just the fact that the player played a match in this room)
   await db.query(
-    `INSERT INTO matches (room_id, user_id, difficulty, played_at)
-     VALUES ($1, $2, $3, NOW())`,
-    [roomId, player.userId, difficulty],
+    `INSERT INTO matches (room_id, user_id, host, difficulty, played_at)
+     VALUES ($1, $2, $3, $4, NOW())`,
+    [roomId, player.userId, room.host.userId, difficulty],
   );
 };
 
