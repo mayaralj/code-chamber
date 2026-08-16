@@ -76,6 +76,14 @@ const leaveGame = (io, socket, code) => {
     }
   }
 
+  // Find reconnect sleep cancel in room
+  if (room.roundData[room.currentRound]?.reconnectSleepCancel) {
+    // Loop and check if this player is the final player to reconnect to cancel
+    if (room.players.every((p) => !p.isReconnecting)) {
+      room.roundData[room.currentRound].reconnectSleepCancel();
+    }
+  }
+
   console.log(
     `User ${socket.data.username} left game room ${code}, ${room.players.length} players remaining`,
   );
