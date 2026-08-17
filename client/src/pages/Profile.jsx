@@ -49,6 +49,10 @@ const Profile = () => {
   // States
   const [profileInfo, setProfileInfo] = useState(null);
   const [profileFetchStatus, setProfileFetchStatus] = useState("fetching");
+  const [matchHistory, setMatchHistory] = useState(null);
+  const [matchFetchError, setMatchFetchError] = useState("");
+  const [isLoadingMoreMatches, setIsLoadingMoreMatches] = useState(false);
+  const [hasMoreMatches, setHasMoreMatches] = useState(true);
   const [accounts, setAccounts] = useState([]);
   const [errorMessage, setErrorMessage] = useState("");
   const [isLoggingOut, setIsLoggingOut] = useState(false);
@@ -65,6 +69,7 @@ const Profile = () => {
 
   // Refs
   const abortControllerRef = useRef(null);
+  const matchAbortControllerRef = useRef(null);
 
   // Handle OAuth error from query params
   const oauthError = searchParams.get("error");
@@ -206,6 +211,7 @@ const Profile = () => {
 
       const data = await response.json();
       setProfileInfo(data);
+      setMatchHistory(data.matches);
       setProfileFetchStatus("success");
     } catch (error) {
       // ignore abort error
@@ -227,6 +233,54 @@ const Profile = () => {
       abortControllerRef.current?.abort();
     };
   }, [fetchProfileInfo]);
+
+  // Helper to fetch more matches
+  const fetchMatchHistory = useCallback(
+    async (offset = 0, limit = MATCH_HISTORY_PAGE_SIZE) => {
+      setMatchFetchError("");
+      matchAbortControllerRef.current?.abort();
+      matchAbortControllerRef.current = new AbortController();
+
+      try {
+        const combinedSignal = AbortSignal.any([
+          matchAbortControllerRef.current.signal,
+          AbortSignal.timeout(FETCH_TIMEOUT),
+        ]);
+
+        const params = new URLSearchParams({ limit, offset });
+
+        const response = await fetch(`/api/matchHistory?${params.toString()}`, {
+          method: "GET",
+          headers: { "Content-Type": "application/json" },
+          credentials: "include",
+          signal: combinedSignal,
+        });
+
+        if (response.status === 401) {
+          setMatchFetchError("Error Fetching Match History");
+          return;
+        }
+
+        if (!response.ok) {
+          throw new Error(`HTTP error: ${response.status}`);
+        }
+
+        const data = await response.json();
+        setMatchHistory((current) =>
+          offset === 0 ? data : [...current, ...data],
+        );
+        return data;
+      } catch (error) {
+        if (error.name === "AbortError") {
+          console.log("Match fetch aborted");
+          return;
+        }
+        console.log("Error fetching Match History:", error);
+        setMatchFetchError("Error Fetching Match History");
+      }
+    },
+    [],
+  );
 
   // Fetch linked accounts on mount
   useEffect(() => {
@@ -268,8 +322,17 @@ const Profile = () => {
   };
 
   // Reveal the next page of matches
-  const loadMoreMatches = () => {
-    setVisibleMatchCount((current) => current + MATCH_HISTORY_PAGE_SIZE);
+  const loadMoreMatches = async () => {
+    if (isLoadingMoreMatches || !hasMoreMatches) return;
+
+    setIsLoadingMoreMatches(true);
+    const newMatches = await fetchMatchHistory(matchHistory.length);
+    setIsLoadingMoreMatches(false);
+
+    // If the server returned fewer than a full page, no more matches to load
+    if (!newMatches || newMatches.length < MATCH_HISTORY_PAGE_SIZE) {
+      setHasMoreMatches(false);
+    }
   };
 
   // If profile info fetch error'd out, show an error message with a retry button
@@ -387,12 +450,6 @@ const Profile = () => {
     },
     ...languageStats,
   ];
-
-  // Matches
-  const matches = profileInfo.matches;
-  // Slice of matches currently visible in the "ALL MATCHES" modal
-  const visibleMatches = matches.slice(0, visibleMatchCount);
-  const hasMoreMatches = visibleMatchCount < matches.length;
 
   return (
     <main className="relative min-h-screen overflow-hidden bg-[#0b0b0b] px-5 py-12 text-[#e8d9c0]">
@@ -626,21 +683,21 @@ const Profile = () => {
             <FaClipboardList className="text-[#b9a282]" size={14} />
           </div>
 
-          {matches.length === 0 ? (
+          {matchHistory.length === 0 ? (
             <p className="font-mono text-sm text-[#c6baa5]">
               No matches played yet.
             </p>
           ) : (
             <>
               <div className="space-y-3">
-                {matches
+                {matchHistory
                   .slice(0, 3)
                   .map((match) =>
                     renderMatchCard(match, expandedMatchId, setExpandedMatchId),
                   )}
               </div>
 
-              {matches.length > 3 && (
+              {matchHistory.length > 3 && (
                 <button
                   className="mt-6 w-full cursor-pointer border border-[#5d5549] py-3 font-mono text-xs font-bold tracking-[0.17em] text-[#d9bd8f] transition hover:border-[#ffd89a] hover:text-[#ffd89a]"
                   type="button"
@@ -792,19 +849,27 @@ const Profile = () => {
             </div>
 
             <div className="space-y-3">
-              {visibleMatches.map((match) =>
+              {matchHistory.map((match) =>
                 renderMatchCard(match, expandedMatchId, setExpandedMatchId),
               )}
             </div>
 
             {hasMoreMatches && (
-              <button
-                className="mt-6 w-full cursor-pointer border border-[#5d5549] py-3 font-mono text-xs font-bold tracking-[0.17em] text-[#d9bd8f] transition hover:border-[#ffd89a] hover:text-[#ffd89a]"
-                type="button"
-                onClick={loadMoreMatches}
-              >
-                LOAD MORE
-              </button>
+              <>
+                {matchFetchError && matchHistory.length > 0 && (
+                  <p className="mt-4 text-center font-mono text-xs text-red-300">
+                    {matchFetchError}
+                  </p>
+                )}
+                <button
+                  className="mt-3 w-full cursor-pointer border border-[#5d5549] py-3 font-mono text-xs font-bold tracking-[0.17em] text-[#d9bd8f] transition hover:border-[#ffd89a] hover:text-[#ffd89a] disabled:opacity-50"
+                  type="button"
+                  onClick={loadMoreMatches}
+                  disabled={isLoadingMoreMatches}
+                >
+                  {isLoadingMoreMatches ? "LOADING..." : "LOAD MORE"}
+                </button>
+              </>
             )}
           </div>
         </div>

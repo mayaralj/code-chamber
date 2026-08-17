@@ -4,6 +4,7 @@ import auth from "./auth.js";
 import profileRouter from "./routes/profile.js";
 import leaderboardRouter from "./routes/leaderboard.js";
 import serverHealthRouter from "./routes/serverHealth.js";
+import matchHistoryRouter from "./routes/matchHistory.js";
 import cors from "cors";
 
 export const createApp = () => {
@@ -14,5 +15,6 @@ export const createApp = () => {
   app.use("/api/profile", profileRouter());
   app.use("/api/leaderboard", leaderboardRouter());
   app.use("/api/health", serverHealthRouter());
+  app.use("/api/matchHistory", matchHistoryRouter());
   return app;
 };

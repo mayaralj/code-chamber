@@ -98,7 +98,7 @@ const profileRouter = () => {
            GROUP BY language`,
             [userId],
           ),
-          // Initial 8 matches, most recent first
+          // Initial 5 matches, most recent first
           db.query(
             `SELECT
              m.room_id,
@@ -110,7 +110,7 @@ const profileRouter = () => {
            LEFT JOIN "user" h ON m.host_id = h.id
            WHERE m.user_id = $1
            ORDER BY m.played_at DESC
-           LIMIT 8`,
+           LIMIT 5`,
             [userId],
           ),
         ]);
