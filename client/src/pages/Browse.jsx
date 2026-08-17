@@ -3,6 +3,9 @@ import { useNavigate } from "react-router";
 import { useState, useEffect } from "react";
 import { socket } from "../socket";
 
+// Config
+const CODE_LENGTH = 4;
+
 // Browse component
 const Browse = () => {
   // Navigate
@@ -72,6 +75,14 @@ const Browse = () => {
   const handleJoin = (code) => {
     // Check for valid code
     if (code.trim() === "") {
+      return;
+    }
+    // Check  for length (pretty much just for private joining)
+    if (code.length != CODE_LENGTH) {
+      setError({
+        code: "",
+        message: `Code length must be ${CODE_LENGTH} characters long`,
+      });
       return;
     }
 
@@ -339,24 +350,28 @@ const Browse = () => {
 
             <label className="mt-10 block">
               <span className="mb-3 block text-xs font-bold tracking-wider text-[#c7b499]">
-                INPUT CHAMBER IDENTIFIER
+                INPUT CHAMBER CODE
               </span>
 
               <input
                 autoFocus
                 value={privateCode}
+                maxLength={CODE_LENGTH}
                 onChange={(e) => setPrivateCode(e.target.value)}
-                placeholder="ENTER ACCESS KEY..."
+                placeholder="ENTER ACCESS CODE..."
                 className="w-full border-b border-[#9e8968] bg-[#191919] px-4 py-5 text-[#f1eee7] outline-none placeholder:text-[#4e483e] focus:border-[#ffdd9d]"
               />
             </label>
+            {error.message && (
+              <p className="mt-3 text-sm text-red-400">{error.message}</p>
+            )}
 
             <div className="mt-8 space-y-3">
               <button
                 onClick={() => handleJoin(privateCode)}
                 className="w-full cursor-pointer border border-[#ffdd9d] bg-[#ffdd9d] py-4 text-sm font-bold tracking-[0.18em] text-[#251b0f] transition-colors hover:bg-[#e7bc76]"
               >
-                INITIALIZE
+                JOIN
               </button>
 
               <button

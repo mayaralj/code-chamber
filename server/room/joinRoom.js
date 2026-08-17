@@ -18,6 +18,14 @@ const joinRoom = (io, socket, code) => {
     return;
   }
 
+  // Check code length
+  if (code.length < 4) {
+    socket.emit("room-join-error", {
+      message: "Room code must be 4 characters long",
+    });
+    return;
+  }
+
   // Check if room exists
   const room = rooms[code];
   if (!room) {
