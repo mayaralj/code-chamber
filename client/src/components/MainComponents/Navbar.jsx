@@ -17,23 +17,25 @@ const Navbar = () => {
         (path == "/signup" && location.pathname === "/login") ||
         (path == "/login" && location.pathname === "/signup");
 
-      // If is highlighted add a line under it, and move it slightly up
       return `text-[17px] font-bold tracking-[0.05em] transition-colors duration-200 ${
         isHighlighted
-          ? "text-[#ffd99d] border-b-1 b border-[#ffd99d] -mt-1"
+          ? "text-[#ffd99d] border-b-1 border-[#ffd99d] -mt-1"
           : "text-[#ffedd1] hover:text-[#ffd99d]"
       }`;
     };
 
   return (
-    <nav className="fixed h-18 z-50 flex w-full items-center justify-between border-b border-[#4b4133] bg-[#080812] px-10 py-5 font-mono">
+    <nav className="fixed h-18 z-50 flex w-full items-center justify-between border-b border-[#4b4133] bg-[#080812] px-10 py-5 font-mono gap-10">
+      {/* Title (Stays on left, never squishes) */}
       <button
         onClick={() => navigate("/")}
-        className="cursor-pointer text-3xl font-black tracking-tighter text-[#ffedd1] transition-colors duration-200 hover:text-[#e7bc76]"
+        className="z-10 flex-shrink-0 cursor-pointer text-3xl font-black tracking-tighter text-[#ffedd1] transition-colors duration-200 hover:text-[#e7bc76] whitespace-nowrap"
       >
         CODE CHAMBER
       </button>
-      <div className="absolute left-1/2 -translate-x-1/2 flex gap-10">
+
+      {/* Links Container */}
+      <div className="md:absolute md:left-1/2 md:-translate-x-1/2 flex items-center justify-start gap-10 min-w-0 overflow-x-auto whitespace-nowrap scrollbar-none py-2 max-w-full">
         <NavLink to="/" className={linkClass("/")}>
           Home
         </NavLink>
@@ -47,25 +49,24 @@ const Navbar = () => {
           Leaderboard
         </NavLink>
         {session ? (
-          <>
-            <NavLink to="/profile" className={linkClass("/profile")}>
-              Profile
-            </NavLink>
-          </>
+          <NavLink to="/profile" className={linkClass("/profile")}>
+            Profile
+          </NavLink>
         ) : (
-          <>
-            {isLogin ? (
-              <NavLink to="/signup" className={linkClass("/signup")}>
-                Signup
-              </NavLink>
-            ) : (
-              <NavLink to="/login" className={linkClass("/login")}>
-                Login
-              </NavLink>
-            )}
-          </>
+          <NavLink
+            to={isLogin ? "/signup" : "/login"}
+            className={linkClass(isLogin ? "/signup" : "/login")}
+          >
+            {isLogin ? "Signup" : "Login"}
+          </NavLink>
         )}
       </div>
+
+      {/* Keeps spacing consistent on desktop layouts */}
+      <div
+        className="hidden md:block w-[258px] pointer-events-none"
+        aria-hidden="true"
+      />
     </nav>
   );
 };
