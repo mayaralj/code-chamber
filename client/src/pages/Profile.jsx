@@ -17,6 +17,7 @@ import { refreshSocketConnection } from "../socket";
 
 // Config
 const FETCH_TIMEOUT = 10 * 1000;
+const MATCH_HISTORY_PAGE_SIZE = 5;
 
 // Return the modified error message so users can better understand it
 const returnProperErrorMessage = (error) => {
@@ -53,6 +54,10 @@ const Profile = () => {
   const [isLanguageStatsOpen, setIsLanguageStatsOpen] = useState(false);
   const [isMatchHistoryOpen, setIsMatchHistoryOpen] = useState(false);
   const [expandedMatchId, setExpandedMatchId] = useState(null);
+  // Tracks how many matches are currently visible inside the "ALL MATCHES" modal
+  const [visibleMatchCount, setVisibleMatchCount] = useState(
+    MATCH_HISTORY_PAGE_SIZE,
+  );
 
   // Refs
   const abortControllerRef = useRef(null);
@@ -246,6 +251,23 @@ const Profile = () => {
     fetchProfileInfo();
   };
 
+  // Open the "ALL MATCHES" modal, resetting pagination back to the first page
+  const openMatchHistoryModal = () => {
+    setVisibleMatchCount(MATCH_HISTORY_PAGE_SIZE);
+    setIsMatchHistoryOpen(true);
+  };
+
+  // Close the "ALL MATCHES" modal, resetting pagination
+  const closeMatchHistoryModal = () => {
+    setIsMatchHistoryOpen(false);
+    setVisibleMatchCount(MATCH_HISTORY_PAGE_SIZE);
+  };
+
+  // Reveal the next page of matches
+  const loadMoreMatches = () => {
+    setVisibleMatchCount((current) => current + MATCH_HISTORY_PAGE_SIZE);
+  };
+
   // If profile info fetch error'd out, show an error message with a retry button
   if (profileFetchStatus === "error") {
     return (
@@ -364,6 +386,9 @@ const Profile = () => {
 
   // Matches
   const matches = profileInfo.matches;
+  // Slice of matches currently visible in the "ALL MATCHES" modal
+  const visibleMatches = matches.slice(0, visibleMatchCount);
+  const hasMoreMatches = visibleMatchCount < matches.length;
 
   return (
     <main className="relative min-h-screen overflow-hidden bg-[#0b0b0b] px-5 py-12 text-[#e8d9c0]">
@@ -615,7 +640,7 @@ const Profile = () => {
                 <button
                   className="mt-6 w-full cursor-pointer border border-[#5d5549] py-3 font-mono text-xs font-bold tracking-[0.17em] text-[#d9bd8f] transition hover:border-[#ffd89a] hover:text-[#ffd89a]"
                   type="button"
-                  onClick={() => setIsMatchHistoryOpen(true)}
+                  onClick={openMatchHistoryModal}
                 >
                   SHOW MORE
                 </button>
@@ -743,7 +768,7 @@ const Profile = () => {
       {isMatchHistoryOpen && (
         <div
           className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 px-5"
-          onClick={() => setIsMatchHistoryOpen(false)}
+          onClick={closeMatchHistoryModal}
         >
           <div
             className="modal-scroll relative max-h-[80vh] w-full max-w-[560px] overflow-y-auto border border-[#5d5549] bg-[#0e0e0e] p-7 [scrollbar-color:#5d5549_#0e0e0e] [scrollbar-width:thin]"
@@ -756,17 +781,27 @@ const Profile = () => {
               <button
                 className="cursor-pointer text-[#b9a282] transition hover:text-[#ffd89a]"
                 type="button"
-                onClick={() => setIsMatchHistoryOpen(false)}
+                onClick={closeMatchHistoryModal}
               >
                 <FaTimes size={16} />
               </button>
             </div>
 
             <div className="space-y-3">
-              {matches.map((match) =>
+              {visibleMatches.map((match) =>
                 renderMatchCard(match, expandedMatchId, setExpandedMatchId),
               )}
             </div>
+
+            {hasMoreMatches && (
+              <button
+                className="mt-6 w-full cursor-pointer border border-[#5d5549] py-3 font-mono text-xs font-bold tracking-[0.17em] text-[#d9bd8f] transition hover:border-[#ffd89a] hover:text-[#ffd89a]"
+                type="button"
+                onClick={loadMoreMatches}
+              >
+                LOAD MORE
+              </button>
+            )}
           </div>
         </div>
       )}
@@ -824,12 +859,12 @@ const renderMatchCard = (match, expandedMatchId, setExpandedMatchId) => {
 
       {isExpanded && (
         <div className="space-y-3 border-t border-[#5d5549]/60 px-5 py-4">
-          {match.submissions.map((submission, index) => {
-            const eliminatedList = submission.eliminated ?? [];
+          {match.submissions.map((execution, index) => {
+            const eliminatedList = execution.eliminated ?? [];
 
             return (
               <div
-                key={submission.id}
+                key={execution.id}
                 className="border border-[#5d5549] bg-[#181716] p-4"
               >
                 <p className="mb-3 font-mono text-xs font-bold tracking-[0.1em] text-[#ffd89a]">
@@ -839,27 +874,27 @@ const renderMatchCard = (match, expandedMatchId, setExpandedMatchId) => {
                   <div>
                     <p className="mb-1 text-xs text-[#c6baa5]">Language</p>
                     <p className="text-sm font-bold text-[#e8d9c0]">
-                      {submission.language.toLowerCase() === "cpp"
+                      {execution.language.toLowerCase() === "cpp"
                         ? "C++"
-                        : submission.language.toUpperCase()}
+                        : execution.language.toUpperCase()}
                     </p>
                   </div>
                   <div>
                     <p className="mb-1 text-xs text-[#c6baa5]">Test Cases</p>
                     <p className="text-sm font-bold text-[#e8d9c0]">
-                      {submission.testCasesPassed}/{submission.totalTestCases}
+                      {execution.testCasesPassed}/{execution.totalTestCases}
                     </p>
                   </div>
                   <div>
                     <p className="mb-1 text-xs text-[#c6baa5]">Exec Time</p>
                     <p className="text-sm font-bold text-[#e8d9c0]">
-                      {submission.executionTime.toFixed(2)}ms
+                      {execution.executionTime.toFixed(2)}ms
                     </p>
                   </div>
                   <div>
                     <p className="mb-1 text-xs text-[#c6baa5]">Submit Time</p>
                     <p className="text-sm font-bold text-[#e8d9c0]">
-                      {submission.submissionTime.toFixed(2)}s
+                      {execution.submissionTime.toFixed(2)}s
                     </p>
                   </div>
                 </div>
