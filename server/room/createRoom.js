@@ -1,5 +1,10 @@
 // Imports
-import { rooms, roomIdToCode, playersInRooms } from "../globals.js";
+import {
+  rooms,
+  roomIdToCode,
+  playersInRooms,
+  currentRoomNames,
+} from "../globals.js";
 import { buildRoomInfo, buildPlayerInfo } from "./roomUtils.js";
 import {
   broadcastAddRoom,
@@ -108,9 +113,17 @@ const createRoom = async (io, socket, roomData, callback) => {
   if (!roomName || roomName.trim() === "") {
     return callback({ error: "Room name is required" });
   }
+  if (roomName.length < 3) {
+    return callback({ error: "Room name is too short" });
+  }
   if (roomName.length > 20) {
     return callback({ error: "Room name is too long" });
   }
+  // Check if room name is used by another room
+  if (currentRoomNames.has(roomName)) {
+    return callback({ error: "Room name is currently used by another room" });
+  }
+  currentRoomNames.add(roomName);
 
   // Create a random code
   let code = Math.random().toString(36).substring(2, 6).toUpperCase();

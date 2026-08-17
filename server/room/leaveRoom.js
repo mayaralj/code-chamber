@@ -1,5 +1,10 @@
 // Imports
-import { rooms, roomIdToCode, playersInRooms } from "../globals.js";
+import {
+  rooms,
+  roomIdToCode,
+  playersInRooms,
+  currentRoomNames,
+} from "../globals.js";
 import {
   broadcastRemoveRoom,
   broadcastUpdateRoom,
@@ -45,6 +50,7 @@ const leaveRoom = (io, socket, code) => {
     // Notify public rooms that room deleted
     broadcastRemoveRoom(io, code);
     delete roomIdToCode[room.roomId];
+    currentRoomNames.delete(rooms[code].roomName);
     delete rooms[code];
     console.log(`Room ${code} deleted as host left`);
 
@@ -58,6 +64,7 @@ const leaveRoom = (io, socket, code) => {
       // Notify public rooms that room deleted
       broadcastRemoveRoom(io, code);
       delete roomIdToCode[room.roomId];
+      currentRoomNames.delete(rooms[code].roomName);
       delete rooms[code];
       console.log(`Room ${code} deleted as it became empty`);
     } else {

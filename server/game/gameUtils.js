@@ -2,7 +2,7 @@
 import db from "../db.js";
 import { rooms } from "../globals.js";
 import { broadcastRemoveRoom } from "../broadcast/broadcastRooms.js";
-import { playersInRooms, roomIdToCode } from "../globals.js";
+import { playersInRooms, roomIdToCode, currentRoomNames } from "../globals.js";
 
 // Function to update matches played for a player
 export const trackBeforeMatch = async (player, room) => {
@@ -37,6 +37,7 @@ export const isRoomStillValid = (io, socket, code) => {
     });
     broadcastRemoveRoom(io, code);
     delete roomIdToCode[room.roomId];
+    currentRoomNames.delete(room.roomName);
     delete rooms[code];
     console.log(`Room ${code} deleted, insufficient players before game start`);
     return false;
