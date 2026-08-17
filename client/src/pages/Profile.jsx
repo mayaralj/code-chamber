@@ -636,7 +636,9 @@ const Profile = () => {
             <div className="border-l border-[#5d5549] pl-7">
               <p className="mb-2 font-mono text-sm text-[#c6baa5]">Win Rate</p>
               <p className="font-mono text-3xl font-black text-[#ffd89a]">
-                {Math.round(winRate * 100)}%
+                {Number.isFinite(winRate)
+                  ? `${Math.round(winRate * 100)}%`
+                  : "N/A"}{" "}
               </p>
             </div>
           </div>
@@ -661,7 +663,9 @@ const Profile = () => {
             <div className="border-l border-[#5d5549] pl-7">
               <p className="mb-2 font-mono text-sm text-[#c6baa5]">Pass Rate</p>
               <p className="font-mono text-3xl font-black text-[#ffd89a]">
-                {Math.round(passRate * 100)}%
+                {Number.isFinite(passRate)
+                  ? `${Math.round(passRate * 100)}%`
+                  : "N/A"}{" "}
               </p>
             </div>
           </div>
