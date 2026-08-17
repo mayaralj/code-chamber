@@ -4,6 +4,47 @@ import auth from "../auth.js";
 import { fromNodeHeaders } from "better-auth/node";
 import db from "../db.js";
 
+// Small helper to average only over non-null/non-undefined numeric values
+const average = (values) => {
+  const validValues = values.filter(
+    (value) => value !== null && value !== undefined,
+  );
+  if (!validValues.length) return "N/A";
+  const sum = validValues.reduce((total, value) => total + value, 0);
+  return sum / validValues.length;
+};
+
+// Helper to builds extra info per match based on submissions
+const buildMatchSummary = (submissions) => {
+  if (!submissions.length) {
+    return {
+      total_rounds: 0,
+      test_cases_passed: 0,
+      total_test_cases: 0,
+      avg_execution_time: "N/A",
+      avg_submission_time: "N/A",
+    };
+  }
+
+  const testCasesPassed = submissions.reduce(
+    (total, sub) => total + (sub.testCasesPassed ?? 0),
+    0,
+  );
+  const totalTestCases = submissions.reduce(
+    (total, sub) => total + (sub.totalTestCases ?? 0),
+    0,
+  );
+
+  return {
+    total_rounds: submissions.length,
+    test_cases_passed: testCasesPassed,
+    total_test_cases: totalTestCases,
+    avg_execution_time: average(submissions.map((sub) => sub.executionTime)),
+    avg_submission_time: average(submissions.map((sub) => sub.submissionTime)),
+  };
+};
+
+// Profile router
 const profileRouter = () => {
   // Init the router
   const router = express.Router();
@@ -137,14 +178,24 @@ const profileRouter = () => {
         });
       }
 
-      const matches = matchRows.map((m) => ({
-        id: m.room_id,
-        won: m.won,
-        host: m.host_name ?? "Unknown",
-        difficulty: m.difficulty,
-        date: m.played_at,
-        submissions: submissionsByRoom[m.room_id] ?? [],
-      }));
+      const matches = matchRows.map((m) => {
+        const matchSubmissions = submissionsByRoom[m.room_id] ?? [];
+        const summary = buildMatchSummary(matchSubmissions);
+
+        return {
+          id: m.room_id,
+          won: m.won,
+          host: m.host_name ?? "Unknown",
+          difficulty: m.difficulty,
+          date: m.played_at,
+          totalRounds: summary.total_rounds,
+          testCasesPassed: summary.test_cases_passed,
+          totalTestCases: summary.total_test_cases,
+          avgExecutionTime: summary.avg_execution_time,
+          avgSubmissionTime: summary.avg_submission_time,
+          submissions: matchSubmissions,
+        };
+      });
 
       const profileInfo = {
         displayName: session.user.displayUsername ?? session.user.name,

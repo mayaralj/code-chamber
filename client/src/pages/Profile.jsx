@@ -36,6 +36,10 @@ const formatStat = (value, suffix = "") =>
     ? "N/A"
     : `${value}${suffix}`;
 
+// Round a numeric-or-"N/A" stat to 2 decimal places, passing "N/A" through untouched
+const roundStat = (value) =>
+  typeof value === "number" ? Math.round(value * 100) / 100 : value;
+
 // Profile component
 const Profile = () => {
   // Navigate and search params
@@ -739,7 +743,7 @@ const Profile = () => {
                           <p className="text-lg font-bold text-[#e8d9c0]">
                             {/* Execution time rounded to 2 decimal places */}
                             {formatStat(
-                              Math.round(stat.avg_execution_time * 100) / 100,
+                              roundStat(stat.avg_execution_time),
                               "ms",
                             )}
                           </p>
@@ -751,7 +755,7 @@ const Profile = () => {
                           <p className="text-lg font-bold text-[#e8d9c0]">
                             {/* Submit time rounded to 2 decimal places */}
                             {formatStat(
-                              Math.round(stat.avg_submission_time * 100) / 100,
+                              roundStat(stat.avg_submission_time),
                               "s",
                             )}
                           </p>
@@ -838,9 +842,9 @@ const renderMatchCard = (match, expandedMatchId, setExpandedMatchId) => {
           </span>
           <div>
             <p className="font-mono text-sm font-bold text-[#e8d9c0]">
-              HOST: {match.host}
+              host: {match.host}
             </p>
-            <p className="font-mono text-xs text-[#c6baa5]">
+            <p className="mt-1 font-mono text-xs text-[#c6baa5]">
               {match.difficulty}
             </p>
           </div>
@@ -857,14 +861,50 @@ const renderMatchCard = (match, expandedMatchId, setExpandedMatchId) => {
         </div>
       </button>
 
+      {/* Match-level summary stats, always visible without needing to expand */}
+      <div className="grid grid-cols-4 gap-2 border-t border-[#5d5549]/40 bg-black/20 px-5 py-3">
+        <div>
+          <p className="mb-0.5 font-mono text-[11px] uppercase tracking-wide text-[#8a8071]">
+            Rounds
+          </p>
+          <p className="font-mono text-sm font-bold text-[#e8d9c0]">
+            {match.totalRounds}
+          </p>
+        </div>
+        <div>
+          <p className="mb-0.5 font-mono text-[11px] uppercase tracking-wide text-[#8a8071]">
+            Tests
+          </p>
+          <p className="font-mono text-sm font-bold text-[#e8d9c0]">
+            {match.testCasesPassed}/{match.totalTestCases}
+          </p>
+        </div>
+        <div>
+          <p className="mb-0.5 font-mono text-[11px] uppercase tracking-wide text-[#8a8071]">
+            Avg Exec
+          </p>
+          <p className="font-mono text-sm font-bold text-[#e8d9c0]">
+            {formatStat(roundStat(match.avgExecutionTime), "ms")}
+          </p>
+        </div>
+        <div>
+          <p className="mb-0.5 font-mono text-[11px] uppercase tracking-wide text-[#8a8071]">
+            Avg Submit
+          </p>
+          <p className="font-mono text-sm font-bold text-[#e8d9c0]">
+            {formatStat(roundStat(match.avgSubmissionTime), "s")}
+          </p>
+        </div>
+      </div>
+
       {isExpanded && (
         <div className="space-y-3 border-t border-[#5d5549]/60 px-5 py-4">
-          {match.submissions.map((execution, index) => {
-            const eliminatedList = execution.eliminated ?? [];
+          {match.submissions.map((submission, index) => {
+            const eliminatedList = submission.eliminated ?? [];
 
             return (
               <div
-                key={execution.id}
+                key={submission.id}
                 className="border border-[#5d5549] bg-[#181716] p-4"
               >
                 <p className="mb-3 font-mono text-xs font-bold tracking-[0.1em] text-[#ffd89a]">
@@ -874,27 +914,27 @@ const renderMatchCard = (match, expandedMatchId, setExpandedMatchId) => {
                   <div>
                     <p className="mb-1 text-xs text-[#c6baa5]">Language</p>
                     <p className="text-sm font-bold text-[#e8d9c0]">
-                      {execution.language.toLowerCase() === "cpp"
+                      {submission.language.toLowerCase() === "cpp"
                         ? "C++"
-                        : execution.language.toUpperCase()}
+                        : submission.language.toUpperCase()}
                     </p>
                   </div>
                   <div>
                     <p className="mb-1 text-xs text-[#c6baa5]">Test Cases</p>
                     <p className="text-sm font-bold text-[#e8d9c0]">
-                      {execution.testCasesPassed}/{execution.totalTestCases}
+                      {submission.testCasesPassed}/{submission.totalTestCases}
                     </p>
                   </div>
                   <div>
                     <p className="mb-1 text-xs text-[#c6baa5]">Exec Time</p>
                     <p className="text-sm font-bold text-[#e8d9c0]">
-                      {execution.executionTime.toFixed(2)}ms
+                      {submission.executionTime.toFixed(2)}ms
                     </p>
                   </div>
                   <div>
                     <p className="mb-1 text-xs text-[#c6baa5]">Submit Time</p>
                     <p className="text-sm font-bold text-[#e8d9c0]">
-                      {execution.submissionTime.toFixed(2)}s
+                      {submission.submissionTime.toFixed(2)}s
                     </p>
                   </div>
                 </div>
