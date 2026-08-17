@@ -1,9 +1,10 @@
 import { useNavigate } from "react-router";
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import { socket } from "../socket";
 
 // Config
 const CREATE_ROOM_TIMEOUT = 3000;
+const MAX_ROOM_NAME_LENGTH = 20;
 
 const CreateRoom = () => {
   // Room name state
@@ -27,6 +28,14 @@ const CreateRoom = () => {
     const trimmedRoomName = roomName.trim();
     if (!trimmedRoomName || trimmedRoomName === "") {
       setCreateError("Room name is required");
+      return;
+    }
+    if (trimmedRoomName.length > 20) {
+      setCreateError("Room name is too long");
+      return;
+    }
+    if (trimmedRoomName.length < 3) {
+      setCreateError("Room name is too short");
       return;
     }
 
@@ -79,16 +88,20 @@ const CreateRoom = () => {
         </div>
 
         <div className="space-y-10">
-          <label className="block">
+          <label className="block text-center">
+            {" "}
+            {/* Added text-center here to center the "ROOM NAME" label text */}
             <span className="mb-3 block text-xs font-bold tracking-wider text-[#d8c09d]">
               ROOM NAME
             </span>
             <input
               type="text"
               value={roomName}
+              maxLength={MAX_ROOM_NAME_LENGTH}
               onChange={(e) => setRoomName(e.target.value)}
               placeholder="ENTER IDENTIFIER..."
-              className="w-full border border-[#4b4133] bg-[#111111] px-4 py-4 text-[#f1eee7] outline-none placeholder:text-[#4e483e] focus:border-[#d8b77f] focus:ring-1 focus:ring-[#d8b77f]"
+              /* Added w-full (to span the full container) and text-center (to center the typing text & placeholder) */
+              className="w-full text-center border border-[#4b4133] bg-[#111111] px-4 py-4 text-[#f1eee7] outline-none placeholder:text-[#4e483e] text-lg focus:border-[#d8b77f] focus:ring-1 focus:ring-[#d8b77f]"
             />
           </label>
 

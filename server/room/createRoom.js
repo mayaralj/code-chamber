@@ -108,6 +108,9 @@ const createRoom = async (io, socket, roomData, callback) => {
   if (!roomName || roomName.trim() === "") {
     return callback({ error: "Room name is required" });
   }
+  if (roomName.length > 20) {
+    return callback({ error: "Room name is too long" });
+  }
 
   // Create a random code
   let code = Math.random().toString(36).substring(2, 6).toUpperCase();

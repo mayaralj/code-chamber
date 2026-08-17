@@ -422,27 +422,44 @@ const RoomWait = () => {
   );
 };
 
-const InfoCard = ({ label, value, accent }) => (
-  <article className={`border border-[#4b4133] bg-[#1a1a1a] px-4 py-4`}>
-    <p className="text-[10px] font-bold tracking-[0.14em] text-[#a9977e]">
-      {label}
-    </p>
-    <p
-      className={`mt-2 text-lg font-bold ${
-        value.toLowerCase() == "hard"
-          ? "text-[#e6aaa1]"
-          : value.toLowerCase() == "medium"
-            ? "text-[#dea566]"
-            : value.toLowerCase() == "easy"
-              ? "text-[#e7c49d]"
-              : accent
-                ? accent
-                : "text-[#f1eee7]"
-      }`}
-    >
-      {value}
-    </p>
-  </article>
-);
+const InfoCard = ({ label, value, accent }) => {
+  let fontSizeClass = "text-lg";
+
+  // Adjust the sizes of font
+  if (value.length > 19) {
+    fontSizeClass = "text-[11px]";
+  } else if (value.length > 14) {
+    fontSizeClass = "text-xs";
+  } else if (value.length > 10) {
+    fontSizeClass = "text-base";
+  }
+
+  return (
+    <article className="border border-[#4b4133] bg-[#1a1a1a] px-4 py-4 min-w-0 flex flex-col min-h-[95px]">
+      <p className="text-[10px] font-bold tracking-[0.14em] text-[#a9977e] flex-none">
+        {label}
+      </p>
+
+      <div className="flex-1 flex items-center min-h-0">
+        <p
+          title={value}
+          className={`font-bold break-all w-full leading-tight transition-all duration-200 ${fontSizeClass} ${
+            value.toLowerCase() === "hard"
+              ? "text-[#e6aaa1]"
+              : value.toLowerCase() === "medium"
+                ? "text-[#dea566]"
+                : value.toLowerCase() === "easy"
+                  ? "text-[#e7c49d]"
+                  : accent
+                    ? accent
+                    : "text-[#f1eee7]"
+          }`}
+        >
+          {value}
+        </p>
+      </div>
+    </article>
+  );
+};
 
 export default RoomWait;
