@@ -6,6 +6,7 @@ import { registerShutdownSignals } from "./shutdown.js";
 import initSocket from "./socket/socket.js";
 import { startBatchTimer } from "./broadcast/broadcastRooms.js";
 import { startLeaderboardCompute } from "./leaderboard/precomputeLeaderboard.js";
+import { startLiveStatsCompute } from "./liveStats/precomputeLiveStats.js";
 
 // Port
 const PORT = process.env.PORT || 5000;
@@ -22,6 +23,9 @@ const serverStartup = async () => {
 
     // Start the leaderboard precomputation on an interval
     startLeaderboardCompute();
+
+    // Start the live stats precomputation on an interval
+    startLiveStatsCompute();
 
     // Start batch broadcast updates for browse page to list all rooms
     startBatchTimer(io);

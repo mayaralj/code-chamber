@@ -2,7 +2,6 @@ import setUpRoomSockets from "./roomSockets.js";
 import setUpGameSockets from "./gameSockets.js";
 import auth from "../auth.js";
 import { fromNodeHeaders } from "better-auth/node";
-import { randomUUID } from "node:crypto";
 import {
   getGuestId,
   cancelGuestUsernameTimeout,
