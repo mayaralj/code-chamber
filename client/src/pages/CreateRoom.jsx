@@ -89,8 +89,6 @@ const CreateRoom = () => {
 
         <div className="space-y-10">
           <label className="block text-center">
-            {" "}
-            {/* Added text-center here to center the "ROOM NAME" label text */}
             <span className="mb-3 block text-xs font-bold tracking-wider text-[#d8c09d]">
               ROOM NAME
             </span>
@@ -100,8 +98,9 @@ const CreateRoom = () => {
               maxLength={MAX_ROOM_NAME_LENGTH}
               onChange={(e) => setRoomName(e.target.value)}
               placeholder="ENTER IDENTIFIER..."
-              /* Added w-full (to span the full container) and text-center (to center the typing text & placeholder) */
-              className="w-full text-center border border-[#4b4133] bg-[#111111] px-4 py-4 text-[#f1eee7] outline-none placeholder:text-[#4e483e] text-lg focus:border-[#d8b77f] focus:ring-1 focus:ring-[#d8b77f]"
+              className={`w-full border border-[#4b4133] bg-[#111111] px-4 py-4 text-[#f1eee7] outline-none placeholder:text-[#4e483e] text-lg  focus:border-[#d8b77f] focus:ring-1 focus:ring-[#d8b77f] ${
+                roomName.length > 0 ? "text-center" : "text-left"
+              }`}
             />
           </label>
 
