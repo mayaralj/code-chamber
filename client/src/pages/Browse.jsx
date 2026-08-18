@@ -75,6 +75,7 @@ const Browse = () => {
   const handleJoin = (code) => {
     // Check for valid code
     if (code.trim() === "") {
+      setError({ code: "", message: "Code is required" });
       return;
     }
     // Check  for length (pretty much just for private joining)
