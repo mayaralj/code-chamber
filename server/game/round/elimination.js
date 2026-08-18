@@ -46,8 +46,10 @@ export const eliminatePlayer = (io, code, roundData, playerEliminated) => {
     return;
   }
 
+  // Calculate survival time
+  const survivalTime = Math.round((Date.now() - room.gameStartedAt) / 1000);
   // Track match for eliminated player
-  trackMatch(playerEliminated, room.roomId, false);
+  trackMatch(playerEliminated, room.roomId, false, survivalTime);
 
   // Remove player from room
   room.players = room.players.filter(

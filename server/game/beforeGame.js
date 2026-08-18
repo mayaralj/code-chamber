@@ -53,6 +53,8 @@ const beforeGame = async (io, socket, code) => {
   // Mark room as game started
   rooms[code].isGameStarted = true;
   rooms[code].isGameStarting = false;
+  // Track when game started
+  rooms[code].gameStartedAt = Date.now();
   broadcastUpdateRoom(io, rooms[code]);
   console.log(`Game started in room ${code}`);
 };

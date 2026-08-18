@@ -86,7 +86,10 @@ export const sendResults = async (io, code, roundData) => {
 export const gameOver = async (io, code, roundData, winner) => {
   // Track match for winner
   if (winner) {
-    trackMatch(winner, rooms[code].roomId, true);
+    const survivalTime = Math.round(
+      (Date.now() - rooms[code].gameStartedAt) / 1000,
+    );
+    trackMatch(winner, rooms[code].roomId, true, survivalTime);
   }
 
   // Send game over data

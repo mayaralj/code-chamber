@@ -147,17 +147,16 @@ export const startRoundTimer = async (io, code, roundData, ROUND_TIMER) => {
 };
 
 // Helper to update matches table for player
-export const trackMatch = async (player, roomId, isWinner) => {
-  // Validate
+export const trackMatch = async (player, roomId, isWinner, survivalTime) => {
   if (!player || !player.userId || player.isGuest) return;
   if (!roomId) return;
 
   await db.query(
-    `UPDATE matches SET won = $1 WHERE room_id = $2 AND user_id = $3`,
-    [isWinner, roomId, player.userId],
+    `UPDATE matches SET won = $1, survival_time = $2 WHERE room_id = $3 AND user_id = $4`,
+    [isWinner, survivalTime, roomId, player.userId],
   );
   console.log(
-    `Updated match for player ${player.username} in room ${roomId}, won: ${isWinner}`,
+    `Updated match for player ${player.username} in room ${roomId}, won: ${isWinner}, survived: ${survivalTime}s`,
   );
 };
 
