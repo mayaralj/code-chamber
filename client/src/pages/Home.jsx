@@ -2,6 +2,23 @@
 import { useNavigate } from "react-router";
 import { useState, useEffect } from "react";
 
+// Bunch of helpers to format live stats numbers for display
+const formatPercent = (value) =>
+  value === "N/A" || value === null || value === undefined
+    ? "N/A"
+    : `${Math.round(value * 100)}%`;
+const formatMs = (value) =>
+  value === "N/A" || value === null || value === undefined
+    ? "N/A"
+    : `${Math.round(value)}ms`;
+const formatDuration = (value) => {
+  if (value === "N/A" || value === null || value === undefined) return "N/A";
+  const totalSeconds = Math.round(value);
+  const minutes = Math.floor(totalSeconds / 60);
+  const seconds = totalSeconds % 60;
+  return `${String(minutes).padStart(2, "0")}:${String(seconds).padStart(2, "0")} MIN`;
+};
+
 // Home component
 const Home = () => {
   // Navigate
@@ -18,7 +35,6 @@ const Home = () => {
     source.onmessage = (event) => {
       try {
         const data = JSON.parse(event.data);
-        console.log("Live stats update received:", data);
         setLiveStats(data);
       } catch {
         console.error("Invalid JSON data received:", event.data);
@@ -47,18 +63,52 @@ const Home = () => {
     { rank: "02", name: "STACK_OVERLORD", rate: "94.1%" },
     { rank: "03", name: "HEX_REAPER", rate: "92.8%" },
   ];
-  const tickerText = (
+
+  // Build the ticker from live stats, or a connecting message until the first payload arrives
+  const tickerText = liveStats ? (
     <>
-      <span className="mr-8">ACTIVE BATTLES: 124</span>
+      <span className="mr-8">ACTIVE PLAYERS: {liveStats.active_users}</span>
       <span className="mr-8">|</span>
-      <span className="mr-8">AVG SURVIVAL TIME: 04:22 MIN</span>
+      <span className="mr-8">MATCHES PLAYED: {liveStats.total_matches}</span>
       <span className="mr-8">|</span>
-      <span className="mr-8">ACTIVE CODERS: 642</span>
+      <span className="mr-8">SUBMISSIONS: {liveStats.total_submissions}</span>
       <span className="mr-8">|</span>
-      <span className="mr-8">SYSTEM UPTIME: 99.9%</span>
+      <span className="mr-8">
+        AVG PASS RATE: {formatPercent(liveStats.avg_pass_rate)}
+      </span>
       <span className="mr-8">|</span>
-      <span className="mr-8">LATEST ELIMINATION: USER_0XFF</span>
+      <span className="mr-8">
+        AVG EXEC TIME: {formatMs(liveStats.avg_execution_time)}
+      </span>
       <span className="mr-8">|</span>
+      <span className="mr-8">
+        AVG SURVIVAL TIME: {formatDuration(liveStats.avg_survival_time)}
+      </span>
+      <span className="mr-8">|</span>
+      <span className="mr-8">
+        AVG MATCH TIME: {formatDuration(liveStats.avg_match_time)}
+      </span>
+      <span className="mr-8">|</span>
+      <span className="mr-8">
+        MOST USED LANGUAGE: {liveStats.most_used_language?.toUpperCase()}
+      </span>
+      <span className="mr-8">|</span>
+      <span className="mr-8">
+        MOST PLAYED DIFFICULTY: {liveStats.most_used_difficulty?.toUpperCase()}
+      </span>
+      <span className="mr-8">|</span>
+    </>
+  ) : (
+    <>
+      <span className="mr-8">CONNECTING TO LIVE FEED...</span>
+      <span className="mr-8">CONNECTING TO LIVE FEED...</span>
+      <span className="mr-8">CONNECTING TO LIVE FEED...</span>
+      <span className="mr-8">CONNECTING TO LIVE FEED...</span>
+      <span className="mr-8">CONNECTING TO LIVE FEED...</span>
+      <span className="mr-8">CONNECTING TO LIVE FEED...</span>
+      <span className="mr-8">CONNECTING TO LIVE FEED...</span>
+      <span className="mr-8">CONNECTING TO LIVE FEED...</span>
+      <span className="mr-8">CONNECTING TO LIVE FEED...</span>
     </>
   );
 
@@ -153,9 +203,19 @@ const Home = () => {
         </section>
 
         <section className="mt-18  grid border border-[#4b4133] bg-[#111111] md:grid-cols-3">
-          <Stat label="TOTAL_CHAMBERS_RUN" value="12,842" />
-          <Stat label="AVERAGE_COMPILE_TIME" value="0.42s" />
-          <Stat label="SURVIVAL_RATE" value="16.6%" last />
+          <Stat
+            label="TOTAL_CHAMBERS_RUN"
+            value={liveStats ? liveStats.total_matches : "..."}
+          />
+          <Stat
+            label="AVERAGE_COMPILE_TIME"
+            value={liveStats ? formatMs(liveStats.avg_execution_time) : "..."}
+          />
+          <Stat
+            label="AVG_PASS_RATE"
+            value={liveStats ? formatPercent(liveStats.avg_pass_rate) : "..."}
+            last
+          />
         </section>
       </main>
     </div>
