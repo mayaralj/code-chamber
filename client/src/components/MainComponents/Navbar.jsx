@@ -51,8 +51,8 @@ const Navbar = () => {
             className={({ isActive }) =>
               `p-2 rounded-full transition-colors duration-200 ${
                 isActive
-                  ? "text-[#ffd99d] bg-[#2f2f40]"
-                  : "text-[#ffedd1] bg-[#1a1a24] hover:text-[#ffd99d]"
+                  ? "text-[#ffd99d] bg-[#232330]"
+                  : "text-[#ffedd1] bg-[#1a1a24] hover:bg-[#232330] hover:text-[#ffd99d]"
               }`
             }
           >

@@ -7,44 +7,44 @@ const FETCH_TIMEOUT = 10 * 1000;
 
 // Metrics available when viewing "ALL" (overall, cross-language stats)
 const overallMetrics = {
-  matches_won: { label: "Matches Won", field: "matches_won", format: (v) => v },
+  matches_won: { label: "MATCHES WON", field: "matches_won", format: (v) => v },
   matches_played: {
-    label: "Matches Played",
+    label: "MATCHES PLAYED",
     field: "matches_played",
     format: (v) => v,
   },
   win_rate: {
-    label: "Win Rate",
+    label: "WIN RATE",
     field: "win_rate",
     format: (v) => `${(v * 100).toFixed(2)}%`,
   },
   total_submissions: {
-    label: "Total Submissions",
+    label: "TOTAL SUBMISSIONS",
     field: "total_submissions",
     format: (v) => v,
   },
   passed_submissions: {
-    label: "Passed Submissions",
+    label: "PASSED SUBMISSIONS",
     field: "passed_submissions",
     format: (v) => v,
   },
   pass_rate: {
-    label: "Pass Rate",
+    label: "PASS RATE",
     field: "pass_rate",
     format: (v) => `${(v * 100).toFixed(2)}%`,
   },
   avg_submission_time: {
-    label: "Avg Submission Time (s)",
+    label: "AVG SUBMISSION TIME (s)",
     field: "avg_submission_time",
     format: (v) => v.toFixed(2),
   },
   avg_execution_time: {
-    label: "Avg Execution Time (ms)",
+    label: "AVG EXECUTION TIME (ms)",
     field: "avg_execution_time",
     format: (v) => v.toFixed(2),
   },
   test_cases_passed: {
-    label: "Test Cases Passed",
+    label: "TEST CASES PASSED",
     field: "test_cases_passed",
     format: (v) => v,
   },
@@ -53,32 +53,32 @@ const overallMetrics = {
 // Metrics available when a specific language is selected (no match related info for languages)
 const languageMetrics = {
   total_submissions: {
-    label: "Total Submissions",
+    label: "TOTAL SUBMISSIONS",
     field: "total_submissions",
     format: (v) => v,
   },
   passed_submissions: {
-    label: "Passed Submissions",
+    label: "PASSED SUBMISSIONS",
     field: "passed_submissions",
     format: (v) => v,
   },
   pass_rate: {
-    label: "Pass Rate",
+    label: "PASS RATE",
     field: "pass_rate",
     format: (v) => `${(v * 100).toFixed(2)}%`,
   },
   avg_submission_time: {
-    label: "Avg Submission Time (s)",
+    label: "AVG SUBMISSION TIME (s)",
     field: "avg_submission_time",
     format: (v) => v.toFixed(2),
   },
   avg_execution_time: {
-    label: "Avg Execution Time (ms)",
+    label: "AVG EXECUTION TIME (ms)",
     field: "avg_execution_time",
     format: (v) => v.toFixed(2),
   },
   test_cases_passed: {
-    label: "Test Cases Passed",
+    label: "TEST CASES PASSED",
     field: "test_cases_passed",
     format: (v) => v,
   },
@@ -88,8 +88,8 @@ const languageMetrics = {
 const languageOptions = {
   ALL: "ALL",
   cpp: "C++",
-  javascript: "JavaScript",
-  python: "Python",
+  javascript: "JAVASCRIPT",
+  python: "PYTHON",
 };
 
 // Leaderboard.jsx
