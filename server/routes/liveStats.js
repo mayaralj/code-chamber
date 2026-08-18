@@ -1,35 +1,67 @@
-//Imports
+// Imports
 import express from "express";
+import { liveStats } from "../liveStats/precomputeLiveStats.js";
 
 // Config
-const INTERVAL_MS = 5 * 1000;
+const SEND_INTERVAL_MS = 10 * 1000;
+
+// Set of connected clients' response objects
+const connectedClients = new Set();
+let broadcastTimer = null;
+
+// Helper to write an SSE payload to a single client
+const sendToClient = (res, data) => {
+  res.write("data: " + JSON.stringify(data) + "\n\n");
+};
+
+// Helper to write the current liveStats snapshot to every connected client
+const broadcastLiveStats = () => {
+  const payload = liveStats ?? { message: "Live stats not available yet" };
+  for (const res of connectedClients) {
+    sendToClient(res, payload);
+  }
+};
+
+// Start the shared broadcast interval (only runs while at least one client is connected)
+const startBroadcasting = () => {
+  if (broadcastTimer) return;
+  broadcastTimer = setInterval(broadcastLiveStats, SEND_INTERVAL_MS);
+};
+
+// Stop the shared broadcast interval once there are no clients left to send to
+const stopBroadcasting = () => {
+  clearInterval(broadcastTimer);
+  broadcastTimer = null;
+};
 
 // Live Stats router
 const liveStatsRouter = () => {
   const router = express.Router();
 
   router.get("/", (req, res) => {
-    // Send on an interval
-    res.setHeader("Cache-Control", "no-cache");
-    res.setHeader("Content-Type", "text/event-stream");
-    res.setHeader("Connection", "keep-alive");
+    res.writeHead(200, {
+      "Cache-Control": "no-cache",
+      "Content-Type": "text/event-stream",
+      Connection: "keep-alive",
+    });
+    res.flushHeaders();
 
-    // Function to send data to the client
-    const send = (data) => {
-      res.write("data: " + JSON.stringify(data) + "\n\n");
-    };
+    // Send an immediate snapshot so the client doesn't wait for the next tick
+    sendToClient(res, liveStats ?? { message: "Live stats not available yet" });
 
-    // Send initial data
-    send({ message: "Connected to live stats" });
+    // Register this client and make sure the shared interval is running
+    connectedClients.add(res);
+    startBroadcasting();
 
-    // Interval to send live stats every 5 seconds
-    const interval = setInterval(() => {
-      send({ message: "Live stats update" });
-    }, INTERVAL_MS);
+    // Clean up when this client disconnects
+    req.on("close", () => {
+      connectedClients.delete(res);
+      res.end();
 
-    // Clear the interval when the client disconnects
-    res.on("close", () => {
-      clearInterval(interval);
+      // No point running the interval with nobody listening
+      if (connectedClients.size === 0) {
+        stopBroadcasting();
+      }
     });
   });
 
