@@ -18,7 +18,22 @@ const sendToClient = (res, data) => {
 const broadcastLiveStats = () => {
   const payload = liveStats ?? { message: "Live stats not available yet" };
   for (const res of connectedClients) {
-    sendToClient(res, payload);
+    // Send to clients on a try catch but handle any errors incase
+    try {
+      sendToClient(res, payload);
+    } catch (error) {
+      console.error("Error sending to client:", error);
+      connectedClients.delete(res);
+
+      // res.end() can error if client already disconnected
+      if (!res.writableEnded) {
+        try {
+          res.end();
+        } catch {
+          // already closed, nothing to clean up
+        }
+      }
+    }
   }
 };
 
