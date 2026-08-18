@@ -1,10 +1,39 @@
 // Imports
 import { useNavigate } from "react-router";
+import { useState, useEffect } from "react";
 
 // Home component
 const Home = () => {
   // Navigate
   const navigate = useNavigate();
+
+  // States
+  const [liveStats, setLiveStats] = useState(null);
+
+  // Handle incoming events
+  useEffect(() => {
+    const source = new EventSource("http://localhost:5000/api/liveStats");
+
+    // Handle each data set
+    source.onmessage = (event) => {
+      try {
+        const data = JSON.parse(event.data);
+        console.log("Live stats update received:", data);
+        setLiveStats(data);
+      } catch {
+        console.error("Invalid JSON data received:", event.data);
+      }
+    };
+
+    source.onerror = (err) => {
+      console.error("SSE connection error:", err);
+    };
+
+    // Cleanup on unmount
+    return () => {
+      source.close();
+    };
+  }, []);
 
   // REST OF LOGIC TODO
   // Bunch of placeholder data for now
