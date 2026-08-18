@@ -736,7 +736,7 @@ const Profile = () => {
           onClick={() => setIsLanguageStatsOpen(false)}
         >
           <div
-            className="modal-scroll relative max-h-[80vh] w-full max-w-[640px] overflow-y-auto border border-[#5d5549] bg-[#0e0e0e] p-7 [scrollbar-color:#5d5549_#0e0e0e] [scrollbar-width:thin]"
+            className="modal-scroll relative max-h-[80vh] w-full max-w-[640px] overflow-y-auto  overscroll-contain border border-[#5d5549] bg-[#0e0e0e] p-7 [scrollbar-color:#5d5549_#0e0e0e] [scrollbar-width:thin]"
             onClick={(e) => e.stopPropagation()}
           >
             <div className="mb-6 flex items-center justify-between">
@@ -836,7 +836,7 @@ const Profile = () => {
           onClick={closeMatchHistoryModal}
         >
           <div
-            className="modal-scroll relative max-h-[80vh] w-full max-w-[560px] overflow-y-auto border border-[#5d5549] bg-[#0e0e0e] p-7 [scrollbar-color:#5d5549_#0e0e0e] [scrollbar-width:thin]"
+            className="modal-scroll relative max-h-[80vh] w-full max-w-[560px] overflow-y-auto  overscroll-contain border border-[#5d5549] bg-[#0e0e0e] p-7 [scrollbar-color:#5d5549_#0e0e0e] [scrollbar-width:thin]"
             onClick={(e) => e.stopPropagation()}
           >
             <div className="mb-6 flex items-center justify-between">
