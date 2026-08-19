@@ -1,15 +1,14 @@
 @import "tailwindcss";
 
-@keyframes marquee-scroll {
-  to {
-    transform: translateX(-25%);
-  }
+@keyframes marquee {
+  from { transform: translateX(0); }
+  to { transform: translateX(-50%); }
 }
 
 .marquee-track {
   display: flex;
   width: max-content;
-  animation: marquee-scroll 26s linear infinite;
+  animation: marquee 30s linear infinite;
 }
 
 .modal-scroll::-webkit-scrollbar {

@@ -65,50 +65,64 @@ const Home = () => {
   ];
 
   // Build the ticker from live stats, or a connecting message until the first payload arrives
-  const tickerText = liveStats ? (
+  const tickerText = (
     <>
-      <span className="mr-8">ACTIVE PLAYERS: {liveStats.active_users}</span>
-      <span className="mr-8">|</span>
-      <span className="mr-8">MATCHES PLAYED: {liveStats.total_matches}</span>
-      <span className="mr-8">|</span>
-      <span className="mr-8">SUBMISSIONS: {liveStats.total_submissions}</span>
-      <span className="mr-8">|</span>
-      <span className="mr-8">
-        AVG PASS RATE: {formatPercent(liveStats.avg_pass_rate)}
+      <span className="text-[15px] mr-8">
+        {liveStats
+          ? "ACTIVE PLAYERS: " + liveStats.active_users
+          : "CONNECTING TO LIVE FEED..."}
       </span>
-      <span className="mr-8">|</span>
-      <span className="mr-8">
-        AVG EXEC TIME: {formatMs(liveStats.avg_execution_time)}
+      <span className="text-[15px] mr-8">|</span>
+      <span className="text-[15px] mr-8">
+        {liveStats
+          ? "MATCHES PLAYED: " + liveStats.total_matches
+          : "CONNECTING TO LIVE FEED..."}
       </span>
-      <span className="mr-8">|</span>
-      <span className="mr-8">
-        AVG SURVIVAL TIME: {formatDuration(liveStats.avg_survival_time)}
+      <span className="text-[15px] mr-8">|</span>
+      <span className="text-[15px] mr-8">
+        {liveStats
+          ? "SUBMISSIONS: " + liveStats.total_submissions
+          : "CONNECTING TO LIVE FEED..."}
       </span>
-      <span className="mr-8">|</span>
-      <span className="mr-8">
-        AVG MATCH TIME: {formatDuration(liveStats.avg_match_time)}
+      <span className="text-[15px] mr-8">|</span>
+      <span className="text-[15px] mr-8">
+        {liveStats
+          ? "AVG PASS RATE: " + formatPercent(liveStats.avg_pass_rate)
+          : "CONNECTING TO LIVE FEED..."}
       </span>
-      <span className="mr-8">|</span>
-      <span className="mr-8">
-        MOST USED LANGUAGE: {liveStats.most_used_language?.toUpperCase()}
+      <span className="text-[15px] mr-8">|</span>
+      <span className="text-[15px] mr-8">
+        {liveStats
+          ? "AVG EXEC TIME: " + formatMs(liveStats.avg_execution_time)
+          : "CONNECTING TO LIVE FEED..."}
       </span>
-      <span className="mr-8">|</span>
-      <span className="mr-8">
-        MOST PLAYED DIFFICULTY: {liveStats.most_used_difficulty?.toUpperCase()}
+      <span className="text-[15px] mr-8">|</span>
+      <span className="text-[15px] mr-8">
+        {liveStats
+          ? "AVG SURVIVAL TIME: " + formatDuration(liveStats.avg_survival_time)
+          : "CONNECTING TO LIVE FEED..."}
       </span>
-      <span className="mr-8">|</span>
-    </>
-  ) : (
-    <>
-      <span className="mr-8">CONNECTING TO LIVE FEED...</span>
-      <span className="mr-8">CONNECTING TO LIVE FEED...</span>
-      <span className="mr-8">CONNECTING TO LIVE FEED...</span>
-      <span className="mr-8">CONNECTING TO LIVE FEED...</span>
-      <span className="mr-8">CONNECTING TO LIVE FEED...</span>
-      <span className="mr-8">CONNECTING TO LIVE FEED...</span>
-      <span className="mr-8">CONNECTING TO LIVE FEED...</span>
-      <span className="mr-8">CONNECTING TO LIVE FEED...</span>
-      <span className="mr-8">CONNECTING TO LIVE FEED...</span>
+      <span className="text-[15px] mr-8">|</span>
+      <span className="text-[15px] mr-8">
+        {liveStats
+          ? "AVG MATCH TIME: " + formatDuration(liveStats.avg_match_time)
+          : "CONNECTING TO LIVE FEED..."}
+      </span>
+      <span className="text-[15px] mr-8">|</span>
+      <span className="text-[15px] mr-8">
+        {liveStats
+          ? "MOST USED LANGUAGE: " +
+            (liveStats.most_used_language?.toUpperCase() || "—")
+          : "CONNECTING TO LIVE FEED..."}
+      </span>
+      <span className="text-[15px] mr-8">|</span>
+      <span className="text-[15px] mr-8">
+        {liveStats
+          ? "MOST PLAYED DIFFICULTY: " +
+            (liveStats.most_used_difficulty?.toUpperCase() || "—")
+          : "CONNECTING TO LIVE FEED..."}
+      </span>
+      <span className="text-[15px] mr-8">|</span>
     </>
   );
 
@@ -128,11 +142,11 @@ const Home = () => {
         {/* Ticker */}
         <div className="relative left-1/2 mb-10 w-screen -translate-x-1/2 overflow-hidden border-y border-[#4b4133] bg-gray-950 py-2 select-none pointer-events-none">
           <div className="marquee-track whitespace-nowrap">
-            {[0, 1, 2, 3].map((copy) => (
+            {[0, 1].map((copy) => (
               <span
                 key={copy}
                 aria-hidden={copy > 0}
-                className="shrink-0 text-sm font-bold tracking-wider text-[#d5b68f]"
+                className="shrink-0 inline-block text-sm font-bold tracking-wider text-[#d5b68f]"
               >
                 {tickerText}
               </span>
