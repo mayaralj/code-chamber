@@ -16,7 +16,13 @@ const pool = {};
 const createContainer = async (language, timeout = 30000) => {
   const config = languageConfig[language];
   const { stdout: id } = await execAsync(
-    `docker run -d --label pool=code-chamber --network none --memory 256m --cpus 0.5 ${config.image} tail -f /dev/null`,
+    `docker run -d --label pool=code-chamber --network none \
+  --memory 256m --memory-swap 256m --cpus 0.5 --pids-limit 64 \
+  --cap-drop ALL --security-opt no-new-privileges \
+  --read-only \
+  --tmpfs /tmp:rw,noexec,nosuid \
+  --tmpfs /sandbox:rw,exec,nosuid \
+  ${config.image} tail -f /dev/null`,
     { timeout },
   );
   return id.trim();

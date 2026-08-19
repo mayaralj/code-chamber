@@ -7,8 +7,8 @@ const languageConfig = {
   javascript: {
     image: "node:alpine",
     ext: "js",
-    containerPath: "/solution.js",
-    run: () => `node /solution.js`,
+    containerPath: "/tmp/solution.js",
+    run: () => `node /tmp/solution.js`,
     buildCode: (userCode, fnName) =>
       `
     const fs = require("fs");
@@ -22,8 +22,8 @@ const languageConfig = {
   python: {
     image: "python:alpine",
     ext: "py",
-    containerPath: "/solution.py",
-    run: () => `python /solution.py`,
+    containerPath: "/tmp/solution.py",
+    run: () => `python /tmp/solution.py`,
     buildCode: (userCode, fnName) =>
       `
 import sys, json
@@ -38,13 +38,13 @@ print(json.dumps(${fnName}(*args)))
   cpp: {
     image: "cpp-executor:latest",
     ext: "cpp",
-    containerPath: "/solution.cpp",
+    containerPath: "/tmp/solution.cpp",
     compile: (containerName) =>
       execAsync(
-        `docker exec ${containerName} sh -c "g++ -std=c++17 -fuse-ld=lld -I/usr/include /solution.cpp -o /a.out"`,
+        `docker exec ${containerName} sh -c "g++ -std=c++17 -fuse-ld=lld -I/usr/include /tmp/solution.cpp -o /sandbox/a.out"`,
         { timeout: 30000 },
       ),
-    run: () => `/a.out`,
+    run: () => `/sandbox/a.out`,
     buildCode: (userCode, fnName, paramTypes) => {
       const argDecls = buildCppArgDeclarations(paramTypes);
       const argNames = buildCppArgNames(paramTypes);
