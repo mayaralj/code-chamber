@@ -11,6 +11,7 @@ const limit = pLimit(MAX_CONCURRENT_EXECUTIONS);
 
 // Executor (via docker)
 const runCode = async (language, userCode, functionName, testCases) => {
+  console.log(`test cases:`, testCases);
   const executorTime = Date.now();
   // Get Config
   const config = languageConfig[language];
@@ -82,38 +83,49 @@ const runCode = async (language, userCode, functionName, testCases) => {
   // Run each input in parallel
   const testPromises = testCases.map(({ input, expected }) =>
     limit(async () => {
-      try {
-        // Args json
-        const argsJson = JSON.stringify(input);
-        // Expected json
-        const expectedJson = JSON.stringify(expected);
+      // Convert input and expected to JSON strings
+      const argsJson = JSON.stringify(input);
+      const expectedJson = JSON.stringify(expected);
 
-        const output = (
+      let output;
+      try {
+        // Run the code in the container with the input and get the output
+        output = (
           await execWithStdin(
-            `docker`,
+            "docker",
             ["exec", "-i", containerId, ...config.run().split(" ")],
             argsJson,
             5000,
           )
         ).trim();
-
-        // Parse output
-        const received = JSON.parse(output);
-        // Compare
-        const passed = JSON.stringify(received) === expectedJson;
-
-        // Push result
-        return { input, expected, received, passed };
       } catch (err) {
-        console.log(
-          `Error running test case with input ${input}:`,
-          err.message,
-        );
+        // Execution failure
         return {
           input,
           expected,
-          received: err.message,
+          output: null,
           passed: false,
+          error:
+            err.type === "timeout"
+              ? "Time Limit Exceeded"
+              : err.stderr || err.message || "Runtime Error",
+        };
+      }
+
+      // Try to parse the output as JSON and compare with expected
+      try {
+        output = JSON.parse(output);
+        const passed = JSON.stringify(output) === expectedJson;
+        return { input, expected, output, passed };
+      } catch {
+        // Code ran, but printed something that isn't valid JSON output
+        return {
+          input,
+          expected,
+          output: null,
+          passed: false,
+          // Show only the first 200 characters of the output in the error message (prevents insanely long messages which will be sent to client)
+          error: `Invalid output format: ${output.slice(0, 200)}${output.length > 200 ? "..." : ""}`,
         };
       }
     }),
