@@ -1,13 +1,9 @@
 import vm from "vm";
-import fs from "fs";
-import path from "path";
-import os from "os";
 import pLimit from "p-limit";
 import { execAsync, execWithStdin } from "./execHelper.js";
 import languageConfig from "./languageConfig.js";
 import { getParamTypes } from "./cpp/cppHelpers.js";
 import { getContainer } from "./containerPool.js";
-import { error } from "console";
 
 // Config
 const MAX_CONCURRENT_EXECUTIONS = 3;
@@ -33,16 +29,9 @@ const runCode = async (language, userCode, functionName, testCases) => {
   // Get the param types if c++
   let paramTypes = await getParamTypes(functionName, language);
 
-  // Create file to run code in docker container
-  const containerFile = path.join(
-    os.tmpdir(),
-    `solution_${Date.now()}.${config.ext}`,
-  );
-
   // Build the code to run in the container
   const code = config.buildCode(userCode, functionName, paramTypes);
   //console.log(`code to run:\n${code}`);
-  fs.writeFileSync(containerFile, code, "utf-8");
 
   // Get Container
   const containerId = await getContainer(language);
@@ -56,11 +45,13 @@ const runCode = async (language, userCode, functionName, testCases) => {
     };
   }
 
-  // Copy file into container
+  // Write the code to the container
   const copyTime = Date.now();
-  await execAsync(
-    `docker cp ${containerFile} ${containerId}:${config.containerPath}`,
-    { timeout: 5000 },
+  await execWithStdin(
+    "docker",
+    ["exec", "-i", containerId, "sh", "-c", `cat > ${config.containerPath}`],
+    code,
+    5000,
   );
   console.log(
     `Copying file into container took: ${(Date.now() - copyTime) / 1000}s`,
@@ -76,7 +67,6 @@ const runCode = async (language, userCode, functionName, testCases) => {
       console.log(`Error compiling code:`, err.message);
       // Cleanup
       await execAsync(`docker rm -f ${containerId}`, { timeout: 5000 });
-      fs.unlinkSync(containerFile);
       return {
         languageUsed: language,
         passed: false,
@@ -139,7 +129,6 @@ const runCode = async (language, userCode, functionName, testCases) => {
 
   // Cleanup
   await execAsync(`docker rm -f ${containerId}`, { timeout: 5000 });
-  fs.unlinkSync(containerFile);
 
   // Log execution time
   console.log(
