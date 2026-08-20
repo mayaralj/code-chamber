@@ -1,22 +1,26 @@
-// Import from CPP helpers
 import { buildCppArgDeclarations, buildCppArgNames } from "./cpp/cppHelpers.js";
 import { execAsync } from "./execHelper.js";
 
-// Config
 const languageConfig = {
   javascript: {
     image: "node:alpine",
     ext: "js",
     containerPath: "/tmp/solution.js",
     run: () => `node /tmp/solution.js`,
-    buildCode: (userCode, fnName) =>
-      `
+    buildCode: (userCode, fnName) => {
+      const prefix = `
     const fs = require("fs");
-    ${userCode}
+    `;
+      const suffix = `
     
     const args = JSON.parse(fs.readFileSync(0, "utf-8"));
     console.log(JSON.stringify(${fnName}(...args)));
-    `,
+    `;
+      return {
+        code: prefix + userCode + suffix,
+        offset: prefix.split("\n").length - 1,
+      };
+    },
   },
 
   python: {
@@ -24,15 +28,23 @@ const languageConfig = {
     ext: "py",
     containerPath: "/tmp/solution.py",
     run: () => `python /tmp/solution.py`,
-    buildCode: (userCode, fnName) =>
-      `
+    buildCode: (userCode, fnName) => {
+      const prefix = `
 import sys, json
 
-${userCode}
+
+`;
+      const suffix = `
+
 
 args = json.loads(sys.stdin.read())
 print(json.dumps(${fnName}(*args)))
-    `,
+    `;
+      return {
+        code: prefix + userCode + suffix,
+        offset: prefix.split("\n").length - 1,
+      };
+    },
   },
 
   cpp: {
@@ -49,9 +61,11 @@ print(json.dumps(${fnName}(*args)))
       const argDecls = buildCppArgDeclarations(paramTypes);
       const argNames = buildCppArgNames(paramTypes);
 
-      return `
+      const prefix = `
     #include "wrapper.hpp"
-    ${userCode}
+    `;
+      const suffix = `
+
 
     int main() {
       string inputJson;
@@ -64,6 +78,10 @@ print(json.dumps(${fnName}(*args)))
       return 0;
     }
     `;
+      return {
+        code: prefix + userCode + suffix,
+        offset: prefix.split("\n").length - 1,
+      };
     },
   },
 };

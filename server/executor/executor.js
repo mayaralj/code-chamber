@@ -31,8 +31,9 @@ const runCode = async (language, userCode, functionName, testCases) => {
   let paramTypes = await getParamTypes(functionName, language);
 
   // Build the code to run in the container
-  const code = config.buildCode(userCode, functionName, paramTypes);
+  const { code, offset } = config.buildCode(userCode, functionName, paramTypes);
   //console.log(`code to run:\n${code}`);
+  console.log("Offset for error messages:", offset);
 
   // Get Container
   const containerId = await getContainer(language);
@@ -81,7 +82,7 @@ const runCode = async (language, userCode, functionName, testCases) => {
     } catch (err) {
       console.log(
         `Error compiling code:`,
-        cleanErrorMessage(err.stderr || err.message, language),
+        cleanErrorMessage(err.stderr || err.message, language, offset),
       );
       // Cleanup
       await removeContainer(containerId);
@@ -90,7 +91,7 @@ const runCode = async (language, userCode, functionName, testCases) => {
         passed: false,
         testCasesPassed: 0,
         error:
-          cleanErrorMessage(err.stderr || err.message, language) ||
+          cleanErrorMessage(err.stderr || err.message, language, offset) ||
           "Compilation Error",
       };
     }
@@ -131,8 +132,11 @@ const runCode = async (language, userCode, functionName, testCases) => {
           error:
             err.type === "timeout"
               ? "Time Limit Exceeded"
-              : cleanErrorMessage(err.stderr || err.message, language) ||
-                "Runtime Error",
+              : cleanErrorMessage(
+                  err.stderr || err.message,
+                  language,
+                  offset,
+                ) || "Runtime Error",
         };
       }
 
@@ -185,7 +189,7 @@ const runCode = async (language, userCode, functionName, testCases) => {
   // Calculate full execution time
   const executionTime = Date.now() - startTime;
 
-  // Cleanup
+  // Cleanup container
   await removeContainer(containerId);
 
   // Log execution time

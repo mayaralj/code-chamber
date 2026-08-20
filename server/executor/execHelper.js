@@ -56,8 +56,21 @@ export const execWithStdin = (command, args, input, timeoutMs = 5000) => {
   });
 };
 
+// Helper function to adjust line numbers in error messages based on an offset
+const adjustLineNumber = (message, offset) => {
+  return message
+    .replace(
+      /line (\d+)/,
+      (_, n) => `line ${Math.max(1, parseInt(n) - offset)}`,
+    )
+    .replace(
+      /:(\d+)(?=:|\s|$)/,
+      (_, n) => `:${Math.max(1, parseInt(n) - offset)}`,
+    );
+};
+
 // Helper function to clean up error messages based on language
-export const cleanErrorMessage = (stderr, language) => {
+export const cleanErrorMessage = (stderr, language, offset = 0) => {
   if (!stderr) return "Runtime Error";
 
   if (language === "javascript") {
@@ -65,7 +78,8 @@ export const cleanErrorMessage = (stderr, language) => {
     const errorLine = lines.find((l) =>
       /^\w*Error(\s?\[.*\])?:\s/.test(l.trim()),
     );
-    return errorLine ? errorLine.trim() : stderr.trim().slice(0, 200);
+    const message = errorLine ? errorLine.trim() : stderr.trim().slice(0, 200);
+    return adjustLineNumber(message, offset);
   }
 
   if (language === "python") {
@@ -86,8 +100,9 @@ export const cleanErrorMessage = (stderr, language) => {
   if (language === "cpp") {
     const lines = stderr.split("\n");
     const errorLine = lines.find((l) => l.includes("error:"));
-    return errorLine ? errorLine.trim() : stderr.trim().slice(0, 200);
+    const message = errorLine ? errorLine.trim() : stderr.trim().slice(0, 200);
+    return adjustLineNumber(message, offset);
   }
 
-  return stderr.trim().slice(0, 200);
+  return adjustLineNumber(stderr.trim().slice(0, 200), offset);
 };
