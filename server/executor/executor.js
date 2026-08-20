@@ -48,15 +48,29 @@ const runCode = async (language, userCode, functionName, testCases) => {
 
   // Write the code to the container
   const copyTime = Date.now();
-  await execWithStdin(
-    "docker",
-    ["exec", "-i", containerId, "sh", "-c", `cat > ${config.containerPath}`],
-    code,
-    5000,
-  );
-  console.log(
-    `Copying file into container took: ${(Date.now() - copyTime) / 1000}s`,
-  );
+  try {
+    await execWithStdin(
+      "docker",
+      ["exec", "-i", containerId, "sh", "-c", `cat > ${config.containerPath}`],
+      code,
+      5000,
+    );
+    console.log(
+      `Writing code into container took: ${(Date.now() - copyTime) / 1000}s`,
+    );
+  } catch (error) {
+    console.error(
+      `Error writing code into container for language: ${language}`,
+      error,
+    );
+    await removeContainer(containerId);
+    return {
+      languageUsed: language,
+      passed: false,
+      testCasesPassed: 0,
+      error: "Error Writing code to container",
+    };
+  }
 
   // Compile code if its a compiled languge
   if (config.compile) {
@@ -150,7 +164,7 @@ const runCode = async (language, userCode, functionName, testCases) => {
   const executionTime = Date.now() - startTime;
 
   // Cleanup
-  await execAsync(`docker rm -f ${containerId}`, { timeout: 5000 });
+  await removeContainer(containerId);
 
   // Log execution time
   console.log(

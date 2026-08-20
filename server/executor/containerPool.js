@@ -29,7 +29,7 @@ const createContainer = async (language, timeout = 30000) => {
 };
 
 // Helper to remove a container
-const removeContainer = async (containerId) => {
+export const removeContainer = async (containerId) => {
   try {
     await execAsync(`docker rm -f ${containerId}`, { timeout: 10000 });
   } catch (error) {
