@@ -1,6 +1,6 @@
 import vm from "vm";
 import pLimit from "p-limit";
-import { execAsync, execWithStdin } from "./execHelper.js";
+import { execAsync, execWithStdin, cleanErrorMessage } from "./execHelper.js";
 import languageConfig from "./languageConfig.js";
 import { getParamTypes } from "./cpp/cppHelpers.js";
 import { getContainer } from "./containerPool.js";
@@ -65,14 +65,19 @@ const runCode = async (language, userCode, functionName, testCases) => {
       await config.compile(containerId);
       console.log(`Compile took: ${(Date.now() - compileStart) / 1000}s`);
     } catch (err) {
-      console.log(`Error compiling code:`, err.message);
+      console.log(
+        `Error compiling code:`,
+        cleanErrorMessage(err.stderr || err.message, language),
+      );
       // Cleanup
       await execAsync(`docker rm -f ${containerId}`, { timeout: 5000 });
       return {
         languageUsed: language,
         passed: false,
         testCasesPassed: 0,
-        error: `Compilation Error`,
+        error:
+          cleanErrorMessage(err.stderr || err.message, language) ||
+          "Compilation Error",
       };
     }
   }
@@ -81,11 +86,14 @@ const runCode = async (language, userCode, functionName, testCases) => {
   const startTime = Date.now();
 
   // Run each input in parallel
-  const testPromises = testCases.map(({ input, expected }) =>
+  const testPromises = testCases.map(({ input, expected }, index) =>
     limit(async () => {
       // Convert input and expected to JSON strings
       const argsJson = JSON.stringify(input);
       const expectedJson = JSON.stringify(expected);
+      console.log(
+        `Running test case ${index + 1}: input: ${argsJson}, expected: ${expectedJson}`,
+      );
 
       let output;
       try {
@@ -101,6 +109,7 @@ const runCode = async (language, userCode, functionName, testCases) => {
       } catch (err) {
         // Execution failure
         return {
+          index,
           input,
           expected,
           output: null,
@@ -108,7 +117,8 @@ const runCode = async (language, userCode, functionName, testCases) => {
           error:
             err.type === "timeout"
               ? "Time Limit Exceeded"
-              : err.stderr || err.message || "Runtime Error",
+              : cleanErrorMessage(err.stderr || err.message, language) ||
+                "Runtime Error",
         };
       }
 
@@ -116,16 +126,16 @@ const runCode = async (language, userCode, functionName, testCases) => {
       try {
         output = JSON.parse(output);
         const passed = JSON.stringify(output) === expectedJson;
-        return { input, expected, output, passed };
+        return { index, input, expected, output, passed };
       } catch {
         // Code ran, but printed something that isn't valid JSON output
         return {
+          index,
           input,
           expected,
           output: null,
           passed: false,
-          // Show only the first 200 characters of the output in the error message (prevents insanely long messages which will be sent to client)
-          error: `Invalid output format: ${output.slice(0, 200)}${output.length > 200 ? "..." : ""}`,
+          error: null, // Just treat as wrong answer
         };
       }
     }),
@@ -146,6 +156,8 @@ const runCode = async (language, userCode, functionName, testCases) => {
   console.log(
     `Executor took: ${(Date.now() - executorTime) / 1000}s for language: ${language}`,
   );
+
+  console.log(testResult);
 
   // Return result
   return {

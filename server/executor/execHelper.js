@@ -55,3 +55,29 @@ export const execWithStdin = (command, args, input, timeoutMs = 5000) => {
     child.stdin.end();
   });
 };
+
+// Helper function to clean up error messages based on language
+export const cleanErrorMessage = (stderr, language) => {
+  if (!stderr) return "Runtime Error";
+
+  if (language === "javascript") {
+    const lines = stderr.split("\n");
+    const errorLine = lines.find((l) =>
+      /^\w*Error(\s?\[.*\])?:\s/.test(l.trim()),
+    );
+    return errorLine ? errorLine.trim() : stderr.trim().slice(0, 200);
+  }
+
+  if (language === "python") {
+    const lines = stderr.trim().split("\n").filter(Boolean);
+    return lines[lines.length - 1] || stderr.trim().slice(0, 200);
+  }
+
+  if (language === "cpp") {
+    const lines = stderr.split("\n");
+    const errorLine = lines.find((l) => l.includes("error:"));
+    return errorLine ? errorLine.trim() : stderr.trim().slice(0, 200);
+  }
+
+  return stderr.trim().slice(0, 200);
+};
