@@ -1,9 +1,9 @@
 import vm from "vm";
 import pLimit from "p-limit";
-import { execAsync, execWithStdin, cleanErrorMessage } from "./execHelper.js";
+import { execWithStdin, cleanErrorMessage } from "./execHelper.js";
 import languageConfig from "./languageConfig.js";
 import { getParamTypes } from "./cpp/cppHelpers.js";
-import { getContainer } from "./containerPool.js";
+import { getContainer, removeContainer } from "./containerPool.js";
 
 // Config
 const MAX_CONCURRENT_EXECUTIONS = 3;
@@ -84,7 +84,7 @@ const runCode = async (language, userCode, functionName, testCases) => {
         cleanErrorMessage(err.stderr || err.message, language),
       );
       // Cleanup
-      await execAsync(`docker rm -f ${containerId}`, { timeout: 5000 });
+      await removeContainer(containerId);
       return {
         languageUsed: language,
         passed: false,
@@ -138,19 +138,41 @@ const runCode = async (language, userCode, functionName, testCases) => {
 
       // Try to parse the output as JSON and compare with expected
       try {
+        console.log(`Raw output:`, output);
         output = JSON.parse(output);
+        console.log("Output:", output);
         const passed = JSON.stringify(output) === expectedJson;
         return { index, input, expected, output, passed };
       } catch {
-        // Code ran, but printed something that isn't valid JSON output
-        return {
-          index,
-          input,
-          expected,
-          output: null,
-          passed: false,
-          error: null, // Just treat as wrong answer
-        };
+        // Fallback to check if the last line of output is valid JSON and compare with expected (incase they print debugging info along the way)
+        const lines = output
+          .split("\n")
+          .map((l) => l.trim())
+          .filter(Boolean);
+        const lastLine = lines[lines.length - 1] || "";
+        console.log(`Raw Last line of output:`, lastLine);
+        // Track debug lines
+        const debugLines = lines.slice(0, -1).join("\n");
+        console.log(`Debug lines of output:`, debugLines);
+
+        try {
+          output = JSON.parse(lastLine);
+          console.log("Output from last line:", output);
+          const passed = JSON.stringify(output) === expectedJson;
+          return { index, input, expected, output, passed, debugLines };
+        } catch {
+          // Invalid code, show last line of output as received (truncate if too long)
+          return {
+            index,
+            input,
+            expected,
+            output:
+              lastLine.slice(0, 200) + (lastLine.length > 200 ? "..." : ""),
+            passed: false,
+            error: null,
+            debugLines,
+          };
+        }
       }
     }),
   );
@@ -183,7 +205,7 @@ const runCode = async (language, userCode, functionName, testCases) => {
 };
 
 // JS only using vm module to run code in a sandboxed environment (unsafe version)
-const testRunCode = (userCode, functionName, testCases) => {
+export const testRunCode = (userCode, functionName, testCases) => {
   let testCasesPassed = 0;
   const startTime = Date.now();
   const testResult = testCases.map(({ input, expected }) => {
