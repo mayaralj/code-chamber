@@ -80,19 +80,21 @@ const runCode = async (language, userCode, functionName, testCases) => {
       await config.compile(containerId);
       console.log(`Compile took: ${(Date.now() - compileStart) / 1000}s`);
     } catch (err) {
-      console.log(
-        `Error compiling code:`,
-        cleanErrorMessage(err.stderr || err.message, language, offset),
+      // Compilation failure
+      const { cleanMessage, errorLine } = cleanErrorMessage(
+        err.stderr || err.message,
+        language,
+        offset,
       );
+      console.log(`Cleaned error message:`, cleanMessage, errorLine);
       // Cleanup
       await removeContainer(containerId);
       return {
         languageUsed: language,
         passed: false,
         testCasesPassed: 0,
-        error:
-          cleanErrorMessage(err.stderr || err.message, language, offset) ||
-          "Compilation Error",
+        error: cleanMessage,
+        errorLine: errorLine,
       };
     }
   }
@@ -122,6 +124,12 @@ const runCode = async (language, userCode, functionName, testCases) => {
           )
         ).trim();
       } catch (err) {
+        const { cleanMessage, errorLine } = cleanErrorMessage(
+          err.stderr || err.message,
+          language,
+          offset,
+        );
+        console.log(`Cleaned error message:`, cleanMessage, errorLine);
         // Execution failure
         return {
           index,
@@ -129,14 +137,8 @@ const runCode = async (language, userCode, functionName, testCases) => {
           expected,
           output: null,
           passed: false,
-          error:
-            err.type === "timeout"
-              ? "Time Limit Exceeded"
-              : cleanErrorMessage(
-                  err.stderr || err.message,
-                  language,
-                  offset,
-                ) || "Runtime Error",
+          error: err.type === "timeout" ? "Time Limit Exceeded" : cleanMessage,
+          errorLine: errorLine,
         };
       }
 

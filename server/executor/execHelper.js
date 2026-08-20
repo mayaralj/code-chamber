@@ -56,6 +56,14 @@ export const execWithStdin = (command, args, input, timeoutMs = 5000) => {
   });
 };
 
+// Helper to extract the line number from an error message
+const extractLineNumber = (message, offset) => {
+  const match =
+    message.match(/line (\d+)/) || message.match(/:(\d+)(?=:|\s|$)/);
+  if (!match) return null;
+  return Math.max(1, parseInt(match[1], 10) - offset);
+};
+
 // Helper function to adjust line numbers in error messages based on an offset
 const adjustLineNumber = (message, offset) => {
   return message
@@ -71,15 +79,22 @@ const adjustLineNumber = (message, offset) => {
 
 // Helper function to clean up error messages based on language
 export const cleanErrorMessage = (stderr, language, offset = 0) => {
-  if (!stderr) return "Runtime Error";
+  // If stderr is empty, return a generic message
+  if (!stderr) {
+    return { cleanMessage: "Unknown Runtime error", errorLine: null };
+  }
 
+  // Handle different languages
   if (language === "javascript") {
     const lines = stderr.split("\n");
     const errorLine = lines.find((l) =>
       /^\w*Error(\s?\[.*\])?:\s/.test(l.trim()),
     );
     const message = errorLine ? errorLine.trim() : stderr.trim().slice(0, 200);
-    return adjustLineNumber(message, offset);
+    return {
+      cleanMessage: adjustLineNumber(message, offset),
+      errorLine: extractLineNumber(message, offset),
+    };
   }
 
   if (language === "python") {
@@ -94,15 +109,19 @@ export const cleanErrorMessage = (stderr, language, offset = 0) => {
     const relevant =
       lastFileIdx !== -1 ? rawLines.slice(lastFileIdx) : rawLines;
     const message = relevant.filter((l) => l.trim().length > 0).join("\n");
-    return adjustLineNumber(message, offset);
+    return {
+      cleanMessage: adjustLineNumber(message, offset),
+      errorLine: extractLineNumber(message, offset),
+    };
   }
 
   if (language === "cpp") {
     const lines = stderr.split("\n");
     const errorLine = lines.find((l) => l.includes("error:"));
     const message = errorLine ? errorLine.trim() : stderr.trim().slice(0, 200);
-    return adjustLineNumber(message, offset);
+    return {
+      cleanMessage: adjustLineNumber(message, offset),
+      errorLine: extractLineNumber(message, offset),
+    };
   }
-
-  return adjustLineNumber(stderr.trim().slice(0, 200), offset);
 };
