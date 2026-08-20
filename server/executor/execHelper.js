@@ -69,8 +69,18 @@ export const cleanErrorMessage = (stderr, language) => {
   }
 
   if (language === "python") {
-    const lines = stderr.trim().split("\n").filter(Boolean);
-    return lines[lines.length - 1] || stderr.trim().slice(0, 200);
+    const rawLines = stderr.trim().split("\n");
+    let lastFileIdx = -1;
+    for (let i = rawLines.length - 1; i >= 0; i--) {
+      if (rawLines[i].trim().startsWith('File "')) {
+        lastFileIdx = i;
+        break;
+      }
+    }
+    const relevant =
+      lastFileIdx !== -1 ? rawLines.slice(lastFileIdx) : rawLines;
+    const message = relevant.filter((l) => l.trim().length > 0).join("\n");
+    return adjustLineNumber(message, offset);
   }
 
   if (language === "cpp") {
