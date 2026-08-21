@@ -115,7 +115,7 @@ export const createDummyResult = (
   language,
   roundData,
   submitTime,
-  numOfTestCases = 0,
+  numOfTestCases = 3,
 ) => {
   return {
     languageUsed: language,
@@ -126,7 +126,7 @@ export const createDummyResult = (
     player,
     difficulty: roundData.question.difficulty,
     numOfTestCases,
-    executionTime: 0,
+    executionTime: null, // Unknown keep at null
   };
 };
 

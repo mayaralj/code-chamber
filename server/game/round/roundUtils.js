@@ -173,8 +173,15 @@ export const trackSubmissionElimination = async (
   submissionId,
   eliminatedIds = [],
 ) => {
-  if (!eliminatedIds.length) return;
-  if (!submissionId) return;
+  // Checks
+  if (!eliminatedIds.length) {
+    console.log("No eliminated players to track for submission", submissionId);
+    return;
+  }
+  if (!submissionId) {
+    console.log("No submission ID provided");
+    return;
+  }
 
   const values = [];
   const placeholders = eliminatedIds
