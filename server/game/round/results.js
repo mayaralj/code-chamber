@@ -113,12 +113,6 @@ export const gameOver = async (io, code, roundData, winner) => {
   // Emit that room is deleted
   io.to(code).emit("room-deleted");
 
-  // Remove all players from mapping and socket rooms and delete the room
-  rooms[code].players.forEach((player) => {
-    delete playersInRooms[player.userId];
-    io.sockets.sockets.get(player.socketId)?.leave(code);
-  });
-
   // Delete room
   console.log(`Game over in room ${code}, deleting room`);
   deleteRoom(io, rooms, code);
