@@ -109,6 +109,27 @@ export const trackSubmission = async (player, result, roomId, roundNumber) => {
   }
 };
 
+// Helper to create dummy results (incase of failed code execution)
+export const createDummyResult = (
+  player,
+  language,
+  roundData,
+  submitTime,
+  numOfTestCases = 0,
+) => {
+  return {
+    languageUsed: language,
+    passed: false,
+    testCasesPassed: 0,
+    error: "Failed to run code",
+    submitTime,
+    player,
+    difficulty: roundData.question.difficulty,
+    numOfTestCases,
+    executionTime: 0,
+  };
+};
+
 // Helper to process player submission
 export const processSubmission = async (
   io,
@@ -156,8 +177,9 @@ export const processSubmission = async (
   playerRoundData.judging = true;
   notifyJudging(io, player.socketId, room, code);
 
-  let testCases;
+  let testCases = [];
   let functionName;
+  let result;
   try {
     // Fetch test cases for the current question
     const { rows: fetchedTestCases } = await db.query(
@@ -174,22 +196,31 @@ export const processSubmission = async (
     functionName = rows[0]?.function_name;
   } catch (error) {
     console.error("Error fetching submission metadata:", error);
-    playerRoundData.judging = false;
     io.to(player.socketId).emit("submit-code-error", {
-      message: "Failed to process submission",
+      message: "Failed to process submission due to an internal error",
     });
-    return;
+    // Continue with a dummy result so this submission is always recorded.
+    result = createDummyResult(
+      player,
+      language,
+      roundData,
+      submitTime,
+      testCases.length,
+    );
   }
 
   // Run the code against the test cases (handle missing code gracefully)
-  const result = codeInput
-    ? await runCode(language, codeInput, functionName, testCases)
-    : {
-        languageUsed: language,
-        passed: false,
-        testCasesPassed: 0,
-        error: "Failed to run code",
-      };
+  if (!result) {
+    result = codeInput
+      ? await runCode(language, codeInput, functionName, testCases)
+      : createDummyResult(
+          player,
+          language,
+          roundData,
+          submitTime,
+          testCases.length,
+        );
+  }
 
   // Fill in the result object with additional information
   result.submitTime = submitTime;
@@ -198,10 +229,10 @@ export const processSubmission = async (
   result.numOfTestCases = testCases.length;
 
   // Update player stats in the database
-  // Dont update if execution error'd
-  if (result?.error) {
+  // Dont update if internal execution error
+  if (result?.error && result.error === "Failed to run code") {
     console.log(
-      `Player ${player.username} had an execution error, skipping db update`,
+      `Player ${player.username} had an internal execution error, skipping db update`,
     );
   } else {
     // Update the submission in the database and get the submission ID
