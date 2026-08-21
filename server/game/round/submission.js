@@ -21,12 +21,19 @@ export const notifyJudging = (io, socketId, room, code) => {
 };
 
 // Helper to notify players of code submission
-export const notifySubmission = (io, socketId, room, code) => {
+export const notifySubmission = (io, socketId, room, code, result) => {
   // Build a player list with needed data
   const playerList = buildPlayerList(room);
 
-  // Notify player that code has been submitted
-  io.to(socketId).emit("code-submitted");
+  // Extract test cases result
+  const { testCasesResults } = result;
+
+  // Notify player that code has been submitted + send test cases results
+  console.log(
+    `Notifying player ${socketId} of code submission with test cases results:`,
+    testCasesResults,
+  );
+  io.to(socketId).emit("code-submitted", testCasesResults);
 
   // Emit to all players with list of submitted players
   io.to(code).emit("update-players", {
@@ -190,7 +197,7 @@ export const processSubmission = async (
   // Update player status
   playerRoundData.judging = false;
   playerRoundData.submitted = true;
-  notifySubmission(io, player.socketId, room, code);
+  notifySubmission(io, player.socketId, room, code, result);
 
   // Store results in current round results
   roundData.roundResults.push(result);

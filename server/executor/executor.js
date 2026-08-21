@@ -194,15 +194,9 @@ const runCode = async (language, userCode, functionName, testCases) => {
   // Cleanup container
   await removeContainer(containerId);
 
-  // Log execution time
-  console.log(
-    `Executor took: ${(Date.now() - executorTime) / 1000}s for language: ${language}`,
-  );
-
-  console.log(testResult);
-
   // Return result
   return {
+    testCasesResults: testResult,
     languageUsed: language,
     passed: testResult.every((r) => r.passed),
     testCasesPassed,
