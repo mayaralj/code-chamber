@@ -32,10 +32,11 @@ export const setUpGameQuestions = async (rooms, code) => {
     }
 
     // get all starter codes
-    allStarterCodes = await db.query(
+    const { rows } = await db.query(
       "SELECT language, code, question_id FROM starter_code WHERE question_id = ANY($1)",
       [questions.map((q) => q.id)],
     );
+    allStarterCodes = rows;
 
     // Check room still exists after await
     if (!rooms[code]) {
