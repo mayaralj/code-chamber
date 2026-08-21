@@ -60,10 +60,10 @@ const Navbar = () => {
           </NavLink>
         ) : (
           <NavLink
-            to={isLogin ? "/login" : "/signup"}
-            className="bg-[#ffd89a] text-[#080812] font-bold text-sm tracking-wide px-8 mx-4 py-2  hover:bg-[#ffe4b4] transition-colors duration-200"
+            to={isLogin ? "/signup" : "/login"}
+            className="bg-[#ffd89a] text-[#080812] font-bold text-sm tracking-wide px-5 mx-4 py-2  hover:bg-[#ffe4b4] transition-colors duration-200"
           >
-            {isLogin ? "LOGIN" : "SIGNUP"}
+            {isLogin ? "SIGNUP" : "LOGIN"}
           </NavLink>
         )}
       </div>
