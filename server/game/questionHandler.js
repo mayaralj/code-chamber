@@ -44,7 +44,7 @@ export const setUpGameQuestions = async (rooms, code) => {
     }
   } catch (error) {
     console.error("Error setting up game questions from database:", error);
-    return;
+    throw error;
   }
 
   // Determine questions amount based on number of players
