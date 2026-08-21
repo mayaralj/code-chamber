@@ -19,9 +19,13 @@ const purgeActiveRooms = async () => {
     `Purging ${activeRoomIds.length} active room(s): ${activeRoomIds.join(", ")}`,
   );
 
-  await db.query(`DELETE FROM rooms WHERE room_id = ANY($1::text[])`, [
-    activeRoomIds,
-  ]);
+  try {
+    await db.query(`DELETE FROM rooms WHERE room_id = ANY($1::text[])`, [
+      activeRoomIds,
+    ]);
+  } catch (error) {
+    console.error("Error purging active rooms:", error);
+  }
 };
 
 // Shutdown handler

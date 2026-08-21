@@ -14,11 +14,18 @@ export const trackBeforeMatch = async (player, room) => {
   const { roomId, difficulty } = room;
 
   // Insert match into the database (not full match data, just the fact that the player played a match in this room)
-  await db.query(
-    `INSERT INTO matches (room_id, user_id, host_id, difficulty, played_at)
+  try {
+    await db.query(
+      `INSERT INTO matches (room_id, user_id, host_id, difficulty, played_at)
      VALUES ($1, $2, $3, $4, NOW())`,
-    [roomId, player.userId, room.host.userId, difficulty],
-  );
+      [roomId, player.userId, room.host.userId, difficulty],
+    );
+  } catch (error) {
+    console.error(
+      `Error tracking before match for player ${player.userId} in room ${roomId}:`,
+      error,
+    );
+  }
 };
 
 // Helper to check if room is still valid before game officially starts (mainly checks for players that dc while waiting for game to start)

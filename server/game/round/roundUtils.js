@@ -151,13 +151,21 @@ export const trackMatch = async (player, roomId, isWinner, survivalTime) => {
   if (!player || !player.userId || player.isGuest) return;
   if (!roomId) return;
 
-  await db.query(
-    `UPDATE matches SET won = $1, survival_time = $2 WHERE room_id = $3 AND user_id = $4`,
-    [isWinner, survivalTime, roomId, player.userId],
-  );
-  console.log(
-    `Updated match for player ${player.username} in room ${roomId}, won: ${isWinner}, survived: ${survivalTime}s`,
-  );
+  // Update the matches table for the player with the result of the match
+  try {
+    await db.query(
+      `UPDATE matches SET won = $1, survival_time = $2 WHERE room_id = $3 AND user_id = $4`,
+      [isWinner, survivalTime, roomId, player.userId],
+    );
+    console.log(
+      `Updated match for player ${player.username} in room ${roomId}, won: ${isWinner}, survived: ${survivalTime}s`,
+    );
+  } catch (error) {
+    console.error(
+      `Error updating match for player ${player.username} in room ${roomId}:`,
+      error,
+    );
+  }
 };
 
 // Helper to update submission_eliminations table
@@ -175,10 +183,17 @@ export const trackSubmissionElimination = async (
     })
     .join(", ");
 
-  await db.query(
-    `INSERT INTO submission_eliminations (submission_id, eliminated_user_id)
+  try {
+    await db.query(
+      `INSERT INTO submission_eliminations (submission_id, eliminated_user_id)
      VALUES ${placeholders}
      ON CONFLICT (submission_id, eliminated_user_id) DO NOTHING`,
-    values,
-  );
+      values,
+    );
+  } catch (error) {
+    console.error(
+      `Error inserting submission eliminations for submission ${submissionId}:`,
+      error,
+    );
+  }
 };

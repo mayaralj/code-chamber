@@ -79,27 +79,34 @@ export const trackSubmission = async (player, result, roomId, roundNumber) => {
     return;
   }
 
-  const { rows } = await db.query(
-    `INSERT INTO submissions (
+  try {
+    const { rows } = await db.query(
+      `INSERT INTO submissions (
        user_id, room_id, round_number, language, difficulty, passed,
        execution_time, submit_time,  total_test_cases, test_cases_passed
      )
      VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10)
      RETURNING id`,
-    [
-      player.userId,
-      roomId,
-      roundNumber,
-      languageUsed,
-      difficulty,
-      passed,
-      executionTime,
-      submitTime,
-      numOfTestCases,
-      testCasesPassed,
-    ],
-  );
-  return rows[0]?.id;
+      [
+        player.userId,
+        roomId,
+        roundNumber,
+        languageUsed,
+        difficulty,
+        passed,
+        executionTime,
+        submitTime,
+        numOfTestCases,
+        testCasesPassed,
+      ],
+    );
+    return rows[0]?.id;
+  } catch (error) {
+    console.error(
+      `Error inserting submission for player ${player.username} in room ${roomId}:`,
+      error,
+    );
+  }
 };
 
 // Helper to process player submission
@@ -149,18 +156,30 @@ export const processSubmission = async (
   playerRoundData.judging = true;
   notifyJudging(io, player.socketId, room, code);
 
-  // Fetch test cases for the current question
-  const { rows: testCases } = await db.query(
-    "SELECT input, expected FROM test_cases WHERE question_id = $1",
-    [roundData.question.id],
-  );
+  let testCases;
+  let functionName;
+  try {
+    // Fetch test cases for the current question
+    const { rows: fetchedTestCases } = await db.query(
+      "SELECT input, expected FROM test_cases WHERE question_id = $1",
+      [roundData.question.id],
+    );
+    testCases = fetchedTestCases;
 
-  // Fetch the function name from starter_code table
-  const { rows } = await db.query(
-    "SELECT function_name FROM starter_code WHERE question_id = $1 AND language = $2",
-    [roundData.question.id, language],
-  );
-  const functionName = rows[0]?.function_name;
+    // Fetch the function name from starter_code table
+    const { rows } = await db.query(
+      "SELECT function_name FROM starter_code WHERE question_id = $1 AND language = $2",
+      [roundData.question.id, language],
+    );
+    functionName = rows[0]?.function_name;
+  } catch (error) {
+    console.error("Error fetching submission metadata:", error);
+    playerRoundData.judging = false;
+    io.to(player.socketId).emit("submit-code-error", {
+      message: "Failed to process submission",
+    });
+    return;
+  }
 
   // Run the code against the test cases (handle missing code gracefully)
   const result = codeInput

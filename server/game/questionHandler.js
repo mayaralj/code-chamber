@@ -23,21 +23,26 @@ const getQuestion = (questions, excludeList) => {
 // Helper to set up game questions fully
 export const setUpGameQuestions = async (rooms, code) => {
   // Build a list of all available questions for the game based on the room's difficulty
-  const questions = await getDifficultyQuestions(rooms[code].difficulty);
+  let questions, allStarterCodes;
+  try {
+    questions = await getDifficultyQuestions(rooms[code].difficulty);
+    // Check room still exists after await
+    if (!rooms[code]) {
+      return;
+    }
 
-  // Check room still exists after await
-  if (!rooms[code]) {
-    return;
-  }
+    // get all starter codes
+    allStarterCodes = await db.query(
+      "SELECT language, code, question_id FROM starter_code WHERE question_id = ANY($1)",
+      [questions.map((q) => q.id)],
+    );
 
-  // get all starter codes
-  const { rows: allStarterCodes } = await db.query(
-    "SELECT language, code, question_id FROM starter_code WHERE question_id = ANY($1)",
-    [questions.map((q) => q.id)],
-  );
-
-  // Check room still exists after await
-  if (!rooms[code]) {
+    // Check room still exists after await
+    if (!rooms[code]) {
+      return;
+    }
+  } catch (error) {
+    console.error("Error setting up game questions from database:", error);
     return;
   }
 
