@@ -174,6 +174,7 @@ export const trackSubmissionElimination = async (
   eliminatedIds = [],
 ) => {
   if (!eliminatedIds.length) return;
+  if (!submissionId) return;
 
   const values = [];
   const placeholders = eliminatedIds
