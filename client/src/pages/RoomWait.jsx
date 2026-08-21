@@ -198,10 +198,21 @@ const RoomWait = () => {
     return () => window.removeEventListener("pagehide", handleUnload);
   }, [code]);
 
+  // Room Deletion
+  useEffect(() => {
+    socket.once("room-deleted", () => {
+      navigate("/browse", { replace: true });
+    });
+
+    return () => {
+      socket.off("room-deleted");
+    };
+  }, []);
+
   // Ensure they arent trying to enter the room from url only
   useEffect(() => {
     if (!location.state) {
-      navigate("/", { replace: true });
+      navigate("/browse", { replace: true });
     }
   }, []);
   if (!location.state) return null;

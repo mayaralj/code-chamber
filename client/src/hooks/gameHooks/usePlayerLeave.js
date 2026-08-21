@@ -54,6 +54,18 @@ const usePlayerLeave = (code, setPlayerList, roomDeletedRef) => {
       socket.off("room-deleted");
     };
   }, []);
+
+  // Game error
+  useEffect(() => {
+    socket.once("game-error", ({ message }) => {
+      console.error("Game error:", message);
+      navigate("/", { replace: true });
+    });
+
+    return () => {
+      socket.off("game-error");
+    };
+  }, []);
 };
 
 export default usePlayerLeave;
