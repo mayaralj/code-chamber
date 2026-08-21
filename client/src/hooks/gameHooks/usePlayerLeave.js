@@ -35,7 +35,7 @@ const usePlayerLeave = (code, setPlayerList, roomDeletedRef) => {
   // Kick them out on player eliminated
   useEffect(() => {
     socket.once("player-eliminated", () => {
-      navigate("/", { replace: true });
+      navigate("/browse", { replace: true });
     });
 
     return () => {
@@ -47,7 +47,7 @@ const usePlayerLeave = (code, setPlayerList, roomDeletedRef) => {
   useEffect(() => {
     socket.once("room-deleted", () => {
       roomDeletedRef.current = true;
-      navigate("/", { replace: true });
+      navigate("/browse", { replace: true });
     });
 
     return () => {
@@ -59,7 +59,7 @@ const usePlayerLeave = (code, setPlayerList, roomDeletedRef) => {
   useEffect(() => {
     socket.once("game-error", ({ message }) => {
       console.error("Game error:", message);
-      navigate("/", { replace: true });
+      navigate("/browse", { replace: true });
     });
 
     return () => {
