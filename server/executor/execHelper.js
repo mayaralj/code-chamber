@@ -91,9 +91,16 @@ export const cleanErrorMessage = (stderr, language, offset = 0) => {
       /^\w*Error(\s?\[.*\])?:\s/.test(l.trim()),
     );
     const message = errorLine ? errorLine.trim() : stderr.trim().slice(0, 200);
+
+    // Extract the line number from the error message
+    const lineMatch =
+      stderr.match(/^[^\n]*?:(\d+)$/m) || stderr.match(/:(\d+):\d+\)/);
+    const rawLineNumber = lineMatch ? parseInt(lineMatch[1], 10) : null;
+
     return {
       cleanMessage: adjustLineNumber(message, offset),
-      errorLine: extractLineNumber(message, offset),
+      errorLine:
+        rawLineNumber !== null ? Math.max(1, rawLineNumber - offset) : null,
     };
   }
 
