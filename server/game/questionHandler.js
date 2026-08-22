@@ -23,7 +23,7 @@ const getQuestion = (questions, excludeList) => {
 // Helper to set up game questions fully
 export const setUpGameQuestions = async (rooms, code) => {
   // Build a list of all available questions for the game based on the room's difficulty
-  let questions, allStarterCodes;
+  let questions;
   try {
     questions = await getDifficultyQuestions(rooms[code].difficulty);
     // Check room still exists after await
@@ -31,17 +31,45 @@ export const setUpGameQuestions = async (rooms, code) => {
       return;
     }
 
-    // get all starter codes
-    const { rows } = await db.query(
-      "SELECT language, code, question_id FROM starter_code WHERE question_id = ANY($1)",
+    // Get all starter code
+    const { rows: starterCodeRows } = await db.query(
+      "SELECT question_id, language, code, function_name, param_types FROM starter_code WHERE question_id = ANY($1)",
       [questions.map((q) => q.id)],
     );
-    allStarterCodes = rows;
 
     // Check room still exists after await
     if (!rooms[code]) {
       return;
     }
+
+    // Get all test cases
+    const { rows: testCases } = await db.query(
+      "SELECT id, question_id, input, expected FROM test_cases WHERE question_id = ANY($1)",
+      [questions.map((q) => q.id)],
+    );
+
+    // Check room still exists after await
+    if (!rooms[code]) {
+      return;
+    }
+
+    // Attach starter code, per-language function names, and test cases to each question
+    questions.forEach((q) => {
+      const starterCodeForQuestion = starterCodeRows.filter(
+        (sc) => sc.question_id === q.id,
+      );
+
+      // Store in question
+      q.starterCode = starterCodeForQuestion.reduce((acc, sc) => {
+        acc[sc.language] = sc.code;
+        return acc;
+      }, {});
+      q.functionName = starterCodeForQuestion.reduce((acc, sc) => {
+        acc[sc.language] = sc.function_name;
+        return acc;
+      }, {});
+      q.testCases = testCases.filter((tc) => tc.question_id === q.id);
+    });
   } catch (error) {
     console.error("Error setting up game questions from database:", error);
     throw error;
@@ -70,10 +98,6 @@ export const setUpGameQuestions = async (rooms, code) => {
 
     // Add the question to the room's questions list if it doesn't already exist
     rooms[code].roundData[currentRound].question = randomQuestion;
-
-    // Find Starter code for this question
-    rooms[code].roundData[currentRound].question.starterCode =
-      allStarterCodes.filter((sc) => sc.question_id === randomQuestion.id);
 
     // Increment the current round
     currentRound++;

@@ -16,7 +16,7 @@ const updateStarterCode = (
   savedCode,
   onChange,
 ) => {
-  // Check if editor and starter code are available
+  // Checks
   if (!editorRef.current || !starterCode) {
     return;
   }
@@ -26,16 +26,25 @@ const updateStarterCode = (
     return;
   }
 
-  const codeForLanguage = starterCode.find(
-    (code) => code.language === language,
-  );
-  if (!codeForLanguage) {
+  // Find the starter code for the current language
+  const starterCodeForLanguage = starterCode[language];
+  if (!starterCodeForLanguage) {
     console.log(`No starter code found for language: ${language}`);
     return;
   }
-  editorRef.current.setValue(codeForLanguage.code);
-  // Manually trigger onChange
-  onChange?.(codeForLanguage.code);
+  // Set the editor value to the starter code for the current language
+  editorRef.current.setValue(starterCodeForLanguage);
+  onChange?.(starterCodeForLanguage);
+};
+
+// Strip the single outermost [ ] wrapper from an input string, if present
+const stripOuterBrackets = (input) => {
+  if (typeof input !== "string") return input;
+  const trimmed = input.trim();
+  if (trimmed.startsWith("[") && trimmed.endsWith("]")) {
+    return trimmed.slice(1, -1).trim();
+  }
+  return trimmed;
 };
 
 const CodeEditor = ({

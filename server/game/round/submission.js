@@ -177,50 +177,20 @@ export const processSubmission = async (
   playerRoundData.judging = true;
   notifyJudging(io, player.socketId, room, code);
 
-  let testCases = [];
-  let functionName;
-  let result;
-  try {
-    // Fetch test cases for the current question
-    const { rows: fetchedTestCases } = await db.query(
-      "SELECT input, expected FROM test_cases WHERE question_id = $1",
-      [roundData.question.id],
-    );
-    testCases = fetchedTestCases;
-
-    // Fetch the function name from starter_code table
-    const { rows } = await db.query(
-      "SELECT function_name FROM starter_code WHERE question_id = $1 AND language = $2",
-      [roundData.question.id, language],
-    );
-    functionName = rows[0]?.function_name;
-  } catch (error) {
-    console.error("Error fetching submission metadata:", error);
-    io.to(player.socketId).emit("submit-code-error", {
-      message: "Failed to process submission due to an internal error",
-    });
-    // Continue with a dummy result so this submission is always recorded.
-    result = createDummyResult(
-      player,
-      language,
-      roundData,
-      submitTime,
-      testCases.length,
-    );
-  }
+  // Get test cases and function name for this question
+  let testCases = roundData.question.testCases;
+  let functionName = roundData.question.functionName[language];
 
   // Run the code against the test cases (handle missing code gracefully)
-  if (!result) {
-    result = codeInput
-      ? await runCode(language, codeInput, functionName, testCases)
-      : createDummyResult(
-          player,
-          language,
-          roundData,
-          submitTime,
-          testCases.length,
-        );
-  }
+  const result = codeInput
+    ? await runCode(language, codeInput, functionName, testCases)
+    : createDummyResult(
+        player,
+        language,
+        roundData,
+        submitTime,
+        testCases.length,
+      );
 
   // Fill in the result object with additional information
   result.submitTime = submitTime;
