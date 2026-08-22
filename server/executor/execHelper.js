@@ -77,6 +77,19 @@ const adjustLineNumber = (message, offset) => {
     );
 };
 
+// Helper to check whether a message contains a line number
+const containsLineNumber = (message) => {
+  return /line (\d+)/.test(message) || /:(\d+)(?=:|\s|$)/.test(message);
+};
+
+// Helper to add line number in brackets if error line exists and it doesn't exist in the message
+const addLineNumberToMessage = (message, errorLine) => {
+  if (errorLine && !containsLineNumber(message)) {
+    return `${message} (line ${errorLine})`;
+  }
+  return message;
+};
+
 // Helper function to clean up error messages based on language
 export const cleanErrorMessage = (stderr, language, offset = 0) => {
   // If stderr is empty, return a generic message
@@ -96,11 +109,16 @@ export const cleanErrorMessage = (stderr, language, offset = 0) => {
     const lineMatch =
       stderr.match(/^[^\n]*?:(\d+)$/m) || stderr.match(/:(\d+):\d+\)/);
     const rawLineNumber = lineMatch ? parseInt(lineMatch[1], 10) : null;
+    const adjustedLine =
+      rawLineNumber !== null ? Math.max(1, rawLineNumber - offset) : null;
+
+    // Get the clean message with adjusted line number based on offset
+    const cleanMessage = adjustLineNumber(message, offset);
 
     return {
-      cleanMessage: adjustLineNumber(message, offset),
-      errorLine:
-        rawLineNumber !== null ? Math.max(1, rawLineNumber - offset) : null,
+      // Add line number to message if it doesn't already exist
+      cleanMessage: addLineNumberToMessage(cleanMessage, adjustedLine),
+      errorLine: adjustedLine,
     };
   }
 
@@ -116,9 +134,11 @@ export const cleanErrorMessage = (stderr, language, offset = 0) => {
     const relevant =
       lastFileIdx !== -1 ? rawLines.slice(lastFileIdx) : rawLines;
     const message = relevant.filter((l) => l.trim().length > 0).join("\n");
+    const cleanMessage = adjustLineNumber(message, offset);
+    const adjustedLine = extractLineNumber(message, offset);
     return {
-      cleanMessage: adjustLineNumber(message, offset),
-      errorLine: extractLineNumber(message, offset),
+      cleanMessage: addLineNumberToMessage(cleanMessage, adjustedLine),
+      errorLine: adjustedLine,
     };
   }
 
@@ -126,9 +146,11 @@ export const cleanErrorMessage = (stderr, language, offset = 0) => {
     const lines = stderr.split("\n");
     const errorLine = lines.find((l) => l.includes("error:"));
     const message = errorLine ? errorLine.trim() : stderr.trim().slice(0, 200);
+    const adjustedLine = extractLineNumber(message, offset);
+    const cleanMessage = adjustLineNumber(message, offset);
     return {
-      cleanMessage: adjustLineNumber(message, offset),
-      errorLine: extractLineNumber(message, offset),
+      cleanMessage: addLineNumberToMessage(cleanMessage, adjustedLine),
+      errorLine: adjustedLine,
     };
   }
 };
