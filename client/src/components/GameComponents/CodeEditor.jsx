@@ -1,5 +1,5 @@
 import Editor from "@monaco-editor/react";
-import { useRef, useEffect } from "react";
+import { useRef, useEffect, useState } from "react";
 
 // Languages supported (No language support besides javascript for now)
 const LANGUAGES = {
@@ -16,23 +16,18 @@ const updateStarterCode = (
   savedCode,
   onChange,
 ) => {
-  // Checks
   if (!editorRef.current || !starterCode) {
     return;
   }
-
-  // Check if the code has not been altered before
   if (savedCode && savedCode[language]) {
     return;
   }
 
-  // Find the starter code for the current language
   const starterCodeForLanguage = starterCode[language];
   if (!starterCodeForLanguage) {
     console.log(`No starter code found for language: ${language}`);
     return;
   }
-  // Set the editor value to the starter code for the current language
   editorRef.current.setValue(starterCodeForLanguage);
   onChange?.(starterCodeForLanguage);
 };
@@ -47,6 +42,13 @@ const stripOuterBrackets = (input) => {
   return trimmed;
 };
 
+// Render a value as text, explicitly labeling null/undefined instead of hiding them
+const formatValueForDisplay = (value) => {
+  if (value === undefined) return "undefined";
+  if (value === null) return "null";
+  return String(value);
+};
+
 const CodeEditor = ({
   onChange,
   isJudging,
@@ -55,12 +57,26 @@ const CodeEditor = ({
   onLanguageChange,
   onMount,
   starterCode,
+  testCasesResults,
 }) => {
-  // Ref for editor
   const editorRef = useRef(null);
-  const handleMount = (editor) => {
+  const monacoRef = useRef(null);
+  const decorationsRef = useRef([]);
+  const [activeTestCase, setActiveTestCase] = useState(0);
+
+  // Track the previous testCasesResults reference so we can reset the
+  // active tab during render instead of inside a useEffect (avoids the
+  // "setState synchronously within an effect" cascading-render warning).
+  const [prevTestCasesResults, setPrevTestCasesResults] =
+    useState(testCasesResults);
+  if (testCasesResults !== prevTestCasesResults) {
+    setPrevTestCasesResults(testCasesResults);
+    setActiveTestCase(0);
+  }
+
+  const handleMount = (editor, monaco) => {
     editorRef.current = editor;
-    // Set initial starter code
+    monacoRef.current = monaco;
     updateStarterCode(
       editorRef,
       language,
@@ -71,50 +87,37 @@ const CodeEditor = ({
     onMount?.();
   };
 
-  // Previous language ref
   const previousLanguage = useRef(language);
 
-  // Saved code ref
   const savedCode = useRef({
     javascript: "",
     python: "",
     cpp: "",
   });
 
-  // Handle editor change (each key updates savedCode + the ref from onChange)
   const handleEditorChange = (value) => {
     savedCode.current[language] = value;
     onChange?.(value);
   };
 
-  // On new round, reset saved code
   const handleRoundChange = () => {
     savedCode.current = { javascript: "", python: "", cpp: "" };
   };
 
-  // Update editor text when language changes
   useEffect(() => {
     if (!editorRef.current) {
       return;
     }
-
-    // Save current code before switching
     const currentCode = editorRef.current.getValue();
     savedCode.current[previousLanguage.current] = currentCode;
-
-    // Update editor with saved code for new language
     editorRef.current.setValue(savedCode.current[language] || "");
-
-    // Update previous language
     previousLanguage.current = language;
   }, [language]);
 
-  // Reset saved code when starterCode changes
   useEffect(() => {
     handleRoundChange();
   }, [starterCode]);
 
-  // Build starter_code for respective languages when either language or starterCode changes
   useEffect(() => {
     updateStarterCode(
       editorRef,
@@ -125,12 +128,49 @@ const CodeEditor = ({
     );
   }, [language, starterCode, onChange]);
 
+  const currentCase = testCasesResults?.[activeTestCase];
+
+  // Highlight the error line (red) in the editor for the selected test case
+  useEffect(() => {
+    if (!editorRef.current || !monacoRef.current) {
+      return;
+    }
+
+    // Highlight the error line if it exists
+    const newDecorations = currentCase?.errorLine
+      ? [
+          {
+            range: new monacoRef.current.Range(
+              currentCase.errorLine,
+              1,
+              currentCase.errorLine,
+              1,
+            ),
+            options: {
+              isWholeLine: true,
+              className: "error-line-highlight",
+              glyphMarginClassName: "error-line-glyph",
+            },
+          },
+        ]
+      : [];
+
+    decorationsRef.current = editorRef.current.deltaDecorations(
+      decorationsRef.current,
+      newDecorations,
+    );
+  }, [currentCase]);
+
   return (
-    // Split the screen into 2 half, the second half is here
     <div className="flex-1 flex flex-col bg-gray-800 rounded-lg p-4 text-white overflow-y-auto">
-      {/* Display Code Editor Title Centered */}
+      {/* Inline styles for the error-line highlight decoration */}
+      <style>{`
+        .error-line-highlight {
+          background-color: rgba(239, 68, 68, 0.22);
+        }
+      `}</style>
+
       <h2 className="text-4xl font-bold mb-4 text-center">Code Editor</h2>
-      {/* Selector to Change Language */}
       <div className="mb-4 ">
         <select
           className="bg-gray-700 text-white border border-gray-500 rounded py-2 px-4 focus:outline-none focus:ring-2 focus:ring-blue-500 disabled:cursor-not-allowed disabled:opacity-50"
@@ -138,7 +178,6 @@ const CodeEditor = ({
           value={language}
           onChange={onLanguageChange}
         >
-          {/* List out all the language options */}
           {Object.entries(LANGUAGES).map(([key, value]) => (
             <option key={key} value={key}>
               {value}
@@ -147,7 +186,6 @@ const CodeEditor = ({
         </select>
       </div>
 
-      {/* Code Editor */}
       <div className="flex-1">
         <Editor
           height="100%"
@@ -167,21 +205,114 @@ const CodeEditor = ({
             contextmenu: false,
             readOnly: isJudging || isSubmitted,
             readOnlyMessage: { value: null },
+            glyphMargin: true,
           }}
         />
       </div>
 
-      {/* Output Section (placeholder) */}
-      <div className="mt-4 h-48 flex flex-col bg-gray-900 border border-gray-600 rounded-lg overflow-hidden">
+      {/* Output Section with LeetCode-style test case tabs */}
+      <div className="mt-4 h-64 flex flex-col bg-gray-900 border border-gray-600 rounded-lg overflow-hidden">
         <div className="flex items-center justify-between px-4 py-2 border-b border-gray-700 bg-gray-800">
           <span className="text-sm font-bold text-gray-300">OUTPUT</span>
           <span className="text-xs text-gray-500">
             {isJudging ? "RUNNING..." : "IDLE"}
           </span>
         </div>
-        <pre className="flex-1 overflow-y-auto p-3 text-sm font-mono text-gray-400 whitespace-pre-wrap">
-          {"// Submt your code to see output here"}
-        </pre>
+
+        {!testCasesResults || testCasesResults.length === 0 ? (
+          <pre className="flex-1 overflow-y-auto p-3 text-sm font-mono text-gray-400 whitespace-pre-wrap">
+            {"// Submit your code to see output here"}
+          </pre>
+        ) : (
+          <>
+            {/* Tab bar */}
+            <div className="flex overflow-x-auto border-b border-gray-700 bg-gray-800 shrink-0">
+              {testCasesResults.map((tc, i) => (
+                <button
+                  key={i}
+                  onClick={() => setActiveTestCase(i)}
+                  className={`flex items-center gap-2 px-4 py-2 text-sm font-medium whitespace-nowrap border-r border-gray-700 ${
+                    activeTestCase === i
+                      ? "bg-gray-700 text-white"
+                      : "text-gray-400 hover:text-gray-200 hover:bg-gray-700/50"
+                  }`}
+                >
+                  <span
+                    className={`w-2 h-2 rounded-full ${
+                      tc.passed ? "bg-green-500" : "bg-red-500"
+                    }`}
+                  />
+                  Case {tc.index + 1}
+                </button>
+              ))}
+            </div>
+
+            {/* Active test case details */}
+            <div className="flex-1 overflow-y-auto p-3 text-sm font-mono space-y-3">
+              {currentCase && (
+                <>
+                  {console.log(
+                    "Current Case error line:",
+                    currentCase.errorLine,
+                  )}
+                  <div>
+                    <span
+                      className={`font-bold ${
+                        currentCase.passed ? "text-green-500" : "text-red-500"
+                      }`}
+                    >
+                      {currentCase.passed ? "Passed" : "Failed"}
+                    </span>
+                  </div>
+
+                  <div>
+                    <div className="text-gray-500 mb-1">Input</div>
+                    <pre className="text-gray-200 whitespace-pre-wrap">
+                      {stripOuterBrackets(currentCase.input)}
+                    </pre>
+                  </div>
+
+                  {currentCase.debugLines &&
+                    currentCase.debugLines.length > 0 && (
+                      <div>
+                        <div className="text-gray-500 mb-1">Stdout</div>
+                        <pre className="text-gray-300 whitespace-pre-wrap">
+                          {Array.isArray(currentCase.debugLines)
+                            ? currentCase.debugLines.join("\n")
+                            : currentCase.debugLines}
+                        </pre>
+                      </div>
+                    )}
+
+                  {currentCase.error && (
+                    <div>
+                      <div className="text-gray-500 mb-1">Error</div>
+                      <pre className="text-red-400 whitespace-pre-wrap">
+                        {currentCase.error}
+                      </pre>
+                    </div>
+                  )}
+
+                  <div>
+                    <div className="text-gray-500 mb-1">Output</div>
+                    <pre className="text-gray-200 whitespace-pre-wrap">
+                      {formatValueForDisplay(currentCase.output)}
+                    </pre>
+                  </div>
+
+                  <div>
+                    <div className="text-gray-500 mb-1">Expected</div>
+                    <pre className="text-gray-200 whitespace-pre-wrap">
+                      {stripOuterBrackets(
+                        formatValueForDisplay(currentCase.expected),
+                      )}
+                    </pre>
+                  </div>
+                </>
+              )}
+            </div>
+          </>
+        )}
       </div>
     </div>
   );
