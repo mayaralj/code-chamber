@@ -11,6 +11,9 @@ const useCodeSubmission = (code) => {
   const [isSubmitted, setIsSubmitted] = useState(false);
   const isSubmittedRef = useRef(false);
 
+  // Test cases results
+  const [testCasesResults, setTestCasesResults] = useState([]);
+
   // Judging status
   const [isJudging, setIsJudging] = useState(false);
   const isJudgingRef = useRef(false);
@@ -94,7 +97,7 @@ const useCodeSubmission = (code) => {
 
   // Listen for submission updates and errors
   useEffect(() => {
-    socket.on("code-submitted", () => {
+    socket.on("code-submitted", (testCasesResults) => {
       // Set is submitted to true
       setIsSubmitted(true);
       isSubmittedRef.current = true;
@@ -102,6 +105,9 @@ const useCodeSubmission = (code) => {
       // Set is judging to false
       setIsJudging(false);
       isJudgingRef.current = false;
+
+      // Set test cases results
+      setTestCasesResults(testCasesResults);
     });
 
     socket.on("code-judging", () => {
@@ -143,6 +149,7 @@ const useCodeSubmission = (code) => {
     language,
     handleSubmit,
     handleLanguageChange,
+    testCasesResults,
   };
 };
 

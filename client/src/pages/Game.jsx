@@ -66,6 +66,7 @@ const Game = () => {
     language,
     handleSubmit,
     handleLanguageChange,
+    testCasesResults,
   } = useCodeSubmission(code);
   // Question
   const { question, setQuestion, starterCode, setStarterCode } =
@@ -172,6 +173,7 @@ const Game = () => {
             onLanguageChange={handleLanguageChange}
             onMount={() => setEditorReady(true)}
             starterCode={starterCode}
+            testCasesResults={testCasesResults}
           />
         </div>
 
