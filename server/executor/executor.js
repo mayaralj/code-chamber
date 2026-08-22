@@ -12,7 +12,6 @@ const limit = pLimit(MAX_CONCURRENT_EXECUTIONS);
 // Executor (via docker)
 const runCode = async (language, userCode, functionName, testCases) => {
   console.log(`test cases:`, testCases);
-  const executorTime = Date.now();
   // Get Config
   const config = languageConfig[language];
   console.log(`Running code in language: ${language}`);
@@ -172,11 +171,10 @@ const runCode = async (language, userCode, functionName, testCases) => {
             index,
             input,
             expected,
-            output:
-              lastLine.slice(0, 200) + (lastLine.length > 200 ? "..." : ""),
+            output: null,
             passed: false,
-            error: null,
-            debugLines,
+            error: undefined,
+            debugLines: debugLines || null,
           };
         }
       }
