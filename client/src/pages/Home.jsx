@@ -27,6 +27,25 @@ const Home = () => {
   // States
   const [liveStats, setLiveStats] = useState(null);
 
+  // Helper to check if all live stats fields are present and valid
+  const hasAllLiveStatsFields = (stats) => {
+    const requiredFields = [
+      "active_users",
+      "total_matches",
+      "total_submissions",
+      "avg_pass_rate",
+      "avg_execution_time",
+      "avg_submission_time",
+      "most_used_language",
+      "most_used_difficulty",
+      "avg_survival_time",
+      "avg_match_time",
+    ];
+    return requiredFields.every(
+      (field) => stats[field] !== undefined && stats[field] !== null,
+    );
+  };
+
   // Handle incoming events
   useEffect(() => {
     const source = new EventSource("http://localhost:5000/api/liveStats");
@@ -35,7 +54,12 @@ const Home = () => {
     source.onmessage = (event) => {
       try {
         const data = JSON.parse(event.data);
-        setLiveStats(data);
+        if (hasAllLiveStatsFields(data)) {
+          setLiveStats(data);
+        } else {
+          console.log("Incomplete live stats data received:", data);
+          setLiveStats(null);
+        }
       } catch {
         console.error("Invalid JSON data received:", event.data);
       }
