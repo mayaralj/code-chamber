@@ -19,6 +19,11 @@ const formatDuration = (value) => {
   return `${String(minutes).padStart(2, "0")}:${String(seconds).padStart(2, "0")} MIN`;
 };
 
+// Config
+const RANKING_LIMIT = 5;
+const FETCH_INTERVAL = 60000;
+const FETCH_TIMEOUT = 10000;
+
 // Home component
 const Home = () => {
   // Navigate
@@ -26,6 +31,51 @@ const Home = () => {
 
   // States
   const [liveStats, setLiveStats] = useState(null);
+  const [homeLeaderboard, setHomeLeaderboard] = useState(null);
+
+  // Refs
+  const abortControllerRef = useRef(null);
+
+  // Fetch home leaderboard data on mount
+  useEffect(() => {
+    let isMounted = true;
+
+    const fetchHomeLeaderboard = async () => {
+      if (abortControllerRef.current) {
+        abortControllerRef.current.abort();
+      }
+      abortControllerRef.current = new AbortController();
+
+      try {
+        const combinedSignal = AbortSignal.any([
+          abortControllerRef.current.signal,
+          AbortSignal.timeout(FETCH_TIMEOUT),
+        ]);
+
+        const response = await fetch("/api/homeLeaderboard", {
+          signal: combinedSignal,
+        });
+        if (!response.ok) {
+          throw new Error(`HTTP error status: ${response.status}`);
+        }
+
+        const data = await response.json();
+        if (isMounted) setHomeLeaderboard(data);
+      } catch (error) {
+        console.error("Error fetching home leaderboard:", error);
+        if (isMounted) setHomeLeaderboard(null);
+      }
+    };
+
+    fetchHomeLeaderboard();
+    const intervalId = setInterval(fetchHomeLeaderboard, FETCH_INTERVAL);
+
+    return () => {
+      isMounted = false;
+      clearInterval(intervalId);
+      abortControllerRef.current?.abort();
+    };
+  }, []);
 
   // Helper to check if all live stats fields are present and valid
   const hasAllLiveStatsFields = (stats) => {
