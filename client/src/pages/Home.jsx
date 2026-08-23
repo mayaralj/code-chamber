@@ -1,6 +1,6 @@
 // Imports
 import { useNavigate } from "react-router";
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 
 // Bunch of helpers to format live stats numbers for display
 const formatPercent = (value) =>
@@ -125,19 +125,6 @@ const Home = () => {
     };
   }, []);
 
-  // REST OF LOGIC TODO
-  // Bunch of placeholder data for now
-  const activeChambers = [
-    { code: "#X-772_VOID", players: "4/6" },
-    { code: "#K-001_CORE", players: "5/6" },
-    { code: "#N-912_GRID", players: "2/6" },
-  ];
-  const rankings = [
-    { rank: "01", name: "NULL_POINTER", rate: "98.4%" },
-    { rank: "02", name: "STACK_OVERLORD", rate: "94.1%" },
-    { rank: "03", name: "HEX_REAPER", rate: "92.8%" },
-  ];
-
   // Build the ticker from live stats, or a connecting message until the first payload arrives
   const tickerText = (
     <>
@@ -202,108 +189,108 @@ const Home = () => {
 
   return (
     <div className="min-h-screen overflow-x-hidden bg-[#0b0b0b] font-mono text-[#e7c49d]">
-      <main className="w-full px-10 pb-20 pt-10">
-        <section className="relative mb-12 overflow-hidden">
-          <h1 className="relative text-6xl font-black tracking-tight text-[#ffedd1] md:text-7xl">
+      <main className="w-full px-10 pb-20 pt-16">
+        {/* Hero */}
+        <section className="mx-auto max-w-5xl text-center">
+          <h1 className="text-6xl font-black tracking-tight text-[#ffedd1] md:text-7xl">
             CODE CHAMBER
           </h1>
-
-          <p className="relative mt-3 text-m font-bold tracking-[0.10em] text-[#fcdca9]">
-            RUSSIAN ROULETTE INSPIRED MULTIPLAYER CODING GAME
+          <p className="mt-4 text-sm font-bold tracking-[0.15em] text-[#fcdca9]">
+            CHALLENGE YOURSELF. TEST YOUR SKILLS. OUTLAST THE COMPETITION.
+          </p>
+          <p className="mt-6 text-[15px] leading-7 text-[#c7b499]">
+            A high-stakes multiplayer coding game where your DSA skills can
+            truly shine. Survive round after round of coding challenges. Last
+            one standing wins.
           </p>
         </section>
 
-        {/* Ticker */}
-        <div className="relative left-1/2 mb-10 w-screen -translate-x-1/2 overflow-hidden border-y border-[#4b4133] bg-gray-950 py-2 select-none pointer-events-none">
-          <div className="marquee-track whitespace-nowrap">
-            {[0, 1].map((copy) => (
-              <span
-                key={copy}
-                aria-hidden={copy > 0}
-                className="shrink-0 inline-block text-sm font-bold tracking-wider text-[#d5b68f]"
-              >
-                {tickerText}
-              </span>
-            ))}
-          </div>
-        </div>
-
-        <section className="grid gap-4 lg:grid-cols-[1fr_1fr_0.9fr]">
-          {/* Create Chamber card */}
+        {/* Create / Join cards, centered and moderately sized */}
+        <section className="mx-auto mt-14 grid max-w-5xl gap-6 md:grid-cols-2">
           <ActionCard
             title="CREATE CHAMBER"
-            tag="V.1.0_READY"
-            description="Host a Room Of Your Choice. Set the Difficulty. Invite Your Friends. Survive the Challenge."
-            buttonText="START INSTANCE"
+            tag="INIT"
+            description="Host a match of your own. Set the rules. Invite your friends."
+            buttonText="CREATE"
             primary
             onClick={() => navigate("/create")}
           />
 
-          {/* Join Chamber card */}
           <ActionCard
-            title="JOIN CHAMBER"
-            tag="SCANNING_ACTIVE"
-            description="Enter the lobby. Navigate active servers. Accept the challenge. Survival is the only metric for success."
-            buttonText="SCAN SERVERS"
+            title="BROWSE CHAMBERS"
+            tag="BROWSE"
+            description="Find and join a match hosted by someone else. Compete against other players."
+            buttonText="BROWSE"
             onClick={() => navigate("/browse")}
           />
-
-          {/* Active Chambers card */}
-          <aside className="space-y-4">
-            <Panel title="GLOBAL_RANKING">
-              <div className="space-y-2">
-                {activeChambers.map((room) => (
-                  <button
-                    key={room.code}
-                    onClick={() => navigate("/browse")}
-                    className="flex w-full cursor-pointer items-center justify-between border border-[#302b24] bg-[#181818] px-3 py-3 text-left text-sm font-bold text-[#d8c09d] transition-colors duration-200 hover:bg-[#252019]"
-                  >
-                    <span>{room.code}</span>
-                    <span className="text-[#ffd99d]">{room.players}</span>
-                  </button>
-                ))}
-              </div>
-            </Panel>
-
-            <Panel title="GAME_STATS">
-              <div className="space-y-1">
-                {rankings.map((player) => (
-                  <div
-                    key={player.rank}
-                    className="flex items-center gap-3 border-l-2 border-[#5e503d] px-2 py-3 first:border-[#ffd99d] first:bg-[#211f1b]"
-                  >
-                    <span className="text-xl font-black text-[#d9bd89]">
-                      {player.rank}
-                    </span>
-                    <div>
-                      <p className="text-sm font-bold text-[#e6cfaa]">
-                        {player.name}
-                      </p>
-                      <p className="mt-1 text-[12px] text-[#aa977b]">
-                        {player.rate} SURVIVAL RATE
-                      </p>
-                    </div>
-                  </div>
-                ))}
-              </div>
-            </Panel>
-          </aside>
         </section>
 
-        <section className="mt-18  grid border border-[#4b4133] bg-[#111111] md:grid-cols-3">
-          <Stat
-            label="TOTAL_CHAMBERS_RUN"
-            value={liveStats ? liveStats.total_matches : "..."}
-          />
-          <Stat
-            label="AVERAGE_COMPILE_TIME"
-            value={liveStats ? formatMs(liveStats.avg_execution_time) : "..."}
-          />
-          <Stat
-            label="AVG_PASS_RATE"
-            value={liveStats ? formatPercent(liveStats.avg_pass_rate) : "..."}
-            last
-          />
+        {/* Ticker */}
+        <section className="mx-auto mt-14 max-w-5xl">
+          <h2 className="text-3xl font-black tracking-tight text-[#ffd99d]">
+            LIVE_FEED
+          </h2>
+          <div className="mt-6 overflow-hidden border-y border-[#4b4133] bg-gray-950 py-1.5 select-none pointer-events-none">
+            <div className="marquee-track whitespace-nowrap">
+              {[0, 1].map((copy) => (
+                <span
+                  key={copy}
+                  aria-hidden={copy > 0}
+                  className="shrink-0 inline-block text-[10px] font-bold tracking-wider text-[#d5b68f]"
+                >
+                  {tickerText}
+                </span>
+              ))}
+            </div>
+          </div>
+        </section>
+
+        {/* Global Ranking table */}
+        <section className="mx-auto mt-14 max-w-5xl">
+          <div className="mb-6 flex items-end justify-between">
+            <h2 className="text-3xl font-black tracking-tight text-[#ffd99d]">
+              GLOBAL_RANKING
+            </h2>
+          </div>
+
+          <div className="border border-[#2a251d]">
+            <div className="grid grid-cols-[70px_1fr_160px] border-b border-[#2a251d] px-5 py-3 text-xs font-bold tracking-widest text-[#8a7c63]">
+              <span>#</span>
+              <span>PLAYER</span>
+              <span className="text-right">MATCHES WON</span>
+            </div>
+
+            {homeLeaderboard?.slice(0, RANKING_LIMIT).map((player, index) => {
+              return (
+                <div
+                  key={player.username}
+                  className="grid grid-cols-[70px_1fr_160px] items-center border-b border-[#1c1812] px-5 py-5 last:border-b-0"
+                >
+                  <span className="text-xl font-black text-[#d9bd89]">
+                    {String(index + 1).padStart(2, "0")}
+                  </span>
+                  <span className="text-sm font-bold text-[#e6cfaa]">
+                    {player.username}
+                  </span>
+
+                  <span className="text-right text-sm font-bold text-[#ffd99d]">
+                    {player.win_rate !== undefined
+                      ? formatPercent(player.win_rate)
+                      : `${player.matches_won ?? 0} WINS`}
+                  </span>
+                </div>
+              );
+            })}
+          </div>
+
+          <div className="mt-8 flex justify-center">
+            <button
+              onClick={() => navigate("/leaderboard")}
+              className="cursor-pointer border border-[#cda979] bg-[#dfbb96] px-8 py-4 text-xs font-black tracking-widest text-[#211b14] transition-colors duration-200 hover:bg-[#efceaa]"
+            >
+              VIEW FULL LEADERBOARD
+            </button>
+          </div>
         </section>
       </main>
     </div>
@@ -319,18 +306,16 @@ const ActionCard = ({
   primary = false,
   onClick,
 }) => (
-  <article className="flex min-h-[455px] flex-col border border-[#4b4133] bg-[#111111] p-6 [background-image:radial-gradient(#5b4e3e_0.7px,transparent_0.7px)] [background-size:14.1px_14.1px]">
+  <article className="flex min-h-[300px] flex-col border border-[#4b4133] bg-[#111111] p-7 [background-image:radial-gradient(#5b4e3e_0.7px,transparent_0.7px)] [background-size:14.1px_14.1px]">
     <div className="flex items-center justify-between">
-      <span className="text-2xl text-[#ffd99d]">{primary ? "⊞" : "◉"}</span>
+      <span className="text-2xl text-[#ffd99d]">{primary ? "⊞" : "◎"}</span>
       <span className="border border-[#9e8968] px-2 py-1 text-[10px] font-bold text-[#d8c09d]">
         {tag}
       </span>
     </div>
 
-    <h2 className="mt-7 text-4xl font-black text-[#f1eee7]">{title}</h2>
-    <p className="mt-4 max-w-sm text-md leading-6 text-[#c7b499]">
-      {description}
-    </p>
+    <h2 className="mt-6 text-3xl font-black text-[#f1eee7]">{title}</h2>
+    <p className="mt-3 text-sm leading-6 text-[#c7b499]">{description}</p>
 
     <button
       onClick={onClick}
@@ -343,31 +328,6 @@ const ActionCard = ({
       {buttonText} ◫
     </button>
   </article>
-);
-
-// Panel component for the home page (goes on the side of the action cards)
-const Panel = ({ title, children }) => (
-  <section className="border border-[#4b4133] bg-[#111111] p-5">
-    <div className="mb-4 flex items-center justify-between border-b border-[#4b4133] pb-3">
-      <h2 className="text-md font-bold tracking-wider text-[#d8c09d]">
-        {title}
-      </h2>
-      <span className="text-[#ffd99d]">◉</span>
-    </div>
-    {children}
-  </section>
-);
-
-// Stat component for the home page (goes at the bottom)
-const Stat = ({ label, value, last = false }) => (
-  <div
-    className={`px-5 py-5 ${last ? "" : "border-b border-[#4b4133] md:border-b-0 md:border-r"}`}
-  >
-    <p className="text-[12px] font-bold tracking-wider text-[#b39c7e]">
-      {label}
-    </p>
-    <p className="mt-1 text-3xl font-black text-[#eac18a]">{value}</p>
-  </div>
 );
 
 export default Home;
