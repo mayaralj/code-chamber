@@ -25,10 +25,10 @@ const buildLiveStatsData = async () => {
            AVG(submit_time) AS avg_submission_time
          FROM submissions`,
     ),
-    // Overall match-level stats
+    // Overall match-level stats — dedupe by room_id so a 2-player match counts once
     db.query(
       `SELECT
-           COUNT(*)::int AS total_matches,
+           COUNT(DISTINCT room_id)::int AS total_matches,
            AVG(survival_time) AS avg_survival_time,
            AVG(survival_time) FILTER (WHERE won) AS avg_match_time
          FROM matches`,
@@ -40,16 +40,15 @@ const buildLiveStatsData = async () => {
          GROUP BY language
          ORDER BY count DESC`,
     ),
-    // Difficulty usage, most and least used
+    // Difficulty usage — dedupe by room_id so each match's difficulty is counted once,
     db.query(
-      `SELECT difficulty, COUNT(*)::int AS count
+      `SELECT difficulty, COUNT(DISTINCT room_id)::int AS count
          FROM matches
          GROUP BY difficulty
          ORDER BY count DESC`,
     ),
   ]);
 
-  // Build stats
   const submissionStats = submissionAggregates.rows[0] ?? {
     total_submissions: 0,
     avg_pass_rate: null,
@@ -66,7 +65,6 @@ const buildLiveStatsData = async () => {
   const languageRows = languageUsage.rows;
   const difficultyRows = difficultyUsage.rows;
 
-  // Return the live stats object
   return {
     active_users: totalConnections ?? 0,
     total_matches: matchStats.total_matches ?? 0,
