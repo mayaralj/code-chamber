@@ -11,7 +11,6 @@ const limit = pLimit(MAX_CONCURRENT_EXECUTIONS);
 
 // Executor (via docker)
 const runCode = async (language, userCode, functionName, testCases) => {
-  console.log(`test cases:`, testCases);
   // Get Config
   const config = languageConfig[language];
   console.log(`Running code in language: ${language}`);
@@ -98,8 +97,8 @@ const runCode = async (language, userCode, functionName, testCases) => {
     }
   }
 
-  // Start time
-  const startTime = Date.now();
+  // Execution time with commands
+  const execTimeWithCmds = Date.now();
 
   // Run each input in parallel
   const testPromises = testCases.map(({ input, expected }, index) =>
@@ -111,10 +110,10 @@ const runCode = async (language, userCode, functionName, testCases) => {
         `Running test case ${index + 1}: input: ${argsJson}, expected: ${expectedJson}`,
       );
 
-      let output;
+      let output, execTime;
       try {
         // Run the code in the container with the input and get the output
-        output = (
+        const result = (
           await execWithStdin(
             "docker",
             ["exec", "-i", containerId, ...config.run().split(" ")],
@@ -122,6 +121,7 @@ const runCode = async (language, userCode, functionName, testCases) => {
             5000,
           )
         ).trim();
+        ({ output, execTime } = JSON.parse(result));
       } catch (err) {
         const { cleanMessage, errorLine } = cleanErrorMessage(
           err.stderr || err.message,
@@ -135,6 +135,7 @@ const runCode = async (language, userCode, functionName, testCases) => {
           input,
           expected,
           output: null,
+          execTime,
           passed: false,
           error: err.type === "timeout" ? "Time Limit Exceeded" : cleanMessage,
           errorLine: errorLine,
@@ -143,28 +144,40 @@ const runCode = async (language, userCode, functionName, testCases) => {
 
       // Try to parse the output as JSON and compare with expected
       try {
-        console.log(`Raw output:`, output);
+        console.log(`Raw results:`, { output, execTime });
         output = JSON.parse(output);
-        console.log("Output:", output);
+        console.log("Results:", { output, execTime });
         const passed = JSON.stringify(output) === expectedJson;
-        return { index, input, expected, output, passed };
+        return { index, input, expected, output, execTime, passed };
       } catch {
         // Fallback to check if the last line of output is valid JSON and compare with expected (incase they print debugging info along the way)
-        const lines = output
-          .split("\n")
-          .map((l) => l.trim())
-          .filter(Boolean);
-        const lastLine = lines[lines.length - 1] || "";
+        const lines =
+          output &&
+          output
+            .split("\n")
+            .map((l) => l.trim())
+            .filter(Boolean);
+        const lastLine =
+          lines && lines.length > 0 ? lines[lines.length - 1] : "";
         console.log(`Raw Last line of output:`, lastLine);
         // Track debug lines
-        const debugLines = lines.slice(0, -1).join("\n");
+        const debugLines =
+          lines && lines.length > 1 ? lines.slice(0, -1).join("\n") : "";
         console.log(`Debug lines of output:`, debugLines);
 
         try {
           output = JSON.parse(lastLine);
           console.log("Output from last line:", output);
           const passed = JSON.stringify(output) === expectedJson;
-          return { index, input, expected, output, passed, debugLines };
+          return {
+            index,
+            input,
+            expected,
+            output,
+            execTime,
+            passed,
+            debugLines,
+          };
         } catch {
           // Invalid code, show last line of output as received (truncate if too long)
           return {
@@ -172,6 +185,7 @@ const runCode = async (language, userCode, functionName, testCases) => {
             input,
             expected,
             output: null,
+            execTime,
             passed: false,
             error: undefined,
             debugLines: debugLines || null,
@@ -186,11 +200,18 @@ const runCode = async (language, userCode, functionName, testCases) => {
   // Count how many test cases passed
   const testCasesPassed = testResult.filter((r) => r.passed).length;
 
-  // Calculate full execution time
-  const executionTime = Date.now() - startTime;
+  // End time
+  const totalExecTimeWithCmds = Date.now() - execTimeWithCmds;
 
   // Cleanup container
   await removeContainer(containerId);
+
+  // Calculate total execution time (if execTime is available for all test cases, use that, otherwise use totalExecTimeWithCmds)
+  const totalExecTime = testResult.reduce(
+    (acc, r) => acc + (r.execTime || totalExecTimeWithCmds / testResult.length),
+    0,
+  );
+  console.log(`Total execution time: ${totalExecTime}ms`);
 
   // Return result
   return {
@@ -198,7 +219,7 @@ const runCode = async (language, userCode, functionName, testCases) => {
     languageUsed: language,
     passed: testResult.every((r) => r.passed),
     testCasesPassed,
-    executionTime,
+    executionTime: totalExecTime,
   };
 };
 
