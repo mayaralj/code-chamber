@@ -14,7 +14,11 @@ const languageConfig = {
       const suffix = `
     
     const args = JSON.parse(fs.readFileSync(0, "utf-8"));
-    console.log(JSON.stringify(${fnName}(...args)));
+    const startTime = process.hrtime.bigint();
+    const output = ${fnName}(...args);
+    const endTime = process.hrtime.bigint();
+    const execTime = Number(endTime - startTime) / 1e6;
+    console.log(JSON.stringify({ output, execTime}));
     `;
       return {
         code: prefix + userCode + suffix,
@@ -31,14 +35,18 @@ const languageConfig = {
     buildCode: (userCode, fnName) => {
       const prefix = `
 import sys, json
-
+import time
 
 `;
       const suffix = `
 
 
 args = json.loads(sys.stdin.read())
-print(json.dumps(${fnName}(*args)))
+start_time = time.time()
+output = ${fnName}(*args)
+end_time = time.time()
+exec_time = (end_time - start_time) * 1000  # Convert to milliseconds
+print(json.dumps({ "output": output, "execTime": exec_time }))
     `;
       return {
         code: prefix + userCode + suffix,
@@ -73,8 +81,11 @@ print(json.dumps(${fnName}(*args)))
 
       json args = json::parse(inputJson);
       ${argDecls}
-      auto r = ${fnName}(${argNames});
-      printResult(r);
+      auto start = chrono::high_resolution_clock::now();
+      auto output = ${fnName}(${argNames});
+      auto end = chrono::high_resolution_clock::now();
+      double execTime = chrono::duration<double, std::milli>(end - start).count();
+      cout << json{{"output", output}, {"execTime", execTime}}.dump() << endl;
       return 0;
     }
     `;
