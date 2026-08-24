@@ -103,17 +103,17 @@ const runCode = async (language, userCode, functionName, testCases) => {
   // Run each input in parallel
   const testPromises = testCases.map(({ input, expected }, index) =>
     limit(async () => {
-      // Convert input and expected to JSON strings
+      // Log the input and expected output for debugging
       const argsJson = JSON.stringify(input);
       const expectedJson = JSON.stringify(expected);
       console.log(
         `Running test case ${index + 1}: input: ${argsJson}, expected: ${expectedJson}`,
       );
 
-      let output, execTime;
+      // Run the code in the container
+      let raw;
       try {
-        // Run the code in the container with the input and get the output
-        const result = (
+        raw = (
           await execWithStdin(
             "docker",
             ["exec", "-i", containerId, ...config.run().split(" ")],
@@ -121,7 +121,7 @@ const runCode = async (language, userCode, functionName, testCases) => {
             5000,
           )
         ).trim();
-        ({ output, execTime } = JSON.parse(result));
+        console.log(`Raw output for test case ${index + 1}:`, raw);
       } catch (err) {
         const { cleanMessage, errorLine } = cleanErrorMessage(
           err.stderr || err.message,
@@ -129,7 +129,60 @@ const runCode = async (language, userCode, functionName, testCases) => {
           offset,
         );
         console.log(`Cleaned error message:`, cleanMessage, errorLine);
-        // Execution failure
+        return {
+          index,
+          input,
+          expected,
+          output: null,
+          execTime: undefined,
+          passed: false,
+          error: err.type === "timeout" ? "Time Limit Exceeded" : cleanMessage,
+          errorLine,
+        };
+      }
+
+      // Grab the last line of the output, guranteed to be the answer in JSON format, the rest is debug info
+      const lines = raw
+        .split("\n")
+        .map((l) => l.trim())
+        .filter(Boolean);
+      const lastLine = lines[lines.length - 1] || "";
+      const debugLines = lines.slice(0, -1).join("\n") || null;
+      console.log(`Debug lines for test case ${index + 1}:`, debugLines);
+
+      let result;
+      try {
+        result = JSON.parse(lastLine);
+      } catch {
+        console.log(`Raw output could not be parsed:`, raw);
+        return {
+          index,
+          input,
+          expected,
+          output: null,
+          execTime: undefined,
+          passed: false,
+          error: undefined,
+          debugLines,
+        };
+      }
+
+      // Extract output, error and execTime from the result
+      const { output, error, execTime } = result;
+      console.log(`Parsed result for test case ${index + 1}:`, {
+        output,
+        error,
+        execTime,
+      });
+
+      // The wrapper caught a runtime error inside the executed code
+      if (error) {
+        const { cleanMessage, errorLine } = cleanErrorMessage(
+          error,
+          language,
+          offset,
+        );
+        console.log(`Cleaned error message:`, cleanMessage, errorLine);
         return {
           index,
           input,
@@ -137,61 +190,15 @@ const runCode = async (language, userCode, functionName, testCases) => {
           output: null,
           execTime,
           passed: false,
-          error: err.type === "timeout" ? "Time Limit Exceeded" : cleanMessage,
-          errorLine: errorLine,
+          error: cleanMessage,
+          errorLine,
+          debugLines,
         };
       }
 
-      // Try to parse the output as JSON and compare with expected
-      try {
-        console.log(`Raw results:`, { output, execTime });
-        output = JSON.parse(output);
-        console.log("Results:", { output, execTime });
-        const passed = JSON.stringify(output) === expectedJson;
-        return { index, input, expected, output, execTime, passed };
-      } catch {
-        // Fallback to check if the last line of output is valid JSON and compare with expected (incase they print debugging info along the way)
-        const lines =
-          output &&
-          output
-            .split("\n")
-            .map((l) => l.trim())
-            .filter(Boolean);
-        const lastLine =
-          lines && lines.length > 0 ? lines[lines.length - 1] : "";
-        console.log(`Raw Last line of output:`, lastLine);
-        // Track debug lines
-        const debugLines =
-          lines && lines.length > 1 ? lines.slice(0, -1).join("\n") : "";
-        console.log(`Debug lines of output:`, debugLines);
-
-        try {
-          output = JSON.parse(lastLine);
-          console.log("Output from last line:", output);
-          const passed = JSON.stringify(output) === expectedJson;
-          return {
-            index,
-            input,
-            expected,
-            output,
-            execTime,
-            passed,
-            debugLines,
-          };
-        } catch {
-          // Invalid code, show last line of output as received (truncate if too long)
-          return {
-            index,
-            input,
-            expected,
-            output: null,
-            execTime,
-            passed: false,
-            error: undefined,
-            debugLines: debugLines || null,
-          };
-        }
-      }
+      // Compare the output with the expected output
+      const passed = JSON.stringify(output) === expectedJson;
+      return { index, input, expected, output, execTime, passed, debugLines };
     }),
   );
 
