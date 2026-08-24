@@ -226,10 +226,7 @@ const Home = () => {
         </section>
 
         {/* Ticker */}
-        <section className="mx-auto mt-14 max-w-5xl">
-          <h2 className="text-3xl font-black tracking-tight text-[#ffd99d]">
-            LIVE_FEED
-          </h2>
+        <section className="mx-auto text-center mt-10 max-w-5xl">
           <div className="mt-6 overflow-hidden border-y border-[#4b4133] bg-gray-950 py-1.5 select-none pointer-events-none">
             <div className="marquee-track whitespace-nowrap">
               {[0, 1].map((copy) => (
@@ -246,8 +243,8 @@ const Home = () => {
         </section>
 
         {/* Global Ranking table */}
-        <section className="mx-auto mt-14 max-w-5xl">
-          <div className="mb-6 flex items-end justify-between">
+        <section className="mx-auto mt-20 max-w-5xl">
+          <div className="mb-6 flex items-end justify-center">
             <h2 className="text-3xl font-black tracking-tight text-[#ffd99d]">
               GLOBAL_RANKING
             </h2>
