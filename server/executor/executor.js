@@ -207,7 +207,7 @@ const runCode = async (language, userCode, functionName, testCases) => {
   // Count how many test cases passed
   const testCasesPassed = testResult.filter((r) => r.passed).length;
 
-  // End time
+  // End time (mainly used for fallback if execTime is not available for all test cases)
   const totalExecTimeWithCmds = Date.now() - execTimeWithCmds;
 
   // Cleanup container

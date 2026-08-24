@@ -1,5 +1,5 @@
 import { useNavigate } from "react-router";
-import { useState } from "react";
+import { useState, useRef, useEffect } from "react";
 import { socket } from "../socket";
 
 // Config
@@ -7,19 +7,18 @@ const CREATE_ROOM_TIMEOUT = 3000;
 const MAX_ROOM_NAME_LENGTH = 20;
 
 const CreateRoom = () => {
-  // Room name state
+  // States
   const [roomName, setRoomName] = useState("");
-  // Difficulty state
-  const [difficulty, setDifficulty] = useState("easy"); // default difficulty
-  // MaxPlayer state
-  const [maxPlayers, setMaxPlayers] = useState(4); // default max players
-  // Public or Private state
-  const [isPublic, setIsPublic] = useState(true); // default to public
-  // Create error
+  const [difficulty, setDifficulty] = useState("easy");
+  const [maxPlayers, setMaxPlayers] = useState(4);
+  const [isPublic, setIsPublic] = useState(true);
   const [createError, setCreateError] = useState("");
-  // Is creating
   const [isCreating, setIsCreating] = useState(false);
 
+  // Refs
+  const lastRoomIdRef = useRef(null);
+
+  // Navigate
   const navigate = useNavigate();
 
   // Handle create function
@@ -44,6 +43,7 @@ const CreateRoom = () => {
 
     // Create a unique room id
     const roomId = crypto.randomUUID();
+    lastRoomIdRef.current = roomId;
     socket.timeout(CREATE_ROOM_TIMEOUT).emit(
       "create-room",
       {
@@ -59,13 +59,16 @@ const CreateRoom = () => {
           // Notify server to stop server creation
           socket.emit("cancel-room-creation", { roomId });
           setCreateError("Server not responding. Please try again.");
+          lastRoomIdRef.current = null;
           return;
         }
         if (response.error) {
+          lastRoomIdRef.current = null;
           setCreateError(response.error);
           return;
         }
         if (response.roomInfo) {
+          lastRoomIdRef.current = null;
           setCreateError("");
           navigate(`/room-wait/${response.roomInfo.code}`, {
             state: { roomInfo: response.roomInfo },
@@ -74,6 +77,22 @@ const CreateRoom = () => {
       },
     );
   };
+
+  // On leave cancel room creation if it was in progress
+  const handleBeforeUnload = () => {
+    if (lastRoomIdRef.current) {
+      socket.emit("cancel-room-creation", { roomId: lastRoomIdRef.current });
+    }
+  };
+
+  // Add event listener for pagehide to cancel room creation if needed
+  useEffect(() => {
+    window.addEventListener("pagehide", handleBeforeUnload);
+    return () => {
+      window.removeEventListener("pagehide", handleBeforeUnload);
+      handleBeforeUnload(); // Call it to cancel room creation if needed
+    };
+  }, []);
 
   return (
     <div className="min-h-[calc(100vh-72px)] bg-[#0b0b0b] px-6 py-20 font-mono text-[#e7c49d]">
