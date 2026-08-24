@@ -28,7 +28,9 @@ const Results = ({
             </span>
             <span className="text-white">{result.passed ? "Yes" : "No"}</span>
             <span className="text-white">{result?.testCasesPassed}</span>
-            <span className="text-white">{result?.executionTime || "N/A"}</span>
+            <span className="text-white">
+              {result.executionTime ? Math.round(result.executionTime) : "N/A"}
+            </span>
             <span className="text-white">{result?.submitTime}</span>
             {/* Total score */}
             <span className="text-white">{result.score}</span>
