@@ -32,7 +32,8 @@ const RoomWait = () => {
   // Check code
   useEffect(() => {
     if (!code) {
-      navigate("/", { replace: true });
+      toast.error("Invalid room code");
+      navigate("/browse", { replace: true });
     }
   }, [code, navigate]);
 
@@ -42,11 +43,12 @@ const RoomWait = () => {
     console.log(code, "checking room");
     socket.once("check-player-response", ({ message, valid }) => {
       if (!valid) {
+        toast.error(message);
         console.log(
           "User not valid for this room, redirecting to home",
           message,
         );
-        navigate("/", { replace: true });
+        navigate("/browse", { replace: true });
       }
     });
 
@@ -105,9 +107,10 @@ const RoomWait = () => {
     );
 
     // Listen for host left
-    socket.on("host-left", () => {
+    socket.on("host-left", ({ message }) => {
       console.log("Host left, redirecting to home");
-      navigate("/", { replace: true });
+      toast.error(message);
+      navigate("/browse", { replace: true });
     });
 
     // Cleanup listeners on unmount
@@ -140,6 +143,7 @@ const RoomWait = () => {
     // if game started while dc it will listen here
     socket.on("reconnect-game-success", (reconnectData) => {
       console.log("Reconnected to game successfully");
+      toast.success("Reconnected to game successfully");
       navigate(`/game/${code}`, {
         replace: true,
         state: {
@@ -200,7 +204,8 @@ const RoomWait = () => {
 
   // Room Deletion
   useEffect(() => {
-    socket.once("room-deleted", () => {
+    socket.once("room-deleted", ({ message }) => {
+      toast.error(message);
       navigate("/browse", { replace: true });
     });
 
@@ -212,6 +217,7 @@ const RoomWait = () => {
   // Ensure they arent trying to enter the room from url only
   useEffect(() => {
     if (!location.state) {
+      toast.error("Invalid room access");
       navigate("/browse", { replace: true });
     }
   }, []);

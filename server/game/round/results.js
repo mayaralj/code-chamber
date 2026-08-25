@@ -111,7 +111,7 @@ export const gameOver = async (io, code, roundData, winner) => {
   }
 
   // Emit that room is deleted
-  io.to(code).emit("room-deleted");
+  io.to(code).emit("room-deleted", { message: "Game over" });
 
   // Delete room
   console.log(`Game over in room ${code}, deleting room`);

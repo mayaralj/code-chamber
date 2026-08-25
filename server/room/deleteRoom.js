@@ -6,7 +6,7 @@ const deleteRoom = (io, rooms, code) => {
   if (!rooms[code]) {
     return;
   }
-  io.to(code).emit("room-deleted");
+  io.to(code).emit("room-deleted", { message: "Room deleted" });
   io.in(code).socketsLeave(code);
   rooms[code].players.forEach((player) => {
     delete playersInRooms[player.userId];
