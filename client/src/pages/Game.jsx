@@ -19,6 +19,7 @@ import usePlayerLeave from "../hooks/gameHooks/usePlayerLeave";
 import useReconnection from "../hooks/gameHooks/useReconnection";
 import useDisconnection from "../hooks/gameHooks/useDisconnection";
 import usePlayer from "../hooks/usePlayer";
+import toast from "react-hot-toast";
 
 // Game component
 const Game = () => {
@@ -117,8 +118,9 @@ const Game = () => {
   // Check with server if user is supposed to be here
   // useEffect(() => {
   //   socket.emit("check-room", { code });
-  //   socket.once("check-room-response", ({ valid }) => {
+  //   socket.once("check-room-response", ({ message, valid }) => {
   //     if (!valid) {
+  //       toast.error(message);
   //       console.log("User not valid for this room, redirecting to home");
   //       navigate("/", { replace: true });
   //     }
@@ -128,7 +130,8 @@ const Game = () => {
   // State check
   useEffect(() => {
     if (!location.state) {
-      navigate("/", { replace: true });
+      toast.error("Invalid game state");
+      navigate("/browse", { replace: true });
     }
   }, []);
   if (!location.state) return null;
