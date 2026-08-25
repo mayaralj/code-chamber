@@ -195,7 +195,7 @@ const Home = () => {
           <h1 className="text-6xl font-black tracking-tight text-[#ffedd1] md:text-7xl">
             CODE CHAMBER
           </h1>
-          <p className="mt-4 text-sm font-bold tracking-[0.15em] text-[#fcdca9]">
+          <p className="mt-4 text-md font-bold tracking-[0.08em] text-[#fcdca9]">
             CHALLENGE YOURSELF. TEST YOUR SKILLS. OUTLAST THE COMPETITION.
           </p>
           <p className="mt-6 text-[15px] leading-7 text-[#c7b499]">
