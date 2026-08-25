@@ -2,6 +2,7 @@
 import { useEffect } from "react";
 import { useNavigate } from "react-router";
 import { socket } from "../../socket";
+import toast from "react-hot-toast";
 
 // Custom hook to handle player leaves
 const usePlayerLeave = (code, setPlayerList, roomDeletedRef) => {
@@ -47,6 +48,7 @@ const usePlayerLeave = (code, setPlayerList, roomDeletedRef) => {
   useEffect(() => {
     socket.once("room-deleted", () => {
       roomDeletedRef.current = true;
+      toast.error("Room has been deleted");
       navigate("/browse", { replace: true });
     });
 
@@ -59,6 +61,7 @@ const usePlayerLeave = (code, setPlayerList, roomDeletedRef) => {
   useEffect(() => {
     socket.once("game-error", ({ message }) => {
       console.error("Game error:", message);
+      toast.error(message);
       navigate("/browse", { replace: true });
     });
 

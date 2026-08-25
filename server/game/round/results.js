@@ -90,28 +90,27 @@ export const gameOver = async (io, code, roundData, winner) => {
       (Date.now() - rooms[code].gameStartedAt) / 1000,
     );
     trackMatch(winner, rooms[code].roomId, true, survivalTime);
+    // Send game over data
+    const gameOverEndsAt = Date.now() + 1000 * GAME_OVER_TIMER;
+    io.to(code).emit("game-over", {
+      results: roundData.roundResults,
+      gameOverEndsAt,
+      eliminatedPlayers:
+        roundData.eliminatedPlayers?.map((p) => p.username) || [],
+      winner: winner?.username,
+    });
+
+    // Sleep for game over timer duration
+    await sleep(GAME_OVER_TIMER * 1000);
+
+    // Check if room still exists before deleting
+    if (!rooms[code]) {
+      return;
+    }
+
+    // Emit that room is deleted
+    io.to(code).emit("room-deleted", { message: "Game over" });
   }
-
-  // Send game over data
-  const gameOverEndsAt = Date.now() + 1000 * GAME_OVER_TIMER;
-  io.to(code).emit("game-over", {
-    results: roundData.roundResults,
-    gameOverEndsAt,
-    eliminatedPlayers:
-      roundData.eliminatedPlayers?.map((p) => p.username) || [],
-    winner: winner?.username,
-  });
-
-  // Sleep for game over timer duration
-  await sleep(GAME_OVER_TIMER * 1000);
-
-  // Check if room still exists before deleting
-  if (!rooms[code]) {
-    return;
-  }
-
-  // Emit that room is deleted
-  io.to(code).emit("room-deleted", { message: "Game over" });
 
   // Delete room
   console.log(`Game over in room ${code}, deleting room`);

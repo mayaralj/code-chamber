@@ -125,6 +125,13 @@ const startRound = async (io, socket, code) => {
   // Process round eliminations
   processRoundElims(io, code, roundData, roundEvents);
 
+  // Check if 0 players are left (typically means disconnected)
+  if (rooms[code].players.length === 0) {
+    console.log(`Room ${code} has no players left, ending game`);
+    await gameOver(io, code, roundData, null);
+    return;
+  }
+
   // Check if game is over (only one player left)
   if (rooms[code].players.length == 1) {
     console.log(
