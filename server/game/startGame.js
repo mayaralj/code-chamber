@@ -85,6 +85,9 @@ const handleStartGame = async (io, socket, code) => {
   // Emit that game is starting
   io.to(code).emit("game-starting");
 
+  // Update last activity timestamp
+  room.lastActivity = Date.now();
+
   startGame(io, socket, code);
 };
 

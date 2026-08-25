@@ -114,6 +114,9 @@ const joinRoom = (io, socket, code) => {
   socket.join(code);
   playersInRooms[socket.data.id] = code;
 
+  // Update last activity timestamp
+  room.lastActivity = Date.now();
+
   // Emit back to the player that joined
   socket.emit("room-joined", {
     roomInfo: buildRoomInfo(room),

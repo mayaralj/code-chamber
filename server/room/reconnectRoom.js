@@ -76,6 +76,9 @@ const reconnectRoom = (socket, code, existingPlayer) => {
   socket.join(code);
   playersInRooms[socket.data.id] = code;
 
+  // Update last activity timestamp
+  room.lastActivity = Date.now();
+
   return;
 };
 

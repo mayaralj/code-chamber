@@ -156,6 +156,7 @@ const createRoom = async (io, socket, roomData, callback) => {
     difficulty,
     isGameStarted: false,
     isGameStarting: false,
+    lastActivity: Date.now(),
   };
 
   // Put the creator in the room
