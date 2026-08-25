@@ -35,7 +35,7 @@ const serverStartup = async () => {
     startBatchTimer(io);
 
     // Start the rooms cleanup interval to remove inactive rooms
-    startRoomsCleanup();
+    startRoomsCleanup(io);
 
     // Socket initialization
     initSocket(io);

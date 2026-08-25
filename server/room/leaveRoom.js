@@ -44,6 +44,9 @@ const leaveRoom = (io, socket, code) => {
   socket.leave(code);
   delete playersInRooms[socket.data.id];
 
+  // Update last activity timestamp
+  room.lastActivity = Date.now();
+
   if (!room.host || room.host.userId === socket.data.id) {
     // Kick everyone when host leaves and delete room
     io.to(code).emit("host-left", { message: "Host left the room" });
