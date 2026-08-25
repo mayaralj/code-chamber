@@ -16,6 +16,7 @@ import db from "../db.js";
 
 // Config
 const validDifficulties = ["easy", "medium", "hard"];
+export const CODE_LENGTH = 6;
 
 // Helper to cancel room creation
 export const cancelRoomCreation = (io, socket, roomId) => {
@@ -26,6 +27,20 @@ export const cancelRoomCreation = (io, socket, roomId) => {
   }
   console.log(`Room creation canceled for roomId ${roomId}, code ${code}`);
   leaveRoom(io, socket, code);
+};
+
+const generateRandomUniqueCode = () => {
+  let code;
+  while (code === undefined || rooms[code]) {
+    const chars =
+      "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789";
+    let result = "";
+    for (let i = 0; i < CODE_LENGTH; i++) {
+      result += chars[Math.floor(Math.random() * chars.length)];
+    }
+    code = result;
+  }
+  return code;
 };
 
 // Helper to create a room
@@ -126,11 +141,7 @@ const createRoom = async (io, socket, roomData, callback) => {
   currentRoomNames.add(roomName);
 
   // Create a random code
-  let code = Math.random().toString(36).substring(2, 6).toUpperCase();
-  // Ensure code is unique
-  while (rooms[code]) {
-    code = Math.random().toString(36).substring(2, 6).toUpperCase();
-  }
+  const code = generateRandomUniqueCode();
 
   // Verify difficulty is valid
   if (!validDifficulties.includes(difficulty.toLowerCase())) {

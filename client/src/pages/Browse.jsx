@@ -4,7 +4,7 @@ import { useState, useEffect } from "react";
 import { socket } from "../socket";
 
 // Config
-const CODE_LENGTH = 4;
+const CODE_LENGTH = 6;
 
 // Browse component
 const Browse = () => {
@@ -92,7 +92,7 @@ const Browse = () => {
     socket.off("room-join-error");
 
     // Emit join room to server
-    socket.emit("join-room", { code: code.toUpperCase() }); // Temp username
+    socket.emit("join-room", { code });
 
     // Listen for room joined event
     socket.once("room-joined", ({ roomInfo }) => {

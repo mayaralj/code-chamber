@@ -6,6 +6,7 @@ import { buildPlayerList } from "../utils/playerList.js";
 import { broadcastUpdateRoom } from "../broadcast/broadcastRooms.js";
 import reconnectRoom from "./reconnectRoom.js";
 import leaveGame from "../game/leaveGame.js";
+import { CODE_LENGTH } from "./createRoom.js";
 
 // Join room method
 const joinRoom = (io, socket, code) => {
@@ -19,9 +20,9 @@ const joinRoom = (io, socket, code) => {
   }
 
   // Check code length
-  if (code.length < 4) {
+  if (code.length < CODE_LENGTH) {
     socket.emit("room-join-error", {
-      message: "Room code must be 4 characters long",
+      message: `Room code must be ${CODE_LENGTH} characters long`,
     });
     return;
   }
