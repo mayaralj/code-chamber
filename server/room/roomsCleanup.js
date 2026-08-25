@@ -9,9 +9,10 @@ import {
 import { broadcastRemoveRoom } from "../broadcast/broadcastRooms.js";
 
 // Config
-const CLEANUP_INTERVAL = 3 * 1000;
+const CLEANUP_INTERVAL = 30 * 1000;
 let cleanupTimer = null;
-const INACTIVITY_THRESHOLD = 3 * 1000; // 3 minutes
+const INACTIVITY_THRESHOLD = 180 * 1000; // 3 minutes
+const STALE_MATCH_THRESHOLD = "1 hour";
 
 // Helper to delete inactive rooms and notify players
 const deleteInactiveRooms = (io) => {
@@ -62,9 +63,39 @@ const deleteInactiveRooms = (io) => {
   }
 };
 
+// Helper to delete rooms from db whose matches were started but never resolved
+const deleteStaleUnfinishedMatches = async () => {
+  try {
+    // Query but filter by past hour to avoid deleting recent matches that are still in progress
+    const { rows } = await db.query(
+      `DELETE FROM rooms
+       WHERE room_id IN (
+         SELECT DISTINCT room_id
+         FROM matches
+         WHERE won IS NULL
+           AND played_at < NOW() - INTERVAL '${STALE_MATCH_THRESHOLD}'
+       )
+       RETURNING room_id`,
+    );
+
+    // Log the deleted rooms
+    if (rows.length > 0) {
+      console.log(
+        `Removed ${rows.length} stale unfinished match room(s): ${rows
+          .map((r) => r.room_id)
+          .join(", ")}`,
+      );
+    }
+  } catch (err) {
+    // Log the error but don't throw, as we want the cleanup to continue
+    console.error("Error cleaning up stale unfinished matches:", err.message);
+  }
+};
+
 // Helper to cleanup rooms that have been inactive for a certain amount of time
-const roomsCleanup = (io) => {
+const roomsCleanup = async (io) => {
   deleteInactiveRooms(io);
+  await deleteStaleUnfinishedMatches();
 };
 
 // Helper to start the leaderboard compute interval (index starts this on server start)
