@@ -2,6 +2,7 @@ import { stopPool } from "./executor/containerPool.js";
 import { rooms } from "./globals.js";
 import { stopLeaderboardCompute } from "./leaderboard/precomputeLeaderboard.js";
 import { stopLiveStatsCompute } from "./liveStats/precomputeLiveStats.js";
+import { stopRoomsCleanup } from "./room/roomsCleanup.js";
 import db from "./db.js";
 
 // Helper to clean up in-progress matches from the db via rooms table on shutdown ( will cascade through to submissions and matches )
@@ -52,15 +53,23 @@ const serverShutdown = async (signal) => {
     console.error("Error during live stats shutdown:", error);
   }
 
+  // Stop rooms cleanup precomputation
+  try {
+    await stopRoomsCleanup();
+  } catch (error) {
+    console.error("Error during rooms cleanup shutdown:", error);
+  }
+
   // Stop the container pool
   try {
     await stopPool();
   } catch (error) {
     console.error("Error during pool shutdown:", error);
-  } finally {
-    console.log("SERVER HAS BEEN SHUTDOWN");
-    process.exit(0);
   }
+
+  // Exit the process
+  console.log("SERVER HAS BEEN SHUTDOWN");
+  process.exit(0);
 };
 
 // Register shutdown signals

@@ -7,6 +7,7 @@ import initSocket from "./socket/socket.js";
 import { startBatchTimer } from "./broadcast/broadcastRooms.js";
 import { startLeaderboardCompute } from "./leaderboard/precomputeLeaderboard.js";
 import { startLiveStatsCompute } from "./liveStats/precomputeLiveStats.js";
+import { startRoomsCleanup } from "./room/roomsCleanup.js";
 
 // Port
 const PORT = process.env.PORT || 5000;
@@ -14,6 +15,9 @@ const PORT = process.env.PORT || 5000;
 // Server startup function
 const serverStartup = async () => {
   try {
+    // Log server startup
+    console.log("---- STARTING SERVER ----");
+
     // Start the container pool
     await startPool();
 
@@ -30,19 +34,22 @@ const serverStartup = async () => {
     // Start batch broadcast updates for browse page to list all rooms
     startBatchTimer(io);
 
+    // Start the rooms cleanup interval to remove inactive rooms
+    startRoomsCleanup();
+
     // Socket initialization
     initSocket(io);
 
     // Start the server
     server.listen(PORT, () => {
-      console.log(`SERVER STARTED ON PORT ${PORT}`);
+      console.log(`---- SERVER STARTED ON PORT ${PORT} ----`);
     });
 
     // Register shutdown signals
     registerShutdownSignals();
   } catch (err) {
     // Exit server on error
-    console.error("SERVER STARTUP FAILED:", err);
+    console.error("---- SERVER STARTUP FAILED ----", err);
     process.exit(1);
   }
 };
