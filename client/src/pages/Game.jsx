@@ -95,7 +95,7 @@ const Game = () => {
   const roomDeletedRef = useRef(false);
 
   // Hooks with no state
-  usePlayerLeave(socket, code, setPlayerList, roomDeletedRef);
+  usePlayerLeave(code, setPlayerList, roomDeletedRef);
   useReconnection(code, setPlayerList, {
     setCurrentRound,
     setBeforeRoundEvents,

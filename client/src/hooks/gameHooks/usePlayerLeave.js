@@ -14,6 +14,8 @@ const usePlayerLeave = (code, setPlayerList, roomDeletedRef) => {
   useEffect(() => {
     socket.on("player-left", ({ players }) => {
       // Update players list
+      toast("A player has left the game");
+      console.log("Player left, updating player list:", players);
       setPlayerList(players);
     });
 
