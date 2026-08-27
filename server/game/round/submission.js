@@ -291,7 +291,10 @@ const getUnsubmittedPlayers = (room, code, curRound) => {
   // List all unsubmitted players (not submitted and not judging)
   const unsubmittedPlayers = rooms[code].players.filter((p) => {
     const playerRoundData = p?.gameData?.roundData?.[curRound];
-    return !playerRoundData?.submitted && !playerRoundData?.judging;
+    return (
+      playerRoundData?.codeStatus !== "submitted" &&
+      playerRoundData?.codeStatus !== "judging"
+    );
   });
   return unsubmittedPlayers;
 };
