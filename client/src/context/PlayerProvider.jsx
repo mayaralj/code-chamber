@@ -8,11 +8,20 @@ const SERVER_SHUTDOWN_TIMEOUT = 100000;
 
 // Player provider
 const PlayerProvider = ({ children }) => {
+  // States
   const [player, setPlayer] = useState(null);
   const [connectionStatus, setConnectionStatus] = useState("connecting");
+
+  // Refs
+  const connectionStatusRef = useRef(connectionStatus);
   const hasConnectedOnceRef = useRef(false);
   const serverDownTimerRef = useRef(null);
   const toastIdRef = useRef(null);
+
+  // Update connectionStatusRef whenever connectionStatus changes
+  useEffect(() => {
+    connectionStatusRef.current = connectionStatus;
+  }, [connectionStatus]);
 
   useEffect(() => {
     const clearServerDownTimer = () => {
@@ -43,6 +52,12 @@ const PlayerProvider = ({ children }) => {
     const setIdentity = (identity) => {
       clearServerDownTimer();
       toast.dismiss(toastIdRef.current);
+
+      // If was lost-connection, notify server to cleanup player
+      if (connectionStatusRef.current === "lost-connection") {
+        socket.emit("cleanup-player");
+      }
+
       setPlayer(identity);
       setConnectionStatus("connected");
       // If guest, store guest id in localStorage
