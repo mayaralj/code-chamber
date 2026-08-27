@@ -1,8 +1,7 @@
 import { useState } from "react";
 
 const GameNavbar = ({
-  isSubmitted,
-  isJudging,
+  codeStatus,
   onSubmit,
   playerList,
   roundTimeLeft,
@@ -26,20 +25,25 @@ const GameNavbar = ({
       {/* Submit Button Green submitted, yellow judging, red not submitted */}
       <button
         className={`rounded-md border px-6 py-1.5 text-sm font-semibold transition-colors ${
-          isSubmitted
+          codeStatus === "submitted"
             ? "cursor-not-allowed border-emerald-500/30 bg-emerald-500/10 text-emerald-400"
-            : isJudging
+            : codeStatus === "judging"
               ? "cursor-not-allowed border-[#ffd687]/30 bg-[#2d2d2d] text-[#ffd687]"
               : "cursor-pointer border-zinc-700 bg-zinc-800 text-zinc-200 hover:border-rose-500/40 hover:bg-rose-500/10 hover:text-rose-300"
         }`}
         onClick={onSubmit}
-        disabled={isSubmitted || isJudging || isReconnecting}
+        disabled={
+          codeStatus === "submitted" ||
+          codeStatus === "judging" ||
+          codeStatus === "processing" ||
+          isReconnecting
+        }
       >
         {isReconnecting
           ? "Reconnecting..."
-          : isSubmitted
+          : codeStatus === "submitted"
             ? "Submitted"
-            : isJudging
+            : codeStatus === "judging"
               ? "Judging..."
               : "Submit"}
       </button>

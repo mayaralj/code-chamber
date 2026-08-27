@@ -7,29 +7,21 @@ const useCodeSubmission = (code) => {
   // Code input (ref because its faster to update + no need the actual state for any ui)
   const codeInputRef = useRef("");
 
-  // Code submitted status
-  const [isSubmitted, setIsSubmitted] = useState(false);
-  const isSubmittedRef = useRef(false);
+  // Code status
+  const [codeStatus, setCodeStatus] = useState("not-submitted");
+  const codeStatusRef = useRef("not-submitted");
 
   // Test cases results
   const [testCasesResults, setTestCasesResults] = useState([]);
-
-  // Judging status
-  const [isJudging, setIsJudging] = useState(false);
-  const isJudgingRef = useRef(false);
 
   // Language
   const [language, setLanguage] = useState("javascript");
   const languageRef = useRef("javascript");
 
-  // On judging/submitted update the refs (used incase it was called from outside the hook)
+  // On code status update the ref
   useEffect(() => {
-    isSubmittedRef.current = isSubmitted;
-  }, [isSubmitted]);
-
-  useEffect(() => {
-    isJudgingRef.current = isJudging;
-  }, [isJudging]);
+    codeStatusRef.current = codeStatus;
+  }, [codeStatus]);
 
   // Handle code change updates to ref
   const handleCodeChange = useCallback((value) => {
@@ -39,7 +31,12 @@ const useCodeSubmission = (code) => {
 
   // Handle language change updates to both state and ref
   const handleLanguageChange = (e) => {
-    if (isJudgingRef.current || isSubmittedRef.current) return;
+    if (
+      codeStatusRef.current === "submitted" ||
+      codeStatusRef.current === "judging" ||
+      codeStatusRef.current === "processing"
+    )
+      return;
 
     const nextLanguage = e.target.value;
     languageRef.current = nextLanguage;
@@ -49,13 +46,16 @@ const useCodeSubmission = (code) => {
   // Handle code submission
   const handleSubmit = () => {
     // If judging or submitted dont allow to emit again
-    if (isSubmittedRef.current || isJudgingRef.current) return;
-    // Set is judging right away so ui feels responsive
-    isJudgingRef.current = true;
-    setIsJudging(true);
+    if (
+      codeStatusRef.current === "submitted" ||
+      codeStatusRef.current === "judging" ||
+      codeStatusRef.current === "processing"
+    )
+      return;
 
-    // This ref is only to prevent multiple emits, the actual state is set when the server responds with code-submitted
-    isSubmittedRef.current = true;
+    // Set processing right away
+    codeStatusRef.current = "processing";
+    setCodeStatus("processing");
 
     // Track time submitted now instead on server for more accuracy
     const timeSubmitted = Date.now();
@@ -79,11 +79,8 @@ const useCodeSubmission = (code) => {
     const handleNewRound = () => {
       codeInputRef.current = "";
 
-      isSubmittedRef.current = false;
-      setIsSubmitted(false);
-
-      isJudgingRef.current = false;
-      setIsJudging(false);
+      setCodeStatus("not-submitted");
+      codeStatusRef.current = "not-submitted";
     };
 
     // Listen for new round event
@@ -99,12 +96,7 @@ const useCodeSubmission = (code) => {
   useEffect(() => {
     socket.on("code-submitted", (testCasesResults) => {
       // Set is submitted to true
-      setIsSubmitted(true);
-      isSubmittedRef.current = true;
-
-      // Set is judging to false
-      setIsJudging(false);
-      isJudgingRef.current = false;
+      setCodeStatus("submitted");
 
       // Set test cases results
       setTestCasesResults(testCasesResults);
@@ -112,8 +104,7 @@ const useCodeSubmission = (code) => {
 
     socket.on("code-judging", () => {
       // Set is judging to true
-      setIsJudging(true);
-      isJudgingRef.current = true;
+      setCodeStatus("judging");
     });
 
     socket.on("request-code", (data, callback) => {
@@ -127,10 +118,8 @@ const useCodeSubmission = (code) => {
     socket.once("submit-code-error", ({ message }) => {
       console.error("Error submitting code:", message);
       // Reset is submitted and is judging to false
-      setIsSubmitted(false);
-      isSubmittedRef.current = false;
-      setIsJudging(false);
-      isJudgingRef.current = false;
+      setCodeStatus("not-submitted");
+      codeStatusRef.current = "not-submitted";
     });
 
     return () => {
@@ -142,10 +131,8 @@ const useCodeSubmission = (code) => {
 
   return {
     handleCodeChange,
-    isSubmitted,
-    setIsSubmitted,
-    isJudging,
-    setIsJudging,
+    codeStatus,
+    setCodeStatus,
     language,
     handleSubmit,
     handleLanguageChange,
