@@ -92,7 +92,7 @@ const GameNavbar = ({
                         ? "Submitted"
                         : player.judging
                           ? "Judging"
-                          : "Waiting"}
+                          : "Not Submitted"}
                     </span>
                   </div>
                 ))}
