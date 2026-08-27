@@ -1,15 +1,8 @@
 // Imports
-import {
-  rooms,
-  roomIdToCode,
-  playersInRooms,
-  currentRoomNames,
-} from "../globals.js";
-import {
-  broadcastRemoveRoom,
-  broadcastUpdateRoom,
-} from "../broadcast/broadcastRooms.js";
+import { rooms, playersInRooms } from "../globals.js";
+import { broadcastUpdateRoom } from "../broadcast/broadcastRooms.js";
 import { buildPlayerList } from "../utils/playerList.js";
+import deleteRoom from "./deleteRoom.js";
 
 // Room leave helper
 const leaveRoom = (io, socket, code) => {
@@ -49,26 +42,12 @@ const leaveRoom = (io, socket, code) => {
 
   if (!room.host || room.host.userId === socket.data.id) {
     // Kick everyone when host leaves and delete room
-    io.to(code).emit("host-left", { message: "Host left the room" });
-    // Notify public rooms that room deleted
-    broadcastRemoveRoom(io, code);
-    delete roomIdToCode[room.roomId];
-    currentRoomNames.delete(rooms[code].roomName);
-    delete rooms[code];
-    console.log(`Room ${code} deleted as host left`);
-
-    // Remove all players from playersInRooms mapping
-    room.players.forEach((player) => {
-      delete playersInRooms[player.userId];
-    });
+    deleteRoom(io, rooms, code, "Host left the room");
+    console.log(`Host left room ${code}, deleting room`);
   } else {
     // Delete room if empty
     if (room.players.length === 0) {
-      // Notify public rooms that room deleted
-      broadcastRemoveRoom(io, code);
-      delete roomIdToCode[room.roomId];
-      currentRoomNames.delete(rooms[code].roomName);
-      delete rooms[code];
+      deleteRoom(io, rooms, code, "Room became empty");
       console.log(`Room ${code} deleted as it became empty`);
     } else {
       // Notify players in the room that someone left

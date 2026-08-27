@@ -1,13 +1,8 @@
 // Imports
-import {
-  rooms,
-  roomIdToCode,
-  playersInRooms,
-  currentRoomNames,
-} from "../globals.js";
-import { broadcastRemoveRoom } from "../broadcast/broadcastRooms.js";
+import { rooms, playersInRooms } from "../globals.js";
 import { buildPlayerList } from "../utils/playerList.js";
 import { trackMatch } from "../game/round/roundUtils.js";
+import deleteRoom from "../room/deleteRoom.js";
 
 // Game leave
 const leaveGame = (io, socket, code) => {
@@ -57,10 +52,7 @@ const leaveGame = (io, socket, code) => {
 
   // Check if no players remaining
   if (room.players.length === 0) {
-    broadcastRemoveRoom(io, code);
-    delete roomIdToCode[room.roomId];
-    currentRoomNames.delete(room.roomName);
-    delete rooms[code];
+    deleteRoom(io, rooms, code, "Last player left the game");
     console.log(`Room ${code} deleted as last player left`);
     return;
   }
