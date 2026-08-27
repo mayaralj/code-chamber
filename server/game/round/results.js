@@ -2,7 +2,7 @@
 import { sleep } from "../../utils/timers.js";
 import { buildPlayerList } from "../../utils/playerList.js";
 import deleteRoom from "../../room/deleteRoom.js";
-import { rooms, playersInRooms } from "../../globals.js";
+import { rooms } from "../../globals.js";
 import { trackMatch } from "./roundUtils.js";
 
 // CONFIG
@@ -107,12 +107,9 @@ export const gameOver = async (io, code, roundData, winner) => {
     if (!rooms[code]) {
       return;
     }
-
-    // Emit that room is deleted
-    io.to(code).emit("room-deleted", { message: "Game over" });
   }
 
   // Delete room
   console.log(`Game over in room ${code}, deleting room`);
-  deleteRoom(io, rooms, code);
+  deleteRoom(io, rooms, code, "Game over");
 };

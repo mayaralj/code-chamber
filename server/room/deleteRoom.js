@@ -2,11 +2,11 @@ import { roomIdToCode, playersInRooms, currentRoomNames } from "../globals.js";
 import { broadcastRemoveRoom } from "../broadcast/broadcastRooms.js";
 
 // Helper to delete room
-const deleteRoom = (io, rooms, code) => {
+const deleteRoom = (io, rooms, code, message) => {
   if (!rooms[code]) {
     return;
   }
-  io.to(code).emit("room-deleted", { message: "Room deleted" });
+  io.to(code).emit("room-deleted", { message: message || "Room deleted" });
   io.in(code).socketsLeave(code);
   rooms[code].players.forEach((player) => {
     delete playersInRooms[player.userId];
