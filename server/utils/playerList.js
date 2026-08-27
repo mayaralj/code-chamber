@@ -12,8 +12,8 @@ export const buildPlayerList = (room) => {
     displayName: p.displayName,
     isReconnecting: p.isReconnecting,
     ...(gameStarted && {
-      judging: p?.gameData?.roundData?.[currentRound]?.judging,
-      submitted: p?.gameData?.roundData?.[currentRound]?.submitted,
+      codeStatus:
+        p?.gameData?.roundData?.[currentRound]?.codeStatus || "not-submitted",
     }),
   }));
 

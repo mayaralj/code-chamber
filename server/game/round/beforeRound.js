@@ -14,8 +14,7 @@ const beforeRound = (room, COUNTDOWN_TIMER) => {
       playerGameData.roundData = {};
     }
     playerGameData.roundData[curRound] = {
-      submitted: false,
-      judging: false,
+      codeStatus: "not-submitted",
       codeInput: "",
     };
   });
@@ -25,6 +24,8 @@ const beforeRound = (room, COUNTDOWN_TIMER) => {
 
   // Update timestamp for last activity
   room.lastActivity = Date.now();
+
+  console.log(roundData.roundEvents);
 
   return [curRound, roundData, roundData.roundEvents];
 };

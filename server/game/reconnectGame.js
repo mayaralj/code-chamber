@@ -112,8 +112,7 @@ const reconnectGame = async (io, socket, code) => {
   // Emit to the player the current game state
   const reconnectData = {
     ...room.reconnectData,
-    submitted: playerRoundData.submitted,
-    judging: playerRoundData.judging,
+    codeStatus: playerRoundData.codeStatus,
   };
   socket.emit("reconnect-game-success", reconnectData);
 

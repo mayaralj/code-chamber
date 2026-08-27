@@ -64,7 +64,7 @@ const leaveGame = (io, socket, code) => {
   if (
     room.players.every((p) => {
       const playerRoundData = p?.gameData?.roundData?.[room.currentRound];
-      return playerRoundData?.submitted;
+      return playerRoundData?.codeStatus === "submitted";
     }) ||
     room.players.length === 1
   ) {

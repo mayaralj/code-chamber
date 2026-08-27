@@ -151,8 +151,8 @@ export const processSubmission = async (
   const playerRoundData = player?.gameData?.roundData?.[room.currentRound];
   if (
     !playerRoundData ||
-    playerRoundData.submitted ||
-    playerRoundData.judging
+    playerRoundData.codeStatus === "submitted" ||
+    playerRoundData.codeStatus === "judging"
   ) {
     return;
   }
@@ -174,7 +174,7 @@ export const processSubmission = async (
   }
   console.log(`Round difficulty: ${roundData.question.difficulty}`);
   // Mark player as judging
-  playerRoundData.judging = true;
+  playerRoundData.codeStatus = "judging";
   notifyJudging(io, player.socketId, room, code);
 
   // Get test cases and function name for this question
@@ -215,8 +215,7 @@ export const processSubmission = async (
   }
 
   // Update player status
-  playerRoundData.judging = false;
-  playerRoundData.submitted = true;
+  playerRoundData.codeStatus = "submitted";
   notifySubmission(io, player.socketId, room, code, result);
 
   // Store results in current round results
@@ -354,8 +353,8 @@ export const handleSubmitCode = async (io, socket, submitData) => {
   const playerRoundData = player?.gameData?.roundData?.[room.currentRound];
   if (
     !playerRoundData ||
-    playerRoundData?.submitted ||
-    playerRoundData?.judging
+    playerRoundData?.codeStatus === "submitted" ||
+    playerRoundData?.codeStatus === "judging"
   ) {
     return;
   }
@@ -419,7 +418,8 @@ export const handleSubmitCode = async (io, socket, submitData) => {
   // If all players have submitted, stop game timer to send all results
   if (
     room.players.every(
-      (p) => p?.gameData?.roundData?.[room.currentRound]?.submitted,
+      (p) =>
+        p?.gameData?.roundData?.[room.currentRound]?.codeStatus === "submitted",
     )
   ) {
     if (roundData.cancelRoundTimer) {
