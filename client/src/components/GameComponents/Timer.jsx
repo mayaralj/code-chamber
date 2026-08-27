@@ -13,10 +13,10 @@ const Timer = ({ timeLeft, currentRound, beforeRoundEvents }) => {
         backgroundSize: "20px 20px",
       }}
     >
-      <h2 className="text-xs font-bold uppercase tracking-[0.2em] text-[#d8c09d]">
+      <h2 className="text-xs font-bold uppercase tracking-[0.2em] text-[#ffdd9d]">
         Round {currentRound}
       </h2>
-      <h1 className="text-7xl font-black tracking-tight text-[#ffdd9d]">
+      <h1 className="text-7xl font-black tracking-tight text-[#f7e7c8]">
         {timeLeft}
       </h1>
       {beforeRoundEvents && (
@@ -28,7 +28,7 @@ const Timer = ({ timeLeft, currentRound, beforeRoundEvents }) => {
             {Object.keys(beforeRoundEvents).map((eventName) => (
               <li
                 key={eventName}
-                className="border-l-2 border-[#ffdd9d] pl-3 text-sm text-[#e7c49d]"
+                className="border-l-2 border-[#ffdd9d] pl-3 text-sm text-[#ffdd9d]"
               >
                 {cleanEventMap[eventName]}
               </li>
