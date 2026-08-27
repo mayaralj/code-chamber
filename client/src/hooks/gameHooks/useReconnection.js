@@ -15,8 +15,7 @@ const useReconnection = (code, setPlayerList, setters) => {
     setBeforeRoundEvents,
     setQuestion,
     setStarterCode,
-    setIsSubmitted,
-    setIsJudging,
+    setCodeStatus,
     setTimerEndsAt,
     setTimerFinished,
     setRoundEndsAt,
@@ -42,10 +41,7 @@ const useReconnection = (code, setPlayerList, setters) => {
       setBeforeRoundEvents(reconnectData.beforeRoundEvents);
       setQuestion(reconnectData.question);
       setStarterCode(reconnectData.question.starterCode);
-
-      // Update player states
-      setIsSubmitted(reconnectData.submitted);
-      setIsJudging(reconnectData.judging);
+      setCodeStatus(reconnectData.codeStatus);
 
       // Handle phase specific updates
       switch (phase) {
@@ -83,12 +79,9 @@ const useReconnection = (code, setPlayerList, setters) => {
 
     // On waiting-for-reconnect, show toast notification
     socket.on("waiting-for-reconnect", () => {
-      toastIdRef.current = toast.error(
-        "Waiting for players to reconnect before proceeding...",
-        {
-          duration: 1000000,
-        },
-      );
+      toastIdRef.current = toast.error("Waiting for players to reconnect...", {
+        duration: 1000000,
+      });
     });
 
     // Players reconnected
