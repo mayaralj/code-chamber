@@ -106,19 +106,11 @@ const RoomWait = () => {
       },
     );
 
-    // Listen for host left
-    socket.on("host-left", ({ message }) => {
-      console.log("Host left, redirecting to home");
-      toast.error(message);
-      navigate("/browse", { replace: true });
-    });
-
     // Cleanup listeners on unmount
     return () => {
       socket.off("player-joined");
       socket.off("player-left");
       socket.off("game-started");
-      socket.off("host-left");
       socket.off("game-starting");
       socket.off("start-game-error");
       socket.off("game-start-cancelled");
