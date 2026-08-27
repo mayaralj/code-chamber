@@ -1,29 +1,35 @@
 // Imports
-import { useEffect } from "react";
+import { useEffect, useRef } from "react";
 import { useNavigate } from "react-router";
 import { socket } from "../../socket";
 import toast from "react-hot-toast";
 
 // Custom hook to handle player leaves
-const usePlayerLeave = (code, setPlayerList, roomDeletedRef) => {
-  // Navigate
+const usePlayerLeave = (code, setPlayerList, roomDeletedRef, timerFinished) => {
   const navigate = useNavigate();
-  console.log("usePlayerLeave initialized with code:", code);
+  const toastIdRef = useRef(null);
 
   // Player left
   useEffect(() => {
+    // Helper to show the player-left toast with correct positioning
+    const showPlayerLeftToast = () => {
+      if (toastIdRef.current) {
+        toast.dismiss(toastIdRef.current);
+      }
+      toastIdRef.current = toast("A player has left the game", {
+        style: timerFinished ? {} : { marginTop: "-40px" },
+      });
+    };
+
     socket.on("player-left", ({ players }) => {
-      // Update players list
-      toast("A player has left the game");
-      console.log("Player left, updating player list:", players);
+      showPlayerLeftToast();
       setPlayerList(players);
     });
 
-    // Cleanup
     return () => {
       socket.off("player-left");
     };
-  }, []);
+  }, [setPlayerList, timerFinished]);
 
   // Handle leaving game on page unload
   useEffect(() => {
@@ -44,18 +50,19 @@ const usePlayerLeave = (code, setPlayerList, roomDeletedRef) => {
     return () => {
       socket.off("player-eliminated");
     };
-  }, []);
+  }, [navigate]);
 
   // Room Deletion
   useEffect(() => {
     socket.once("room-deleted", ({ message }) => {
       roomDeletedRef.current = true;
+      if (toastIdRef.current) {
+        toast.dismiss(toastIdRef.current);
+      }
       if (message === "Game over") {
-        toast("Game Over", {
-          icon: "🏆",
-        });
+        toast("Game Over", { icon: "🏆" });
       } else {
-        toast.error(message);
+        toastIdRef.current = toast.error(message);
       }
       navigate("/browse", { replace: true });
     });
@@ -63,20 +70,23 @@ const usePlayerLeave = (code, setPlayerList, roomDeletedRef) => {
     return () => {
       socket.off("room-deleted");
     };
-  }, []);
+  }, [navigate, roomDeletedRef]);
 
   // Game error
   useEffect(() => {
     socket.once("game-error", ({ message }) => {
       console.error("Game error:", message);
-      toast.error(message);
+      if (toastIdRef.current) {
+        toast.dismiss(toastIdRef.current);
+      }
+      toastIdRef.current = toast.error(message);
       navigate("/browse", { replace: true });
     });
 
     return () => {
       socket.off("game-error");
     };
-  }, []);
+  }, [navigate]);
 };
 
 export default usePlayerLeave;
