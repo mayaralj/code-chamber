@@ -29,7 +29,7 @@ const GameNavbar = ({
           isSubmitted
             ? "cursor-not-allowed border-emerald-500/30 bg-emerald-500/10 text-emerald-400"
             : isJudging
-              ? "cursor-not-allowed border-amber-500/30 bg-amber-500/10 text-amber-400"
+              ? "cursor-not-allowed border-[#ffd687]/30 bg-[#2d2d2d] text-[#ffd687]"
               : "cursor-pointer border-zinc-700 bg-zinc-800 text-zinc-200 hover:border-rose-500/40 hover:bg-rose-500/10 hover:text-rose-300"
         }`}
         onClick={onSubmit}
@@ -84,7 +84,7 @@ const GameNavbar = ({
                         player.submitted
                           ? "text-emerald-400"
                           : player.judging
-                            ? "text-amber-400"
+                            ? "text-[#ffd687]"
                             : "text-rose-400"
                       }`}
                     >
