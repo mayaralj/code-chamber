@@ -48,9 +48,15 @@ const usePlayerLeave = (code, setPlayerList, roomDeletedRef) => {
 
   // Room Deletion
   useEffect(() => {
-    socket.once("room-deleted", () => {
+    socket.once("room-deleted", ({ message }) => {
       roomDeletedRef.current = true;
-      toast.error("Room has been deleted");
+      if (message === "Game over") {
+        toast("Game Over", {
+          icon: "🏆",
+        });
+      } else {
+        toast.error(message);
+      }
       navigate("/browse", { replace: true });
     });
 
