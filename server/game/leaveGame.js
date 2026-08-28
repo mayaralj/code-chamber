@@ -35,7 +35,11 @@ const leaveGame = (io, socket, code) => {
   }
 
   // Track match in db and flag them as lost
-  trackMatch(player, room, false);
+  // Calculate survival time
+  const survivalTime = Math.round(
+    (Date.now() - (rooms[code]?.gameStartedAt || Date.now())) / 1000,
+  );
+  trackMatch(player, room, false, survivalTime);
 
   // Flag player as eliminated and remove from room
   if (!room.roundData[room.currentRound || 1].eliminatedPlayers) {
