@@ -6,7 +6,7 @@ const Question = ({ question }) => {
           Problem
         </span>
       </div>
-      <div className="flex-1 overflow-y-auto px-5 py-4">
+      <div className="modal-scroll flex-1 overflow-y-auto px-5 py-4">
         <h2 className="mb-3 text-2xl font-bold text-zinc-100">
           {question?.title}
         </h2>
