@@ -1,11 +1,19 @@
 const Question = ({ question }) => {
   return (
-    // Split the screen into 2 half, the first half is here
-    <div className="flex-1 bg-gray-800 rounded-lg p-4 text-white overflow-y-auto">
-      {/* Display Question Title Centered */}
-      <h2 className="text-4xl font-bold mb-4 text-center">{question?.title}</h2>
-      {/* Display Question Description */}
-      <p className="text-xl whitespace-pre-wrap">{question?.description}</p>
+    <div className="flex h-full flex-col overflow-hidden bg-[#1e1e1e]">
+      <div className="flex items-center gap-2 border-b border-zinc-800 px-5 py-3">
+        <span className="text-sm font-semibold uppercase tracking-wider text-zinc-400">
+          Problem
+        </span>
+      </div>
+      <div className="flex-1 overflow-y-auto px-5 py-4">
+        <h2 className="mb-3 text-2xl font-bold text-zinc-100">
+          {question?.title}
+        </h2>
+        <p className="whitespace-pre-wrap text-base leading-7 text-zinc-300">
+          {question?.description}
+        </p>
+      </div>
     </div>
   );
 };
