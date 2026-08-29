@@ -1,8 +1,8 @@
 const Question = ({ question }) => {
   return (
     <div className="flex h-full flex-col overflow-hidden bg-[#1e1e1e]">
-      <div className="flex items-center gap-2 border-b border-zinc-800 px-5 py-3">
-        <span className="text-sm font-semibold uppercase tracking-wider text-zinc-400">
+      <div className="flex items-center gap-2 border-b border-zinc-800 px-5 py-4">
+        <span className="text-sm  font-semibold uppercase tracking-wider text-zinc-400">
           Problem
         </span>
       </div>
