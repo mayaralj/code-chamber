@@ -14,6 +14,11 @@ const useCountdownTimer = (initEndsAt) => {
   // Cleanup ref
   const cleanupRef = useRef(null);
 
+  // On time left at 0 automatically set timer finished to true
+  if (timeLeft === 0 && !timerFinished) {
+    setTimerFinished(true);
+  }
+
   // On time endsAt change, start the timer
   useEffect(() => {
     if (timerEndsAt && timerEndsAt > Date.now()) {
