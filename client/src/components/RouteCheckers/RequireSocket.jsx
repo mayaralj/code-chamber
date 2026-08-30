@@ -10,7 +10,7 @@ const RequireSocket = () => {
     connectionStatus === "error" ||
     connectionStatus === "lost-connection"
   ) {
-    // If in one of the game/room screens exit out first
+    // If in one of the game/room screens exit out first (this essentially means the client tried to reconnect but it took too long so just kick them out (server gurantees the player is cleaned up if they are in a game/room))
     const pathName = window.location.pathname;
     if (pathName.startsWith("/game") || pathName.startsWith("/room")) {
       return <Navigate to="/browse" replace />;

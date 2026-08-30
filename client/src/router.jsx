@@ -60,11 +60,7 @@ const router = createBrowserRouter([
       // Need a socket connection
       {
         path: "/",
-        element: (
-          <RequireServer>
-            <RequireSocket />
-          </RequireServer>
-        ),
+        element: <RequireSocket />,
         children: [
           {
             // Need a socket connection and a username to play
@@ -83,10 +79,8 @@ const router = createBrowserRouter([
   {
     path: "/",
     element: (
-      // Need server and socket connection to access these routes
-      <RequireServer>
-        <RequireSocket />
-      </RequireServer>
+      // Need socket connection to access these routes
+      <RequireSocket />
     ),
     children: [
       {
