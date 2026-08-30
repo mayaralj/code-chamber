@@ -30,7 +30,7 @@ const useCodeSubmission = (code) => {
   }, []);
 
   // Handle language change updates to both state and ref
-  const handleLanguageChange = (e) => {
+  const handleLanguageChange = (nextLanguage) => {
     if (
       codeStatusRef.current === "submitted" ||
       codeStatusRef.current === "judging" ||
@@ -38,7 +38,6 @@ const useCodeSubmission = (code) => {
     )
       return;
 
-    const nextLanguage = e.target.value;
     languageRef.current = nextLanguage;
     setLanguage(nextLanguage);
   };
