@@ -436,13 +436,22 @@ const RoomWait = () => {
                   hasReconnectingPlayer ||
                   !isConnected
                 }
-                className="cursor-pointer border border-[#ffdd9d] bg-[#ffdd9d] py-3 text-sm font-black tracking-[0.1em] text-[#251b0f] disabled:cursor-not-allowed disabled:opacity-50 sm:py-5 sm:text-2xl"
+                className={`flex cursor-pointer items-center justify-center gap-2 border py-3 text-sm font-black tracking-[0.1em] disabled:cursor-not-allowed sm:py-5 sm:text-2xl ${
+                  hasReconnectingPlayer
+                    ? "border-[#7a6a4f] bg-[#2a2419] text-[#c7b48f] opacity-100"
+                    : "border-[#ffdd9d] bg-[#ffdd9d] text-[#251b0f] disabled:opacity-50"
+                }`}
               >
-                {hasReconnectingPlayer
-                  ? "WAITING FOR PLAYER TO RECONNECT..."
-                  : hostStarting
-                    ? "STARTING GAME..."
-                    : "START GAME"}
+                {hasReconnectingPlayer ? (
+                  <>
+                    <span className="h-2 w-2 animate-pulse rounded-full bg-[#e0b45c]" />
+                    RECONNECTING...
+                  </>
+                ) : hostStarting ? (
+                  "STARTING GAME..."
+                ) : (
+                  "START GAME"
+                )}
               </button>
             )}
 
