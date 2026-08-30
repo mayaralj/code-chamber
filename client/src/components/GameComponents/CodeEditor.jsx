@@ -260,20 +260,21 @@ const CodeEditor = ({
         className="flex flex-col overflow-hidden"
         style={{ height: `${editorHeight}%` }}
       >
-        {/* Top bar: just the section label */}
-        <div className="flex items-center border-b border-zinc-800 bg-[#1e1e1e] px-5 py-2.5">
+        {/* Top bar: just the section label. Chrome is one shade off the content
+            behind it (zinc-900 vs #1e1e1e) instead of a jarring near-black jump */}
+        <div className="flex items-center border-b border-zinc-800 bg-zinc-900 px-5 py-2.5">
           <span className="text-sm font-semibold uppercase tracking-wider text-zinc-400">
             Code
           </span>
         </div>
 
         {/* Second, smaller bar: language on the left, reset + settings on the right */}
-        <div className="flex items-center justify-between border-b border-zinc-800 bg-[#1e1e1e] px-3 py-1">
+        <div className="flex items-center justify-between border-b border-zinc-800 bg-zinc-900 px-3 py-1">
           <div className="relative">
             <button
               onClick={() => !isLocked && setShowLanguageMenu((prev) => !prev)}
               disabled={isLocked}
-              className="flex cursor-pointer items-center gap-1.5 rounded-md bg-[#1e1e1e] px-2 py-1 text-sm font-medium text-zinc-300 outline-none transition-colors hover:bg-zinc-800 disabled:cursor-not-allowed disabled:opacity-50"
+              className="flex cursor-pointer items-center gap-1.5 rounded-md bg-zinc-900 px-2 py-1 text-sm font-medium text-zinc-300 outline-none transition-colors hover:bg-zinc-800 disabled:cursor-not-allowed disabled:opacity-50"
             >
               {LANGUAGES[language]}
               <ChevronDown
@@ -297,13 +298,13 @@ const CodeEditor = ({
                       onClick={() => handleSelectLanguage(key)}
                       className={`flex w-full cursor-pointer items-center justify-between px-3 py-1.5 text-left text-sm transition-colors ${
                         key === language
-                          ? "bg-[#dfbb96]/10 font-semibold text-[#dfbb96]"
+                          ? "bg-[#ffd687]/10 font-semibold text-[#ffd687]"
                           : "text-zinc-300 hover:bg-zinc-800"
                       }`}
                     >
                       {value}
                       {key === language && (
-                        <span className="h-1.5 w-1.5 rounded-full bg-[#dfbb96]" />
+                        <span className="h-1.5 w-1.5 rounded-full bg-[#ffd687]" />
                       )}
                     </button>
                   ))}
@@ -317,7 +318,7 @@ const CodeEditor = ({
               onClick={handleResetCode}
               disabled={isLocked}
               title="Reset to starter code"
-              className="flex cursor-pointer items-center gap-1.5  border border-zinc-700 bg-zinc-800 px-2.5 py-1 text-xs font-medium text-zinc-300 transition-colors hover:border-zinc-600 hover:text-zinc-100 disabled:cursor-not-allowed disabled:opacity-50"
+              className="flex cursor-pointer items-center gap-1.5 border border-zinc-700 bg-zinc-800 px-2.5 py-1 text-xs font-medium text-zinc-300 transition-colors hover:border-zinc-600 hover:text-zinc-100 disabled:cursor-not-allowed disabled:opacity-50"
             >
               <RotateCcw size={12} />
               Reset
@@ -351,7 +352,7 @@ const CodeEditor = ({
                       <button
                         onClick={() => setRelativeLineNumbers((prev) => !prev)}
                         className={`h-5 w-9 shrink-0 cursor-pointer rounded-full transition-colors ${
-                          relativeLineNumbers ? "bg-[#dfbb96]" : "bg-zinc-700"
+                          relativeLineNumbers ? "bg-[#ffd687]" : "bg-zinc-700"
                         }`}
                       >
                         <span
@@ -387,7 +388,7 @@ const CodeEditor = ({
                           max="24"
                           value={fontSize}
                           onChange={(e) => setFontSize(Number(e.target.value))}
-                          className="flex-1 accent-[#dfbb96]"
+                          className="flex-1 accent-[#ffd687]"
                         />
                         <button
                           onClick={() =>
@@ -412,7 +413,7 @@ const CodeEditor = ({
                             onClick={() => setTabSize(size)}
                             className={`flex-1 cursor-pointer rounded-md border py-1 text-xs font-medium ${
                               tabSize === size
-                                ? "border-[#dfbb96]/60 bg-[#dfbb96]/10 text-[#dfbb96]"
+                                ? "border-[#ffd687]/60 bg-[#ffd687]/10 text-[#ffd687]"
                                 : "border-zinc-700 text-zinc-400 hover:border-zinc-600"
                             }`}
                           >
@@ -428,7 +429,7 @@ const CodeEditor = ({
           </div>
         </div>
 
-        <div className="flex-1 mt-1">
+        <div className="mt-1 flex-1">
           <Editor
             height="100%"
             language={language}
@@ -462,14 +463,14 @@ const CodeEditor = ({
         onMouseDown={handleDragStart}
         className="group flex h-1.5 shrink-0 cursor-row-resize items-center justify-center bg-zinc-900 hover:bg-zinc-800"
       >
-        <div className="h-0.5 w-10 rounded-full bg-zinc-700 group-hover:bg-[#dfbb96]/75" />
+        <div className="h-0.5 w-10 rounded-full bg-zinc-700 group-hover:bg-[#ffd687]/75" />
       </div>
 
       <div
-        className="flex flex-col overflow-hidden border-t border-zinc-800 bg-zinc-950"
+        className="flex flex-col overflow-hidden border-t border-zinc-800 bg-[#1e1e1e]"
         style={{ height: `${100 - editorHeight}%` }}
       >
-        <div className="flex items-center justify-between px-4 py-2">
+        <div className="flex items-center justify-between border-b border-zinc-800/50 bg-zinc-900 px-4 py-2 mb-1.5">
           <span className="text-xs font-semibold uppercase tracking-wider text-zinc-400">
             Output
           </span>
@@ -493,7 +494,7 @@ const CodeEditor = ({
             </pre>
           ) : (
             <>
-              <div className="flex shrink-0 gap-1 overflow-x-auto border-b border-zinc-800 px-3 pb-2">
+              <div className="flex shrink-0 gap-1 overflow-x-auto border-b border-zinc-800 px-3 pb-2 pt-2">
                 {testCasesResults.map((tc, i) => (
                   <button
                     key={i}

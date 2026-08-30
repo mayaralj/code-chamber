@@ -23,7 +23,7 @@ const GameNavbar = ({
   const isProcessing = codeStatus === "judging" || codeStatus === "processing";
 
   return (
-    <div className="relative flex w-full items-center justify-between border-b border-[#4b4133] bg-[#080812] px-7 py-2.5">
+    <div className="relative flex w-full items-center justify-between border-b border-[#4b4133]/75 bg-zinc-900 px-7 py-2.5">
       <div className="flex w-24 items-center gap-2 select-none pointer-events-none">
         <Clock
           size={14}
@@ -52,7 +52,7 @@ const GameNavbar = ({
             codeStatus === "submitted"
               ? "cursor-not-allowed border-emerald-500/30 bg-emerald-500/10 text-emerald-400"
               : codeStatus === "judging"
-                ? "cursor-not-allowed border-[#ffd687]/30 bg-[#2d2d2d] text-[#ffd687]"
+                ? "cursor-not-allowed border-[#ffd687]/30 bg-zinc-800 text-[#ffd687]"
                 : "cursor-pointer border-zinc-700 bg-zinc-800 text-zinc-200 hover:border-rose-500/40 hover:bg-rose-500/10 hover:text-rose-300"
           }`}
           onClick={onSubmit}
@@ -74,7 +74,7 @@ const GameNavbar = ({
         {/* Spinning wheel while the code is being judged/processed */}
         {isProcessing && (
           <LoaderCircle
-            size={18}
+            size={16}
             className="shrink-0 animate-spin text-[#ffd687]"
           />
         )}
