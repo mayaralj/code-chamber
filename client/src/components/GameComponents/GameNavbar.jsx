@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { Clock, LoaderCircle } from "lucide-react";
 
 const GameNavbar = ({
   codeStatus,
@@ -45,36 +46,43 @@ const GameNavbar = ({
       </div>
 
       {/* Submit Button Green submitted, yellow judging, red not submitted */}
-      <button
-        className={`rounded-md border px-6 py-1.5 text-sm font-semibold transition-colors ${
-          codeStatus === "submitted"
-            ? "cursor-not-allowed border-emerald-500/30 bg-emerald-500/10 text-emerald-400"
-            : codeStatus === "judging"
-              ? "cursor-not-allowed border-[#ffd687]/30 bg-[#2d2d2d] text-[#ffd687]"
-              : "cursor-pointer border-zinc-700 bg-zinc-800 text-zinc-200 hover:border-rose-500/40 hover:bg-rose-500/10 hover:text-rose-300"
-        }`}
-        onClick={onSubmit}
-        disabled={
-          codeStatus === "submitted" ||
-          codeStatus === "judging" ||
-          codeStatus === "processing" ||
-          isReconnecting
-        }
-      >
-        {isReconnecting
-          ? "Reconnecting..."
-          : codeStatus === "submitted"
-            ? "Submitted"
-            : codeStatus === "judging"
-              ? "Judging..."
-              : "Submit"}
-      </button>
+      <div className="flex items-center gap-2">
+        <button
+          className={`rounded-xs border px-6 py-1.5 text-sm font-semibold transition-colors ${
+            codeStatus === "submitted"
+              ? "cursor-not-allowed border-emerald-500/30 bg-emerald-500/10 text-emerald-400"
+              : codeStatus === "judging"
+                ? "cursor-not-allowed border-[#ffd687]/30 bg-[#2d2d2d] text-[#ffd687]"
+                : "cursor-pointer border-zinc-700 bg-zinc-800 text-zinc-200 hover:border-rose-500/40 hover:bg-rose-500/10 hover:text-rose-300"
+          }`}
+          onClick={onSubmit}
+          disabled={
+            codeStatus === "submitted" ||
+            codeStatus === "judging" ||
+            codeStatus === "processing" ||
+            isReconnecting
+          }
+        >
+          {isReconnecting
+            ? "Reconnecting..."
+            : codeStatus === "submitted"
+              ? "Submitted"
+              : codeStatus === "judging"
+                ? "Judging..."
+                : "Submit"}
+        </button>
+        {/* Spinning wheel while the code is being judged/processed */}
+        {isProcessing && (
+          <LoaderCircle
+            size={18}
+            className="shrink-0 animate-spin text-[#ffd687]"
+          />
+        )}
+      </div>
 
-      {/* Button to display submitted players, wrapped in a relative container so the
-          dropdown below can anchor to it instead of being positioned via click coordinates */}
       <div className="relative w-20">
         <button
-          className="w-full cursor-pointer rounded-md border border-zinc-700 bg-zinc-800 px-3 py-1.5 text-xs font-semibold text-zinc-300 transition-colors hover:border-zinc-600 hover:text-zinc-100"
+          className="w-full cursor-pointer rounded-xs border border-zinc-700 bg-zinc-800 px-3 py-1.5 text-xs font-semibold text-zinc-300 transition-colors hover:border-zinc-600 hover:text-zinc-100"
           onClick={handleOpenModal}
         >
           Players
@@ -88,7 +96,7 @@ const GameNavbar = ({
               className="fixed inset-0 z-40"
               onClick={() => setShowModal(false)}
             />
-            <div className="absolute top-full right-0 z-50 mt-2 flex w-64 flex-col gap-1 rounded-lg border border-zinc-800 bg-zinc-900 p-3 shadow-xl">
+            <div className="absolute top-full right-0 z-50 mt-2 flex w-64 flex-col gap-1 rounded-xs border border-zinc-800 bg-zinc-900 p-3 shadow-xl">
               <div className="mb-1 flex items-center justify-between">
                 <h2 className="text-xs font-semibold uppercase tracking-wider text-zinc-400">
                   Players
@@ -102,21 +110,21 @@ const GameNavbar = ({
                 {playerList.map((player) => (
                   <div
                     key={player.username}
-                    className="flex items-center justify-between gap-3 rounded-md px-2 py-1.5 text-sm text-zinc-200 hover:bg-zinc-800/60"
+                    className="flex items-center justify-between gap-3 rounded-xs px-2 py-1.5 text-sm text-zinc-200 hover:bg-zinc-800/60"
                   >
                     <span className="truncate">{player.username}</span>
                     <span
                       className={`shrink-0 text-[10px] font-semibold uppercase tracking-wide ${
-                        player.submitted
+                        player.codeStatus === "submitted"
                           ? "text-emerald-400"
-                          : player.judging
+                          : player.codeStatus === "judging"
                             ? "text-[#ffd687]"
                             : "text-rose-400"
                       }`}
                     >
-                      {player.submitted
+                      {player.codeStatus === "submitted"
                         ? "Submitted"
-                        : player.judging
+                        : player.codeStatus === "judging"
                           ? "Judging"
                           : "Not Submitted"}
                     </span>
