@@ -4,7 +4,7 @@ import PlayerContext from "./PlayerContext";
 import toast from "react-hot-toast";
 
 // COnfig
-const SERVER_SHUTDOWN_TIMEOUT = 100000;
+const LOST_CONNECTION_TIMEOUT = 10000;
 
 // Player provider
 const PlayerProvider = ({ children }) => {
@@ -32,7 +32,7 @@ const PlayerProvider = ({ children }) => {
     };
 
     const startServerDownTimer = () => {
-      // Check if already
+      // Check if already in lost-connection state or timer is already running
       if (
         serverDownTimerRef.current ||
         connectionStatus === "lost-connection"
@@ -46,7 +46,7 @@ const PlayerProvider = ({ children }) => {
         toastIdRef.current = toast.error("Error: Lost Server Connection", {
           duration: 10000,
         });
-      }, SERVER_SHUTDOWN_TIMEOUT);
+      }, LOST_CONNECTION_TIMEOUT);
     };
 
     const setIdentity = (identity) => {
