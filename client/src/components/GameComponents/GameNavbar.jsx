@@ -15,11 +15,33 @@ const GameNavbar = ({
     setShowModal((prev) => !prev);
   };
 
+  // Time is considered "running low" once 10 seconds or less remain
+  const isLowTime = typeof roundTimeLeft === "number" && roundTimeLeft <= 10;
+
+  // Show a spinning indicator next to Submit while the code is being judged/processed
+  const isProcessing = codeStatus === "judging" || codeStatus === "processing";
+
   return (
-    <div className="relative flex w-full items-center justify-between border-b border-zinc-800 bg-[#080812] px-7 py-2.5">
-      {/* Timer On the very left side */}
-      <div className="w-20 text-lg font-bold tabular-nums text-[#dfbb96] select-none pointer-events-none">
-        {roundTimeLeft}
+    <div className="relative flex w-full items-center justify-between border-b border-[#4b4133] bg-[#080812] px-7 py-2.5">
+      <div className="flex w-24 items-center gap-2 select-none pointer-events-none">
+        <Clock
+          size={14}
+          className={`shrink-0 transition-colors ${
+            isLowTime ? "text-rose-400" : "text-zinc-500"
+          }`}
+        />
+        <div className="flex items-baseline gap-1">
+          <span
+            className={`text-xl font-bold tabular-nums transition-colors ${
+              isLowTime
+                ? "[animation:pulse_1s_cubic-bezier(0.4,0,0.6,1)_infinite] text-rose-400"
+                : "text-[#f7e7c8]"
+            }`}
+          >
+            {roundTimeLeft}
+          </span>
+          <span className="text-[10px] font-semibold text-zinc-500">s</span>
+        </div>
       </div>
 
       {/* Submit Button Green submitted, yellow judging, red not submitted */}
