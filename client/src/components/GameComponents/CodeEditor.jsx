@@ -3,11 +3,20 @@ import { useRef, useEffect, useState } from "react";
 import { Settings, RotateCcw, ChevronDown } from "lucide-react";
 import useResizableSplit from "../../hooks/gameHooks/useResizableSplit";
 
+// Config
 // Languages supported (No language support besides javascript for now)
 const LANGUAGES = {
   javascript: "JavaScript",
   python: "Python",
   cpp: "C++",
+};
+
+// Default editor settings
+const DEFAULT_EDITOR_SETTINGS = {
+  language: "javascript",
+  relativeLineNumbers: false,
+  fontSize: 17,
+  tabSize: 4,
 };
 
 // Update starter code helper
@@ -86,16 +95,48 @@ const CodeEditor = ({
     setEditorHeight(65);
   }
 
-  // Derived from the split size itself instead of separate state, so collapsing is just
-  // "dragged (or snapped) all the way down" and dragging back up always un-collapses it live
+  // Detect as collapsed if its at the bottom of drag down
   const outputCollapsed = editorHeight >= 95;
 
-  // Editor settings (line numbers, font size, tab size), adjustable from the settings modal
+  // Load editor settings from local storage or use defaults
+  const getStoredEditorSettings = () => {
+    try {
+      const saved = localStorage.getItem("editorSettings");
+      // If saved settings exist, merge them with defaults so all keys are present
+      return saved
+        ? { ...DEFAULT_EDITOR_SETTINGS, ...JSON.parse(saved) }
+        : DEFAULT_EDITOR_SETTINGS;
+    } catch {
+      return DEFAULT_EDITOR_SETTINGS;
+    }
+  };
+
+  // Get the initial editor settings from local storage or defaults
+  const [storedSettings] = useState(getStoredEditorSettings);
+
+  // Editor settings, adjustable from the settings modal
   const [showSettings, setShowSettings] = useState(false);
-  const [relativeLineNumbers, setRelativeLineNumbers] = useState(false);
-  const [fontSize, setFontSize] = useState(17);
-  const [tabSize, setTabSize] = useState(4);
+  const [relativeLineNumbers, setRelativeLineNumbers] = useState(
+    storedSettings.relativeLineNumbers,
+  );
+  const [fontSize, setFontSize] = useState(storedSettings.fontSize);
+  const [tabSize, setTabSize] = useState(storedSettings.tabSize);
   const [showLanguageMenu, setShowLanguageMenu] = useState(false);
+
+  // On mount, if the stored language is different from the current language, update it
+  useEffect(() => {
+    if (storedSettings.language && storedSettings.language !== language) {
+      onLanguageChange(storedSettings.language);
+    }
+  }, []);
+
+  // Update local storage whenever editor settings change
+  useEffect(() => {
+    localStorage.setItem(
+      "editorSettings",
+      JSON.stringify({ language, relativeLineNumbers, fontSize, tabSize }),
+    );
+  }, [language, relativeLineNumbers, fontSize, tabSize]);
 
   // Current test case for output display
   const currentCase = testCasesResults?.[activeTestCase];
@@ -107,16 +148,11 @@ const CodeEditor = ({
     codeStatus === "processing";
 
   // On mount
+  const [editorReady, setEditorReady] = useState(false);
   const handleMount = (editor, monaco) => {
     editorRef.current = editor;
     monacoRef.current = monaco;
-    updateStarterCode(
-      editorRef,
-      language,
-      starterCode,
-      savedCode.current,
-      onChange,
-    );
+    setEditorReady(true);
     onMount?.();
   };
 
@@ -171,6 +207,7 @@ const CodeEditor = ({
   }, [starterCode]);
 
   useEffect(() => {
+    if (!editorReady) return;
     updateStarterCode(
       editorRef,
       language,
@@ -178,7 +215,7 @@ const CodeEditor = ({
       savedCode.current,
       onChange,
     );
-  }, [language, starterCode, onChange]);
+  }, [editorReady, language, starterCode, onChange]);
 
   // Highlight the error line (red) in the editor for the selected test case
   useEffect(() => {
