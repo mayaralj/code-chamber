@@ -14,7 +14,7 @@ export const checkPlayer = (socket, code) => {
 
   // Check if player is inside the room
   const playerInRoom = room.players.some(
-    (player) => player.socketId === socket.id,
+    (player) => player.userId === socket.data.id,
   );
   if (!playerInRoom && !playerInRoom.isReconnecting) {
     socket.emit("check-player-response", {
