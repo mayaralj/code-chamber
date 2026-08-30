@@ -7,7 +7,7 @@ import reconnectGame from "../game/reconnectGame.js";
 import { buildRoomInfo } from "./roomUtils.js";
 
 // Config
-const RECONNECT_TIMEOUT = 30000;
+const RECONNECT_TIMEOUT = 3000;
 
 // Helper to handle the reconnect timeout for a player
 export const startReconnectTimeout = (io, socket) => {
