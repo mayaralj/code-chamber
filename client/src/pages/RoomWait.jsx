@@ -28,6 +28,14 @@ const RoomWait = () => {
 
   // Refs
   const gameStartedRef = useRef(false);
+  const previousConnectionStatusRef = useRef(connectionStatus);
+  const checkInProgressRef = useRef(false);
+  const initialCheckRef = useRef(true);
+
+  // Update previous connection status ref on change
+  useEffect(() => {
+    previousConnectionStatusRef.current = connectionStatus;
+  }, [connectionStatus]);
 
   // Check code
   useEffect(() => {
@@ -39,23 +47,42 @@ const RoomWait = () => {
 
   // Check with server if user is supposed to be in this room
   useEffect(() => {
+    // Only rerun if connection status changes from reconnecting to connected or initial check
+    if (
+      !(
+        previousConnectionStatusRef.current === "reconnecting" &&
+        connectionStatus === "connected"
+      ) ||
+      !initialCheckRef.current
+    ) {
+      return;
+    }
+    initialCheckRef.current = false;
+    // If a check is already in progress, do not initiate another one
+    if (checkInProgressRef.current) return;
+    checkInProgressRef.current = true;
+
+    // Emit check-player event to server with the room code
     socket.emit("check-player", { code });
-    console.log(code, "checking room");
-    socket.once("check-player-response", ({ message, valid }) => {
+    const handleResponse = ({ message, valid }) => {
+      checkInProgressRef.current = false; // reset here, on actual completion
       if (!valid) {
-        toast.error(message);
-        console.log(
-          "User not valid for this room, redirecting to home",
-          message,
-        );
+        if (previousConnectionStatusRef.current === "reconnecting") {
+          toast.error("Reconnection failed");
+        } else {
+          toast.error(message);
+        }
         navigate("/browse", { replace: true });
       }
-    });
+    };
+
+    // Listen for the response from the server
+    socket.once("check-player-response", handleResponse);
 
     return () => {
-      socket.off("check-player-response");
+      socket.off("check-player-response", handleResponse);
     };
-  }, [code, navigate]);
+  }, [connectionStatus, code, navigate]);
 
   // useEffect to listen for player updates and game start
   useEffect(() => {
@@ -153,6 +180,7 @@ const RoomWait = () => {
     return () => {
       socket.off("player-reconnecting");
       socket.off("player-reconnected");
+      socket.off("reconnect-game-success");
     };
   }, []);
 
@@ -169,6 +197,7 @@ const RoomWait = () => {
     };
     const rejoinError = () => {
       console.log("Room reconnected error, redirecting to browse");
+      toast.error("Reconnection failed");
       navigate("/browse", { replace: true });
     };
 
