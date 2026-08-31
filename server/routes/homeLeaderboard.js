@@ -9,7 +9,7 @@ const homeLeaderboardRouter = () => {
   router.get("/", async (req, res) => {
     try {
       // Return the precomputed leaderboard data with only matches won leaderboard
-      res.json(leaderboardData?.["ALL"]?.["ALL"]?.matches_won ?? {});
+      res.json(leaderboardData?.["ALL"]?.["ALL"]?.matches_won ?? []);
     } catch (err) {
       console.error("Error fetching home leaderboard data:", err);
       res.status(500).json({ message: "Failed to fetch home leaderboard" });
