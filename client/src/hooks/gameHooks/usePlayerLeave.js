@@ -1,5 +1,5 @@
 // Imports
-import { useEffect, useRef } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useNavigate } from "react-router";
 import { socket } from "../../socket";
 import toast from "react-hot-toast";
@@ -7,6 +7,11 @@ import toast from "react-hot-toast";
 // Custom hook to handle player leaves
 const usePlayerLeave = (code, setPlayerList, roomDeletedRef, timerFinished) => {
   const navigate = useNavigate();
+
+  // States
+  const [isEliminated, setIsEliminated] = useState(false);
+
+  // Refs
   const toastIdRef = useRef(null);
 
   // Player left
@@ -44,7 +49,7 @@ const usePlayerLeave = (code, setPlayerList, roomDeletedRef, timerFinished) => {
   // Kick them out on player eliminated
   useEffect(() => {
     socket.once("player-eliminated", () => {
-      navigate("/browse", { replace: true });
+      setIsEliminated(true);
     });
 
     return () => {
@@ -87,6 +92,8 @@ const usePlayerLeave = (code, setPlayerList, roomDeletedRef, timerFinished) => {
       socket.off("game-error");
     };
   }, [navigate]);
+
+  return { isEliminated };
 };
 
 export default usePlayerLeave;

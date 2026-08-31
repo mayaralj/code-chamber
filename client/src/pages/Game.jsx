@@ -19,6 +19,7 @@ import useReconnection from "../hooks/gameHooks/useReconnection";
 import useDisconnection from "../hooks/gameHooks/useDisconnection";
 import usePlayer from "../hooks/usePlayer";
 import useResizableSplit from "../hooks/gameHooks/useResizableSplit";
+import Eliminated from "../components/GameComponents/Eliminated";
 import toast from "react-hot-toast";
 
 // Game component
@@ -99,6 +100,14 @@ const Game = () => {
   // Refs
   const roomDeletedRef = useRef(false);
 
+  // More states that need refs
+  const { isEliminated } = usePlayerLeave(
+    code,
+    setPlayerList,
+    roomDeletedRef,
+    timerFinished,
+  );
+
   // Resizable split between the question panel and the code editor panel
   const {
     containerRef: splitRef,
@@ -112,7 +121,6 @@ const Game = () => {
   });
 
   // Hooks with no state
-  usePlayerLeave(code, setPlayerList, roomDeletedRef, timerFinished);
   useReconnection(code, setPlayerList, {
     setCurrentRound,
     setBeforeRoundEvents,
@@ -155,6 +163,11 @@ const Game = () => {
 
   // Vars
   const isReconnecting = connectionStatus === "reconnecting";
+
+  // If eliminated, show eliminated screen
+  if (isEliminated) {
+    return <Eliminated />;
+  }
 
   // Render
   return (
