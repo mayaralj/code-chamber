@@ -91,7 +91,7 @@ const startRound = async (io, socket, code) => {
 
   // Process all unsubmitted players
   if (unsubmittedPlayersCode.length > 0) {
-    await forceSubmitAll(io, code, unsubmittedPlayersCode, ROUND_TIMER);
+    await forceSubmitAll(io, code, unsubmittedPlayersCode);
     // Check if room still exists
     if (!rooms[code]) {
       return;

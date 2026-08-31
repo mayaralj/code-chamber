@@ -432,12 +432,12 @@ export const handleSubmitCode = async (io, socket, submitData) => {
 };
 
 // Helper to force submit all players (used when round timer finishes)
-export const forceSubmitAll = async (
-  io,
-  code,
-  unsubmittedPlayersCode,
-  ROUND_TIMER,
-) => {
+export const forceSubmitAll = async (io, code, unsubmittedPlayersCode) => {
+  // Calculate the submit time for force submission (time since round started)
+  const roundData = rooms[code].roundData[rooms[code].currentRound];
+  const roundStartTime = roundData.roundStartTime || Date.now();
+  const submitTime = (Date.now() - roundStartTime) / 1000;
+
   // Process all of the unsubmitted players code and force submit them
   await Promise.all(
     unsubmittedPlayersCode.map(({ player, codeInput, language }) => {
@@ -448,7 +448,7 @@ export const forceSubmitAll = async (
         player,
         codeInput,
         language,
-        ROUND_TIMER,
+        submitTime,
       );
     }),
   );
