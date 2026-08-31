@@ -158,8 +158,9 @@ const Browse = () => {
               PUBLIC CHAMBERS
             </h1>
             <p className="mt-4 max-w-2xl text-sm leading-6 tracking-wide text-[#c7b499]">
-              Select an open session to begin. Higher difficulty chambers yield
-              more reputation points.
+              Join a public chamber to compete against other players in a coding
+              challenge. You can also create your own custom chamber or join a
+              private one if you have the access code.
             </p>
           </div>
 
