@@ -20,6 +20,7 @@ import useDisconnection from "../hooks/gameHooks/useDisconnection";
 import usePlayer from "../hooks/usePlayer";
 import useResizableSplit from "../hooks/gameHooks/useResizableSplit";
 import Eliminated from "../components/GameComponents/Eliminated";
+import Missed from "../components/GameComponents/Missed";
 import toast from "react-hot-toast";
 
 // Game component
@@ -93,6 +94,8 @@ const Game = () => {
     setEliminatedPlayers,
     setMissedPlayer,
     missedPlayer,
+    isMissed,
+    setIsMissed,
     winner,
     setWinner,
   } = useResults(code);
@@ -167,6 +170,11 @@ const Game = () => {
   // If eliminated, show eliminated screen
   if (isEliminated) {
     return <Eliminated />;
+  }
+
+  // If missed, show missed screen
+  if (isMissed) {
+    return <Missed setMissed={setIsMissed} />;
   }
 
   // Render

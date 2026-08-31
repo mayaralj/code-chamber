@@ -95,6 +95,7 @@ export const processRoundElims = (io, code, roundData, roundEvents) => {
     // Dont eliminate first player if missed bullet
     if (roundEvents?.afterRound?.missedBullet) {
       roundData.missedPlayer = playerEliminated;
+      io.to(playerEliminated.socketId).emit("player-missed");
     } else {
       // Eliminate player if bullet did not miss
       eliminatePlayer(io, code, roundData, playerEliminated);

@@ -11,6 +11,7 @@ const useResults = () => {
   const [resultsReady, setResultsReady] = useState(false);
   const [eliminatedPlayers, setEliminatedPlayers] = useState([]);
   const [missedPlayer, setMissedPlayer] = useState(null);
+  const [isMissed, setIsMissed] = useState(false);
   const [winner, setWinner] = useState(null);
 
   // refs
@@ -25,6 +26,11 @@ const useResults = () => {
       setMissedPlayer(null);
       setEliminatedPlayers([]);
       setWinner(null);
+      setIsMissed(false);
+      if (cleanupRef.current) {
+        cleanupRef.current();
+        cleanupRef.current = null;
+      }
     };
 
     // Listen for new round event
@@ -33,6 +39,19 @@ const useResults = () => {
     // Cleanup
     return () => {
       socket.off("new-round", handleNewRound);
+    };
+  }, []);
+
+  // Handle missed player event
+  useEffect(() => {
+    const handleIsMissed = () => {
+      setIsMissed(true);
+    };
+    socket.on("player-missed", handleIsMissed);
+
+    // Cleanup
+    return () => {
+      socket.off("player-missed", handleIsMissed);
     };
   }, []);
 
@@ -115,6 +134,8 @@ const useResults = () => {
     setEliminatedPlayers,
     setMissedPlayer,
     missedPlayer,
+    isMissed,
+    setIsMissed,
     winner,
     setWinner,
   };
