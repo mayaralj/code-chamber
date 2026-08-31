@@ -30,7 +30,9 @@ const RoomWait = () => {
   const gameStartedRef = useRef(false);
   const previousConnectionStatusRef = useRef(connectionStatus);
   const checkInProgressRef = useRef(false);
-  const initialCheckRef = useRef(true);
+
+  // Check if the current player is the host
+  const isHost = roomInfo?.host === player?.username;
 
   // Update previous connection status ref on change
   useEffect(() => {
@@ -47,17 +49,6 @@ const RoomWait = () => {
 
   // Check with server if user is supposed to be in this room
   useEffect(() => {
-    // Only rerun if connection status changes from reconnecting to connected or initial check
-    if (
-      !(
-        previousConnectionStatusRef.current === "reconnecting" &&
-        connectionStatus === "connected"
-      ) ||
-      !initialCheckRef.current
-    ) {
-      return;
-    }
-    initialCheckRef.current = false;
     // If a check is already in progress, do not initiate another one
     if (checkInProgressRef.current) return;
     checkInProgressRef.current = true;
@@ -67,12 +58,12 @@ const RoomWait = () => {
     const handleResponse = ({ message, valid }) => {
       checkInProgressRef.current = false; // reset here, on actual completion
       if (!valid) {
-        if (previousConnectionStatusRef.current === "reconnecting") {
-          toast.error("Reconnection failed");
+        toast.error(message);
+        if (isHost) {
+          navigate("/create", { replace: true });
         } else {
-          toast.error(message);
+          navigate("/browse", { replace: true });
         }
-        navigate("/browse", { replace: true });
       }
     };
 
@@ -82,7 +73,7 @@ const RoomWait = () => {
     return () => {
       socket.off("check-player-response", handleResponse);
     };
-  }, [connectionStatus, code, navigate]);
+  }, [code, navigate, isHost]);
 
   // useEffect to listen for player updates and game start
   useEffect(() => {
@@ -198,7 +189,11 @@ const RoomWait = () => {
     const rejoinError = () => {
       console.log("Room reconnected error, redirecting to browse");
       toast.error("Reconnection failed");
-      navigate("/browse", { replace: true });
+      if (isHost) {
+        navigate("/create", { replace: true });
+      } else {
+        navigate("/browse", { replace: true });
+      }
     };
 
     socket.on("connect", reconnect);
@@ -280,9 +275,6 @@ const RoomWait = () => {
   // Check local status
   const isConnected = connectionStatus === "connected";
   const isReconnecting = connectionStatus === "reconnecting";
-
-  // Check if the current player is the host
-  const isHost = roomInfo?.host === player?.username;
 
   return (
     <div className="relative h-dvh overflow-hidden bg-[#0b0b0b] px-4 py-20 font-mono text-[#e7c49d] [background-image:radial-gradient(#5b4e3e_0.55px,transparent_0.55px)] [background-size:20px_20px] sm:px-6">
