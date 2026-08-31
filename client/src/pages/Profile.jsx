@@ -582,7 +582,7 @@ const Profile = () => {
 
                 {linked ? (
                   <button
-                    className="flex cursor-pointer items-center gap-2 font-mono text-xs font-bold tracking-wider text-[#b9a282] transition hover:text-red-300 disabled:cursor-not-allowed disabled:opacity-40"
+                    className={`flex cursor-pointer items-center gap-2 font-mono text-xs font-bold tracking-wider text-[#b9a282] transition ${linkedCount > 1 && "hover:text-red-300"} disabled:cursor-not-allowed disabled:opacity-40`}
                     type="button"
                     onClick={() => unlinkSocial(provider)}
                     disabled={linkedCount <= 1}
