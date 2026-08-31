@@ -123,6 +123,14 @@ const startRound = async (io, socket, code) => {
 
   // Calculate all scores
   calculateAllScores(io, code, roundData);
+
+  // Wait before sending results (so players can see their own personal results before the full results are sent)
+  await sleep(WAIT_BEFORE_RESULTS * 1000);
+  // Check if room still exists
+  if (!rooms[code]) {
+    return;
+  }
+
   // Process round eliminations
   processRoundElims(io, code, roundData, roundEvents);
 
@@ -130,13 +138,6 @@ const startRound = async (io, socket, code) => {
   if (rooms[code].players.length === 0) {
     console.log(`Room ${code} has no players left, ending game`);
     await gameOver(io, code, roundData, null);
-    return;
-  }
-
-  // Wait before sending results (so players can see their own personal results before the full results are sent)
-  await sleep(WAIT_BEFORE_RESULTS * 1000);
-  // Check if room still exists
-  if (!rooms[code]) {
     return;
   }
 
