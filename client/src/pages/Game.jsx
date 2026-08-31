@@ -1,7 +1,6 @@
 // Imports
 import { useEffect, useRef } from "react";
 import { useNavigate, useLocation, useParams } from "react-router";
-import { socket } from "../socket";
 import Question from "../components/GameComponents/Question";
 import CodeEditor from "../components/GameComponents/CodeEditor";
 import Timer from "../components/GameComponents/Timer";
@@ -19,6 +18,7 @@ import usePlayerLeave from "../hooks/gameHooks/usePlayerLeave";
 import useReconnection from "../hooks/gameHooks/useReconnection";
 import useDisconnection from "../hooks/gameHooks/useDisconnection";
 import usePlayer from "../hooks/usePlayer";
+import useResizableSplit from "../hooks/gameHooks/useResizableSplit";
 import toast from "react-hot-toast";
 
 // Game component
@@ -46,9 +46,11 @@ const Game = () => {
   // Hooks
   // Player List
   const { playerList, setPlayerList } = usePlayerList(players);
+
   // Countdown Timer
   const { timeLeft, timerFinished, setTimerFinished, setTimerEndsAt } =
     useCountdownTimer(initEndsAt);
+
   // Round Timer
   const {
     roundTimeLeft,
@@ -57,26 +59,29 @@ const Game = () => {
     setRoundEndsAt,
     setTimeMultiplier,
   } = useRoundTimer(roundEndsAt, timeMultiplier);
+
   // Code Submission
   const {
     handleCodeChange,
-    isSubmitted,
-    setIsSubmitted,
-    isJudging,
-    setIsJudging,
+    codeStatus,
+    setCodeStatus,
     language,
     handleSubmit,
     handleLanguageChange,
     testCasesResults,
   } = useCodeSubmission(code);
+
   // Question
   const { question, setQuestion, starterCode, setStarterCode } =
     useGameQuestion(initQuestion);
+
   // Editor Ready
   const { editorReady, setEditorReady } = useCodeEditor();
+
   // Round events
   const { beforeRoundEvents, setBeforeRoundEvents, afterRoundEvents } =
     useRoundEvents(firstBeforeEvents);
+
   // Results
   const {
     results,
@@ -94,15 +99,26 @@ const Game = () => {
   // Refs
   const roomDeletedRef = useRef(false);
 
+  // Resizable split between the question panel and the code editor panel
+  const {
+    containerRef: splitRef,
+    size: questionWidth,
+    handleDragStart,
+  } = useResizableSplit({
+    axis: "horizontal",
+    initialSize: 38,
+    minSize: 25,
+    maxSize: 62,
+  });
+
   // Hooks with no state
-  usePlayerLeave(code, setPlayerList, roomDeletedRef);
+  usePlayerLeave(code, setPlayerList, roomDeletedRef, timerFinished);
   useReconnection(code, setPlayerList, {
     setCurrentRound,
     setBeforeRoundEvents,
     setQuestion,
     setStarterCode,
-    setIsSubmitted,
-    setIsJudging,
+    setCodeStatus,
     setTimerEndsAt,
     setTimerFinished,
     setRoundEndsAt,
@@ -134,6 +150,7 @@ const Game = () => {
       navigate("/browse", { replace: true });
     }
   }, []);
+
   if (!location.state) return null;
 
   // Vars
@@ -142,44 +159,55 @@ const Game = () => {
   // Render
   return (
     <>
-      {isReconnecting && (
-        <div className="fixed top-3 right-3 z-50 flex items-center gap-2 rounded-full bg-yellow-500/90 px-3 py-1 text-xs font-bold text-black shadow-lg">
-          <span className="h-2 w-2 animate-pulse rounded-full bg-black" />
-          RECONNECTING...
+      {/* {isReconnecting && (
+        <div className="fixed top-3 right-3 z-50 flex items-center gap-2 rounded-full border border-amber-500/30 bg-amber-500/10 px-3 py-1.5 text-xs font-semibold text-amber-400 shadow-lg">
+          <span className="h-2 w-2 animate-pulse rounded-full bg-amber-400" />
+          Reconnecting...
         </div>
-      )}
-
+      )} */}
       {/* Always render editor, just hide it */}
       <div
-        className={
+        className={`${
           timerFinished && editorReady
             ? "flex flex-col h-screen relative"
             : "hidden"
-        }
+        }`}
       >
         <GameNavbar
-          isSubmitted={isSubmitted}
-          isJudging={isJudging}
+          codeStatus={codeStatus}
           onSubmit={handleSubmit}
           playerList={playerList}
           roundTimeLeft={roundTimeLeft}
           isReconnecting={isReconnecting}
         />
-        <div className="flex flex-1 overflow-hidden bg-gray-950">
-          <Question question={question} />
-          <div className="w-0.5 bg-white"></div>
-          <CodeEditor
-            onChange={handleCodeChange}
-            isJudging={isJudging}
-            isSubmitted={isSubmitted}
-            language={language}
-            onLanguageChange={handleLanguageChange}
-            onMount={() => setEditorReady(true)}
-            starterCode={starterCode}
-            testCasesResults={testCasesResults}
-          />
-        </div>
+        <div ref={splitRef} className="flex flex-1 overflow-hidden bg-zinc-950">
+          <div
+            className="h-full overflow-hidden"
+            style={{ width: `${questionWidth}%` }}
+          >
+            <Question question={question} />
+          </div>
 
+          {/* Drag handle between question and editor */}
+          <div
+            onMouseDown={handleDragStart}
+            className="group flex w-1.5 shrink-0 cursor-col-resize items-center justify-center bg-zinc-950 hover:bg-zinc-800"
+          >
+            <div className="h-10 w-0.5 rounded-full bg-zinc-800 group-hover:bg-[#dfbb96]/75" />
+          </div>
+
+          <div className="h-full min-w-0 flex-1">
+            <CodeEditor
+              onChange={handleCodeChange}
+              codeStatus={codeStatus}
+              language={language}
+              onLanguageChange={handleLanguageChange}
+              onMount={() => setEditorReady(true)}
+              starterCode={starterCode}
+              testCasesResults={testCasesResults}
+            />
+          </div>
+        </div>
         {/* Show Results if ready */}
         {resultsReady && (
           <Results
@@ -191,9 +219,8 @@ const Game = () => {
           />
         )}
       </div>
-
       {/* Show timer until ready */}
-      {(!timerFinished || !editorReady) && (
+      {(!timerFinished || !editorReady || !question) && (
         <Timer
           timeLeft={timeLeft}
           currentRound={currentRound}
