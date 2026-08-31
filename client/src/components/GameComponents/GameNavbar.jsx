@@ -28,15 +28,21 @@ const GameNavbar = ({
         <Clock
           size={14}
           className={`shrink-0 transition-colors ${
-            isLowTime ? "text-rose-400" : "text-zinc-500"
+            roundTimeLeft === 0
+              ? "text-white/80"
+              : isLowTime
+                ? "text-rose-400"
+                : "text-zinc-500"
           }`}
         />
         <div className="flex items-baseline gap-1">
           <span
             className={`text-xl font-bold tabular-nums transition-colors ${
-              isLowTime
-                ? "[animation:pulse_1s_cubic-bezier(0.4,0,0.6,1)_infinite] text-rose-400"
-                : "text-[#f7e7c8]"
+              roundTimeLeft === 0
+                ? "text-white/80"
+                : isLowTime
+                  ? "[animation:pulse_1s_cubic-bezier(0.4,0,0.6,1)_infinite] text-rose-400"
+                  : "text-[#f7e7c8]"
             }`}
           >
             {roundTimeLeft}
