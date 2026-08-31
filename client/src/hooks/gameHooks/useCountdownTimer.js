@@ -5,13 +5,14 @@ import { playAnyTimer } from "../../utils/timers.js";
 
 // Custom hook to handle countdown timer
 const useCountdownTimer = (initEndsAt) => {
+  // States
   const [timeLeft, setTimeLeft] = useState(5);
   const [timerFinished, setTimerFinished] = useState(() =>
     Boolean(initEndsAt && initEndsAt > Date.now() ? false : true),
   );
   const [timerEndsAt, setTimerEndsAt] = useState(initEndsAt);
 
-  // Cleanup ref
+  // Refs
   const cleanupRef = useRef(null);
 
   // On time left at 0 automatically set timer finished to true
@@ -37,8 +38,9 @@ const useCountdownTimer = (initEndsAt) => {
   // Handle new round start by resetting states
   useEffect(() => {
     const handleNewRound = ({ newEndsAt }) => {
-      setTimerFinished(false);
       setTimerEndsAt(newEndsAt);
+      setTimeLeft(0.01); // So timer finished doesnt instantly get set back to true
+      setTimerFinished(false);
     };
 
     // Listen for new round event
