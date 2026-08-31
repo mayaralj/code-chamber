@@ -159,12 +159,6 @@ const Game = () => {
   // Render
   return (
     <>
-      {/* {isReconnecting && (
-        <div className="fixed top-3 right-3 z-50 flex items-center gap-2 rounded-full border border-amber-500/30 bg-amber-500/10 px-3 py-1.5 text-xs font-semibold text-amber-400 shadow-lg">
-          <span className="h-2 w-2 animate-pulse rounded-full bg-amber-400" />
-          Reconnecting...
-        </div>
-      )} */}
       {/* Always render editor, just hide it */}
       <div
         className={`${

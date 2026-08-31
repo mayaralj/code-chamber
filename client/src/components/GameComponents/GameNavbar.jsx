@@ -53,7 +53,11 @@ const GameNavbar = ({
               ? "cursor-not-allowed border-emerald-500/30 bg-emerald-500/10 text-emerald-400"
               : codeStatus === "judging"
                 ? "cursor-not-allowed border-[#ffd687]/30 bg-zinc-800 text-[#ffd687]"
-                : "cursor-pointer border-zinc-700 bg-zinc-800 text-zinc-200 hover:border-rose-500/40 hover:bg-rose-500/10 hover:text-rose-300"
+                : codeStatus === "processing"
+                  ? "cursor-not-allowed border-zinc-700 bg-zinc-800 text-zinc-200"
+                  : isReconnecting
+                    ? "cursor-not-allowed border-zinc-700 bg-zinc-900 text-zinc-200/30"
+                    : "cursor-pointer border-zinc-700 bg-zinc-800 text-zinc-200 hover:border-rose-500/40 hover:bg-rose-500/10 hover:text-rose-300"
           }`}
           onClick={onSubmit}
           disabled={
