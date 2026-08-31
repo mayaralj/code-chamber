@@ -17,6 +17,7 @@ import beforeRound from "./beforeRound.js";
 // Timers (s)
 const COUNTDOWN_TIMER = 5;
 const ROUND_TIMER = 3000;
+const WAIT_BEFORE_RESULTS = 5;
 // Timeouts (ms)
 const FORCE_SUBMIT_TIMEOUT = 50000;
 
@@ -129,6 +130,13 @@ const startRound = async (io, socket, code) => {
   if (rooms[code].players.length === 0) {
     console.log(`Room ${code} has no players left, ending game`);
     await gameOver(io, code, roundData, null);
+    return;
+  }
+
+  // Wait before sending results (so players can see their own personal results before the full results are sent)
+  await sleep(WAIT_BEFORE_RESULTS * 1000);
+  // Check if room still exists
+  if (!rooms[code]) {
     return;
   }
 
