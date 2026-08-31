@@ -8,76 +8,93 @@ const Results = ({
   console.log("Rendering Results with results:", results);
   // Results modal that happens after every round centered in the middle
   return (
-    <div className="absolute inset-0 flex items-center justify-center bg-black/50 backdrop-blur-sm z-50">
-      <div className="bg-gray-800 rounded-lg p-8 w-[500px] flex flex-col gap-4">
-        <h1 className="text-2xl font-bold text-white text-center">Results</h1>
-        {/* Categories listing  */}
-        <div className="grid grid-cols-6 gap-4 text-center">
-          <span className="text-gray-400">Player</span>
-          <span className="text-gray-400">Passed</span>
-          <span className="text-gray-400">Test Cases Passed</span>
-          <span className="text-gray-400">Execution Time (ms)</span>
-          <span className="text-gray-400">Submit Time (s)</span>
-          <span className="text-gray-400">Score</span>
+    <div className="absolute inset-0 z-50 flex items-center justify-center bg-black/70 backdrop-blur-sm">
+      <div className="flex w-[560px] flex-col gap-4 rounded-xl border border-zinc-800 bg-zinc-900 p-7">
+        <h1 className="text-center text-xl font-bold text-zinc-100">
+          Round Results
+        </h1>
+        {/* Categories listing */}
+        <div className="grid grid-cols-6 gap-2 border-b border-zinc-800 pb-2 text-center text-[11px] font-semibold uppercase tracking-wide text-zinc-500">
+          <span>Player</span>
+          <span>Passed</span>
+          <span>Tests</span>
+          <span>Exec (ms)</span>
+          <span>Submit (s)</span>
+          <span>Score</span>
         </div>
-        {/* Create a list of each player's results */}
+        {/* Create a list of each players results */}
         {results.map((result, index) => (
-          <div key={index} className="grid grid-cols-6 gap-4 text-center">
-            <span className="text-white font-semibold">
+          <div
+            key={index}
+            className="grid grid-cols-6 gap-2 border-b border-zinc-800/60 pb-2 text-center text-sm text-zinc-300 last:border-b-0"
+          >
+            <span className="font-semibold text-zinc-100">
               {result.player.username}
             </span>
-            <span className="text-white">{result.passed ? "Yes" : "No"}</span>
-            <span className="text-white">{result?.testCasesPassed}</span>
-            <span className="text-white">
+            <span
+              className={
+                result.passed
+                  ? "font-medium text-emerald-400"
+                  : "font-medium text-rose-400"
+              }
+            >
+              {result.passed ? "Yes" : "No"}
+            </span>
+            <span>{result?.testCasesPassed}</span>
+            <span>
               {result.executionTime ? Math.round(result.executionTime) : "N/A"}
             </span>
-            <span className="text-white">{result?.submitTime}</span>
+            <span>{result?.submitTime}</span>
             {/* Total score */}
-            <span className="text-white">{result.score}</span>
+            <span className="font-semibold text-[#ffd99d]">{result.score}</span>
           </div>
         ))}
-
         {/* After round events */}
         {afterRoundEvents && afterRoundEvents.length > 0 && (
-          <div className="mt-4 p-4 text-white rounded-lg text-center">
-            <p className="text-xl font-bold">After Round Events:</p>
-            <ul>
+          <div className="rounded-lg border border-zinc-800 bg-zinc-950 p-4 text-center">
+            <p className="text-xs font-semibold uppercase tracking-wide text-zinc-400">
+              Round Recap
+            </p>
+            <ul className="mt-2 space-y-1">
               {afterRoundEvents.map((event, index) => (
-                <li key={index} className="text-lg">
+                <li key={index} className="text-sm text-zinc-300">
                   {event}
                 </li>
               ))}
             </ul>
           </div>
         )}
-
         {/* Missed Player */}
         {missedPlayer && (
-          <div className="mt-4 p-4 text-white rounded-lg text-center">
-            <p className="text-xl font-bold">Missed Player:</p>
-            <p>{missedPlayer}</p>
+          <div className="rounded-lg border border-[#4b4133]/20 bg-[#4b4133]/5 p-4 text-center">
+            <p className="text-xs font-semibold uppercase tracking-wide text-amber-400">
+              Missed Player
+            </p>
+            <p className="mt-1 text-sm text-zinc-200">{missedPlayer}</p>
           </div>
         )}
-
         {/* Player Eliminated Under all the players and their scores */}
         {eliminatedPlayers.length > 0 && (
-          <div className="mt-4 p-4 text-white rounded-lg text-center">
-            <p className="text-xl font-bold">Players Eliminated:</p>
-            <ul>
+          <div className="rounded-lg border border-rose-500/20 bg-rose-500/5 p-4 text-center">
+            <p className="text-xs font-semibold uppercase tracking-wide text-rose-400">
+              Players Eliminated
+            </p>
+            <ul className="mt-2 space-y-1">
               {eliminatedPlayers.map((player, index) => (
-                <li key={index} className="text-lg">
+                <li key={index} className="text-sm text-zinc-200">
                   {player}
                 </li>
               ))}
             </ul>
           </div>
         )}
-
         {/* Winner Announcement */}
         {winner && (
-          <div className="mt-4 p-4 text-white rounded-lg text-center">
-            <p className="text-xl font-bold">Winner:</p>
-            <p>{winner}</p>
+          <div className="rounded-lg border border-emerald-500/25 bg-emerald-500/10 p-4 text-center">
+            <p className="text-xs font-semibold uppercase tracking-wide text-emerald-400">
+              Winner
+            </p>
+            <p className="mt-1 text-lg font-bold text-emerald-300">{winner}</p>
           </div>
         )}
       </div>
