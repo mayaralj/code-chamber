@@ -137,7 +137,7 @@ const RoomWait = () => {
         socket.volatile.emit("leave-room", { code });
       }
     };
-  }, []);
+  }, [code, navigate]);
 
   // Handle reconnecting listeners
   useEffect(() => {
@@ -173,7 +173,7 @@ const RoomWait = () => {
       socket.off("player-reconnected");
       socket.off("reconnect-game-success");
     };
-  }, []);
+  }, [code, navigate]);
 
   // Handle rejoins
   useEffect(() => {
@@ -205,7 +205,7 @@ const RoomWait = () => {
       socket.off("room-reconnected", onRoomReconnected);
       socket.off("room-reconnect-error", rejoinError);
     };
-  }, [code, navigate]);
+  }, [code, navigate, isHost]);
 
   // Handle leaving room on page unload (so tab closes dont get flagged as reconnecting)
   useEffect(() => {
@@ -228,7 +228,7 @@ const RoomWait = () => {
     return () => {
       socket.off("room-deleted");
     };
-  }, []);
+  }, [code, navigate]);
 
   // Ensure they arent trying to enter the room from url only
   useEffect(() => {
@@ -236,7 +236,7 @@ const RoomWait = () => {
       toast.error("Invalid room access");
       navigate("/browse", { replace: true });
     }
-  }, []);
+  }, [location.state, navigate]);
   if (!location.state) return null;
 
   // Handle start game
@@ -277,7 +277,7 @@ const RoomWait = () => {
   const isReconnecting = connectionStatus === "reconnecting";
 
   return (
-    <div className="relative h-dvh overflow-hidden bg-[#0b0b0b] px-4 py-20 font-mono text-[#e7c49d] [background-image:radial-gradient(#5b4e3e_0.55px,transparent_0.55px)] [background-size:20px_20px] sm:px-6">
+    <div className="relative h-dvh overflow-hidden bg-[#0b0b0b] px-4 py-[clamp(1rem,6vh,5rem)] font-mono text-[#e7c49d] [background-image:radial-gradient(#5b4e3e_0.55px,transparent_0.55px)] [background-size:20px_20px] sm:px-6">
       {gameStarting && (
         <div className="absolute inset-0 z-50 flex items-center justify-center bg-[#0b0b0b]/90 px-6 backdrop-blur-sm">
           <div className="w-full max-w-md border border-[#ffdd9d] bg-[#151515] p-8 text-center shadow-[0_0_50px_rgba(255,221,157,0.12)]">
@@ -293,9 +293,9 @@ const RoomWait = () => {
           </div>
         </div>
       )}
-      <main className="mx-auto grid h-full w-full max-w-[680px] grid-rows-[auto_auto_minmax(0,1fr)_auto] gap-6">
+      <main className="mx-auto grid h-full w-full max-w-[680px] grid-rows-[auto_auto_minmax(0,1fr)_auto] gap-[clamp(0.75rem,3vh,1.5rem)]">
         <section className="text-center">
-          <h1 className="text-2xl font-black tracking-tight text-[#f1eee7] sm:text-4xl md:text-5xl">
+          <h1 className="text-xl font-black tracking-tight text-[#f1eee7] sm:text-3xl md:text-5xl">
             WAITING FOR CHAMBER INITIALIZATION
           </h1>
         </section>
@@ -330,9 +330,9 @@ const RoomWait = () => {
           </div>
 
           <div
-            className="mt-4 grid min-h-0 flex-1 gap-2"
+            className="modal-scroll mt-4 grid min-h-0 flex-1 gap-2 overflow-y-auto"
             style={{
-              gridTemplateRows: `repeat(${roomInfo?.maxPlayers || 1}, minmax(0, 1fr))`,
+              gridTemplateRows: `repeat(${roomInfo?.maxPlayers || 1}, minmax(3.25rem, 1fr))`,
             }}
           >
             {players.map((otherPlayer) => (
