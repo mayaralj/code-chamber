@@ -7,8 +7,8 @@ const useStatusEvents = () => {
   // States
   const [statusEvents, setStatusEvents] = useState([
     // Initial with game started and round 1 started
-    { id: 1, type: "game", message: "Game started" },
-    { id: 2, type: "round", message: "Round 1 started" },
+    { type: "game", message: "Game started" },
+    { type: "round", message: "Round 1 started" },
   ]);
 
   // Handle eliminated and missed players from results
@@ -26,7 +26,6 @@ const useStatusEvents = () => {
           setStatusEvents((prevEvents) => [
             ...prevEvents,
             {
-              id: Date.now() + Math.random(),
               type: "eliminated",
               message: `${player} was eliminated`,
             },
@@ -39,7 +38,6 @@ const useStatusEvents = () => {
         setStatusEvents((prevEvents) => [
           ...prevEvents,
           {
-            id: Date.now() + Math.random(),
             type: "missed",
             message: `${missedPlayer} was spared this round`,
           },
@@ -65,7 +63,6 @@ const useStatusEvents = () => {
       setStatusEvents((prevEvents) => [
         ...prevEvents,
         {
-          id: Date.now() + Math.random(),
           type: "round",
           message: `Round ${currentRound} started`,
         },
@@ -88,7 +85,6 @@ const useStatusEvents = () => {
       setStatusEvents((prevEvents) => [
         ...prevEvents,
         {
-          id: Date.now() + Math.random(),
           type: "submitted",
           message: `${playerSubmitted.username} submitted`,
         },
@@ -111,7 +107,6 @@ const useStatusEvents = () => {
       setStatusEvents((prevEvents) => [
         ...prevEvents,
         {
-          id: Date.now() + Math.random(),
           type: "disconnected",
           message: `${playerLeft.username} disconnected`,
         },

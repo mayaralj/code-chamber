@@ -50,7 +50,7 @@ const GameStatusBar = ({ events = [], currentRound }) => {
       </div>
 
       <div
-        key={latestEvent?.id ?? "empty"}
+        key={events.length}
         className="flex flex-1 items-center justify-center gap-2 [animation:status-fade-in_0.3s_ease-out]"
       >
         {latestEvent ? (
@@ -90,14 +90,14 @@ const GameStatusBar = ({ events = [], currentRound }) => {
                 [...events]
                   .reverse()
                   .slice(0, MAX_HISTORY_EVENTS)
-                  .map((event) => {
+                  .map((event, index) => {
                     const {
                       icon: EventIcon = Flag,
                       color: eventColor = "text-zinc-400",
                     } = EVENT_STYLES[event.type] || {};
                     return (
                       <div
-                        key={event.id}
+                        key={index}
                         className="flex items-center gap-2 rounded-xs px-2 py-1.5 text-sm text-zinc-300 hover:bg-zinc-800/60"
                       >
                         <EventIcon size={13} className={eventColor} />
