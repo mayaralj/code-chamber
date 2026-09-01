@@ -7,7 +7,6 @@ import { playAnyTimer } from "../../utils/timers.js";
 const useRoundTimer = (initRoundEndsAt, initTimeMultiplier) => {
   // States
   const [roundTimeLeft, setRoundTimeLeft] = useState(0);
-  const [roundTimerFinished, setRoundTimerFinished] = useState(false);
   const [timeMultiplier, setTimeMultiplier] = useState(initTimeMultiplier);
   const [roundEndsAt, setRoundEndsAt] = useState(initRoundEndsAt);
   const [currentRound, setCurrentRound] = useState(1);
@@ -37,7 +36,6 @@ const useRoundTimer = (initRoundEndsAt, initTimeMultiplier) => {
     const handleNewRound = ({ currentRound }) => {
       setCurrentRound(currentRound);
       setRoundTimeLeft(0);
-      setRoundTimerFinished(false);
     };
 
     // Listen for new round event
@@ -53,14 +51,12 @@ const useRoundTimer = (initRoundEndsAt, initTimeMultiplier) => {
     socket.on("round-tick", ({ roundEndsAt, timeMultiplier }) => {
       console.log(`Received round-tick with endsAt: ${roundEndsAt}`);
       // Game timer tick
-      setRoundTimerFinished(false);
       setRoundEndsAt(roundEndsAt);
       setTimeMultiplier(timeMultiplier);
     });
 
     // Game timer finished
     socket.on("round-timer-finished", () => {
-      setRoundTimerFinished(true);
       setRoundTimeLeft(0);
       // Cleanup timer
       if (roundTimerCleanupRef.current) {
