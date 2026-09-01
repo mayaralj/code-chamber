@@ -17,22 +17,25 @@ const usePlayerLeave = (code, setPlayerList, roomDeletedRef, timerFinished) => {
   // Player left
   useEffect(() => {
     // Helper to show the player-left toast with correct positioning
-    const showPlayerLeftToast = () => {
+    const showPlayerLeftToast = (playerLeft) => {
       if (toastIdRef.current) {
         toast.dismiss(toastIdRef.current);
       }
-      toastIdRef.current = toast("A player has left the game", {
+      toastIdRef.current = toast(`${playerLeft.username} has left the game`, {
         style: timerFinished ? {} : { marginTop: "-40px" },
       });
     };
 
-    socket.on("player-left", ({ players }) => {
-      showPlayerLeftToast();
+    // Handle player left event
+    const handlePlayerLeft = ({ playerLeft, players }) => {
+      showPlayerLeftToast(playerLeft);
       setPlayerList(players);
-    });
+    };
+
+    socket.on("player-left", handlePlayerLeft);
 
     return () => {
-      socket.off("player-left");
+      socket.off("player-left", handlePlayerLeft);
     };
   }, [setPlayerList, timerFinished]);
 
