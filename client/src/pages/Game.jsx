@@ -6,6 +6,7 @@ import CodeEditor from "../components/GameComponents/CodeEditor";
 import Timer from "../components/GameComponents/Timer";
 import Results from "../components/GameComponents/Results";
 import GameNavbar from "../components/GameComponents/GameNavbar";
+import GameStatusBar from "../components/GameComponents/GameStatusBar";
 import useCountdownTimer from "../hooks/gameHooks/useCountdownTimer";
 import useRoundTimer from "../hooks/gameHooks/useRoundTimer";
 import useGameQuestion from "../hooks/gameHooks/useGameQuestion";
@@ -22,6 +23,7 @@ import useResizableSplit from "../hooks/gameHooks/useResizableSplit";
 import Eliminated from "../components/GameComponents/Eliminated";
 import Missed from "../components/GameComponents/Missed";
 import toast from "react-hot-toast";
+import useStatusEvents from "../hooks/gameHooks/useStatusEvents";
 
 // Game component
 const Game = () => {
@@ -99,6 +101,9 @@ const Game = () => {
     winner,
     setWinner,
   } = useResults(code);
+
+  // Status Events
+  const { statusEvents } = useStatusEvents();
 
   // Refs
   const roomDeletedRef = useRef(false);
@@ -223,6 +228,7 @@ const Game = () => {
             />
           </div>
         </div>
+        <GameStatusBar events={statusEvents} currentRound={currentRound} />
         {/* Show Results if ready */}
         {resultsReady && (
           <Results

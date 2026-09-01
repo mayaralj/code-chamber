@@ -62,7 +62,13 @@ const leaveGame = (io, socket, code) => {
   }
 
   // Notify players in the room that someone left
-  io.to(code).emit("player-left", { players: buildPlayerList(room) });
+  io.to(code).emit("player-left", {
+    playerLeft: {
+      username: socket.data.username,
+      displayName: socket.data.displayName,
+    },
+    players: buildPlayerList(room),
+  });
 
   // Check if all players have submitted after someone leaves or player is only one left
   if (
