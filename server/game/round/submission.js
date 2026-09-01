@@ -36,7 +36,12 @@ export const notifySubmission = (io, socketId, room, code, result) => {
   io.to(socketId).emit("code-submitted", testCasesResults);
 
   // Emit to all players with list of submitted players
-  io.to(code).emit("update-players", {
+  io.to(code).emit("player-submitted", {
+    // Used a specific event name because this will also update status bar, not just the player list
+    playerSubmitted: {
+      username: result.player.username,
+      displayName: result.player.displayName,
+    },
     players: playerList,
   });
 };

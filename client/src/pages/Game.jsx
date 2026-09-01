@@ -73,7 +73,7 @@ const Game = () => {
     handleSubmit,
     handleLanguageChange,
     testCasesResults,
-  } = useCodeSubmission(code);
+  } = useCodeSubmission(code, setPlayerList);
 
   // Question
   const { question, setQuestion, starterCode, setStarterCode } =

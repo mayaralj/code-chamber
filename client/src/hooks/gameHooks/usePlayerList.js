@@ -34,7 +34,6 @@ const usePlayerList = (players) => {
     };
   }, []);
 
-  // Listen for submission updates and errors
   useEffect(() => {
     // Listen for player list update
     socket.on("update-players", ({ players }) => {

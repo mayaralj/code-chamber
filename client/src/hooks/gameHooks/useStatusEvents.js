@@ -81,6 +81,29 @@ const useStatusEvents = () => {
     };
   }, []);
 
+  // Listen for player submitted events
+  useEffect(() => {
+    const handlePlayerSubmitted = ({ playerSubmitted }) => {
+      console.log(`Player ${playerSubmitted.username} submitted code`);
+      setStatusEvents((prevEvents) => [
+        ...prevEvents,
+        {
+          id: Date.now() + Math.random(),
+          type: "submitted",
+          message: `${playerSubmitted.username} submitted`,
+        },
+      ]);
+    };
+
+    // Listen for player submitted event
+    socket.on("player-submitted", handlePlayerSubmitted);
+
+    // Cleanup
+    return () => {
+      socket.off("player-submitted", handlePlayerSubmitted);
+    };
+  }, []);
+
   // Listen for player left (disconnected) events
   useEffect(() => {
     const handlePlayerLeave = ({ playerLeft }) => {

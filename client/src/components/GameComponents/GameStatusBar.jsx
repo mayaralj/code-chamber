@@ -1,6 +1,14 @@
 // Imports
 import { useState } from "react";
-import { List, WifiOff, UserX, UserCheck, Flag, Rocket } from "lucide-react";
+import {
+  List,
+  WifiOff,
+  UserX,
+  UserCheck,
+  Flag,
+  Rocket,
+  CheckCircle2,
+} from "lucide-react";
 
 // Config
 const MAX_HISTORY_EVENTS = 8;
@@ -10,8 +18,9 @@ const EVENT_STYLES = {
   eliminated: { icon: UserX, color: "text-rose-400" },
   disconnected: { icon: WifiOff, color: "text-rose-400" },
   missed: { icon: UserCheck, color: "text-[#ffd687]" },
+  submitted: { icon: CheckCircle2, color: "text-emerald-400" },
   round: { icon: Flag, color: "text-zinc-400" },
-  game: { icon: Rocket, color: "text-emerald-400" },
+  game: { icon: Rocket, color: "text-sky-400" },
 };
 
 // GameStatusBar component to display current round and latest event

@@ -3,7 +3,7 @@ import { useState, useEffect, useRef, useCallback } from "react";
 import { socket } from "../../socket";
 
 // Hook to handle code submission
-const useCodeSubmission = (code) => {
+const useCodeSubmission = (code, setPlayerList) => {
   // Code input (ref because its faster to update + no need the actual state for any ui)
   const codeInputRef = useRef("");
 
@@ -127,6 +127,19 @@ const useCodeSubmission = (code) => {
       socket.off("request-code");
     };
   }, []);
+
+  // Handle someone else submitted
+  useEffect(() => {
+    const handlePlayerSubmitted = ({ players }) => {
+      setPlayerList(players);
+    };
+
+    socket.on("player-submitted", handlePlayerSubmitted);
+
+    return () => {
+      socket.off("player-submitted", handlePlayerSubmitted);
+    };
+  }, [code, setPlayerList]);
 
   return {
     handleCodeChange,
