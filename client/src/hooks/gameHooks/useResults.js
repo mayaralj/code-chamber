@@ -90,28 +90,32 @@ const useResults = () => {
       }
     });
 
+    const handleGameOver = ({
+      results,
+      gameOverEndsAt,
+      eliminatedPlayers,
+      winner,
+    }) => {
+      console.log("Game over received from server:", {
+        gameOverEndsAt,
+        eliminatedPlayers,
+        winner,
+      });
+      setResults(results);
+      setResultsReady(true);
+      setEliminatedPlayers(eliminatedPlayers);
+      setWinner(winner);
+      if (cleanupRef.current) {
+        cleanupRef.current();
+      }
+      cleanupRef.current = playAnyTimer({
+        endsAt: gameOverEndsAt,
+        functionSetter: setResultsTimer,
+      });
+    };
+
     // Game over connections
-    socket.on(
-      "game-over",
-      ({ results, gameOverEndsAt, eliminatedPlayers, winner }) => {
-        console.log("Game over received from server:", {
-          gameOverEndsAt,
-          eliminatedPlayers,
-          winner,
-        });
-        setResults(results);
-        setResultsReady(true);
-        setEliminatedPlayers(eliminatedPlayers);
-        setWinner(winner);
-        if (cleanupRef.current) {
-          cleanupRef.current();
-        }
-        cleanupRef.current = playAnyTimer({
-          endsAt: gameOverEndsAt,
-          functionSetter: setResultsTimer,
-        });
-      },
-    );
+    socket.on("game-over", handleGameOver);
 
     // Cleanup on unmount
     return () => {
@@ -121,7 +125,7 @@ const useResults = () => {
       }
       socket.off("send-results", handleResults);
       socket.off("results-timer-finished");
-      socket.off("game-over");
+      socket.off("game-over", handleGameOver);
     };
   }, []);
 
