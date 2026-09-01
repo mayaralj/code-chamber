@@ -20,7 +20,7 @@ const EVENT_STYLES = {
   missed: { icon: UserCheck, color: "text-[#ffd687]" },
   submitted: { icon: CheckCircle2, color: "text-emerald-400" },
   round: { icon: Flag, color: "text-zinc-400" },
-  game: { icon: Rocket, color: "text-sky-400" },
+  game: { icon: Rocket, color: "text-[#4f5f9c]" },
 };
 
 // GameStatusBar component to display current round and latest event
@@ -78,7 +78,7 @@ const GameStatusBar = ({ events = [], currentRound }) => {
               className="fixed inset-0 z-40"
               onClick={() => setShowHistory(false)}
             />
-            <div className="absolute bottom-full right-0 z-50 mb-2 flex max-h-72 w-72 flex-col gap-1 overflow-y-auto rounded-xs border border-zinc-800 bg-zinc-900 p-3 shadow-xl">
+            <div className="modal-scroll absolute bottom-full right-0 z-50 mb-2 flex max-h-72 w-72 flex-col gap-1 overflow-y-auto rounded-xs border border-zinc-800 bg-zinc-900 p-3 shadow-xl">
               <h2 className="mb-1 text-xs font-semibold uppercase tracking-wider text-zinc-400">
                 Recent Updates
               </h2>
