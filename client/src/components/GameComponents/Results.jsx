@@ -67,7 +67,7 @@ const Results = ({
         {/* Missed Player */}
         {missedPlayer && (
           <div className="rounded-lg border border-[#4b4133]/20 bg-[#4b4133]/5 p-4 text-center">
-            <p className="text-xs font-semibold uppercase tracking-wide text-amber-400">
+            <p className="text-xs font-semibold uppercase tracking-wide text-[#ffd687]/50">
               Missed Player
             </p>
             <p className="mt-1 text-sm text-zinc-200">{missedPlayer}</p>
