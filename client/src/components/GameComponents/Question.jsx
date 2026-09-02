@@ -5,6 +5,29 @@ const DIFFICULTY_STYLES = {
   hard: "border-rose-500/30 bg-rose-500/10 text-rose-400",
 };
 
+// Helper to highlight specific words within description
+const highlightWords = (description, wordsToHighlight) => {
+  if (!description) return description;
+
+  // lower case words for case-insensitive matching
+  const lowerWords = wordsToHighlight.map((w) => w.toLowerCase());
+
+  const parts = description.split(
+    new RegExp(`\\b(${wordsToHighlight.join("|")})\\b`, "gi"),
+  );
+
+  // Check if the part matches any of the words to highlight (case-insensitive) and wrap it in a span with styling
+  return parts.map((part, index) =>
+    lowerWords.includes(part.toLowerCase()) ? (
+      <span key={index} className="font-medium text-xl text-zinc-100">
+        {part}
+      </span>
+    ) : (
+      <span key={index}>{part}</span>
+    ),
+  );
+};
+
 // Question component
 const Question = ({ question }) => {
   // Determine the badge styling based on the question's difficulty, defaulting to neutral if not found
@@ -20,8 +43,8 @@ const Question = ({ question }) => {
         </span>
       </div>
       <div className="modal-scroll flex-1 overflow-y-auto px-5 py-4">
-        <div className="mb-3 flex items-center justify-between gap-3">
-          <h2 className="text-2xl font-bold text-zinc-100">
+        <div className="mb-5 flex items-center justify-between gap-3">
+          <h2 className="text-3xl font-bold text-zinc-100">
             {question?.title}
           </h2>
           {question?.difficulty && (
@@ -32,8 +55,13 @@ const Question = ({ question }) => {
             </span>
           )}
         </div>
-        <p className="whitespace-pre-wrap text-base leading-7 text-zinc-300">
-          {question?.description}
+        <p className="whitespace-pre-wrap text-lg leading-7 text-zinc-300">
+          {highlightWords(question?.description, [
+            "example",
+            "input",
+            "output",
+            "explanation",
+          ])}
         </p>
       </div>
     </div>
