@@ -24,6 +24,7 @@ import Eliminated from "../components/GameComponents/Eliminated";
 import Missed from "../components/GameComponents/Missed";
 import toast from "react-hot-toast";
 import useStatusEvents from "../hooks/gameHooks/useStatusEvents";
+import { socket } from "../socket";
 
 // Game component
 const Game = () => {
@@ -148,16 +149,20 @@ const Game = () => {
   useDisconnection(code, roomDeletedRef);
 
   // Check with server if user is supposed to be here
-  // useEffect(() => {
-  //   socket.emit("check-room", { code });
-  //   socket.once("check-room-response", ({ message, valid }) => {
-  //     if (!valid) {
-  //       toast.error(message);
-  //       console.log("User not valid for this room, redirecting to home");
-  //       navigate("/", { replace: true });
-  //     }
-  //   });
-  // }, []);
+  useEffect(() => {
+    socket.emit("check-player", { code });
+    socket.on("check-player-response", ({ message, valid }) => {
+      if (!valid) {
+        toast.error(message);
+        navigate("/browse", { replace: true });
+      }
+    });
+
+    // Cleanup
+    return () => {
+      socket.off("check-player-response");
+    };
+  }, [navigate, code]);
 
   // State check
   useEffect(() => {
