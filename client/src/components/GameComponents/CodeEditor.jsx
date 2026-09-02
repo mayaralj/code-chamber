@@ -42,21 +42,54 @@ const updateStarterCode = (
   onChange?.(starterCodeForLanguage);
 };
 
-// Strip the single outermost [ ] wrapper from an input string, if present
+// Helper to add a space after commas in a string, but not inside string literals
+const addSpaceAfterCommas = (str) => {
+  let result = "";
+  let inString = false;
+  for (let i = 0; i < str.length; i++) {
+    const char = str[i];
+    result += char;
+    if (char === '"' && str[i - 1] !== "\\") {
+      inString = !inString;
+    }
+    if (char === "," && !inString) {
+      result += " ";
+    }
+  }
+  return result;
+};
+
+// Convert a value to a JSON string, handling cases where the value is already a string or not
+const toJsonString = (value) => {
+  let str;
+  if (typeof value === "string") {
+    try {
+      str = JSON.stringify(JSON.parse(value));
+    } catch {
+      str = JSON.stringify(value);
+    }
+  } else {
+    str = JSON.stringify(value);
+  }
+  return addSpaceAfterCommas(str);
+};
+
+// Helper to strip outer brackets from a string if they exist
 const stripOuterBrackets = (input) => {
-  if (typeof input !== "string") return input;
-  const trimmed = input.trim();
+  const str = toJsonString(input);
+  const trimmed = str.trim();
   if (trimmed.startsWith("[") && trimmed.endsWith("]")) {
     return trimmed.slice(1, -1).trim();
   }
   return trimmed;
 };
 
-// Render a value as text, explicitly labeling null/undefined instead of hiding them
+// Helper to format a value for display in the output console, handling undefined, null, strings, and other types
 const formatValueForDisplay = (value) => {
   if (value === undefined) return "undefined";
   if (value === null) return "null";
-  return String(value);
+  if (typeof value === "string") return value;
+  return addSpaceAfterCommas(JSON.stringify(value));
 };
 
 const CodeEditor = ({
