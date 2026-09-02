@@ -79,18 +79,12 @@ export const setUpGameQuestions = async (rooms, code) => {
   let totalRounds = rooms[code].totalRounds;
   let currentRound = 1;
   let excludeList = [];
-  let first = true;
 
   // Create a list of questions for the game based on the number of players
   while (currentRound <= totalRounds) {
-    // if first force get celsiusToFahrenheit question for first round
-    let randomQuestion;
-    if (first && rooms[code].difficulty === "easy") {
-      randomQuestion = questions.find((q) => q.title === "Two Sum");
-      first = false;
-    } else {
-      randomQuestion = getQuestion(questions, excludeList);
-    }
+    // Grab Random question from the list of questions, excluding any that have already been used in the room
+    const randomQuestion = getQuestion(questions, excludeList);
+
     // Add the question ID to the exclude list to avoid duplicates
     excludeList.push(randomQuestion.id);
 
