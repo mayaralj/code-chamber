@@ -16,7 +16,7 @@ import beforeRound from "./beforeRound.js";
 // Config
 // Timers (s)
 const COUNTDOWN_TIMER = 5;
-const ROUND_TIMER = 3000;
+const ROUND_TIMER = 180;
 const WAIT_BEFORE_RESULTS = 5;
 // Timeouts (ms)
 const FORCE_SUBMIT_TIMEOUT = 50000;
