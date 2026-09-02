@@ -170,7 +170,7 @@ const Game = () => {
       toast.error("Invalid game state");
       navigate("/browse", { replace: true });
     }
-  }, []);
+  }, [location.state, navigate]);
 
   if (!location.state) return null;
 
