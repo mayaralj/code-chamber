@@ -134,3 +134,69 @@ describe("executor container cleanup", () => {
     expect(removeContainer).toHaveBeenCalled();
   }, 15000);
 });
+
+// Smoke tests for sandbox isolation
+describe("executor sandbox isolation", () => {
+  it("blocks outbound network access (javascript)", async () => {
+    const code = `
+        async function tryFetch() {
+          try {
+            await fetch("http://example.com");
+            return "network-worked";
+          } catch (e) {
+            return "network-blocked";
+          }
+        }
+      `;
+    const result = await runCode("javascript", code, "tryFetch", [
+      { input: [], expected: "network-blocked" },
+    ]);
+    const output = result.testCasesResults?.[0]?.output;
+    expect(output).not.toBe("network-worked");
+  }, 15000);
+
+  it("kills excessive memory allocation instead of hanging (javascript)", async () => {
+    const code = `
+        function bomb() {
+          const chunks = [];
+          while (true) {
+            chunks.push(new Array(1e7).fill(0));
+          }
+        }
+      `;
+    const result = await runCode("javascript", code, "bomb", [
+      { input: [], expected: null },
+    ]);
+    expect(result.passed).toBe(false);
+  }, 15000);
+});
+
+// Test if the executor respects the concurrency cap by running multiple test cases that each sleep for a while, and measuring the total time taken.
+describe("executor concurrency cap", () => {
+  it("runs test cases with bounded concurrency, not fully sequential or unbounded", async () => {
+    const code = `
+        function sleepThenEcho(x) {
+          const start = Date.now();
+          while (Date.now() - start < 500) {}
+          return x;
+        }
+      `;
+    const testCases = Array.from({ length: 9 }, (_, i) => ({
+      input: [i],
+      expected: i,
+    }));
+
+    const start = Date.now();
+    const result = await runCode(
+      "javascript",
+      code,
+      "sleepThenEcho",
+      testCases,
+    );
+    const elapsed = Date.now() - start;
+
+    expect(result.passed).toBe(true);
+    expect(elapsed).toBeGreaterThan(1200); // rules out full parallelism
+    expect(elapsed).toBeLessThan(4000); // rules out full sequential (~4500ms)
+  }, 15000);
+});
