@@ -19,29 +19,6 @@ const DEFAULT_EDITOR_SETTINGS = {
   tabSize: 4,
 };
 
-// Update starter code helper
-const updateStarterCode = (
-  editorRef,
-  language,
-  starterCode,
-  savedCode,
-  onChange,
-) => {
-  if (!editorRef.current || !starterCode) {
-    return;
-  }
-  if (savedCode && savedCode[language]) {
-    return;
-  }
-  const starterCodeForLanguage = starterCode[language];
-  if (!starterCodeForLanguage) {
-    console.log(`No starter code found for language: ${language}`);
-    return;
-  }
-  editorRef.current.setValue(starterCodeForLanguage);
-  onChange?.(starterCodeForLanguage);
-};
-
 // Helper to add a space after commas in a string, but not inside string literals
 const addSpaceAfterCommas = (str) => {
   let result = "";
@@ -226,29 +203,25 @@ const CodeEditor = ({
   };
 
   useEffect(() => {
-    if (!editorRef.current) {
-      return;
-    }
-    const currentCode = editorRef.current.getValue();
-    savedCode.current[previousLanguage.current] = currentCode;
-    editorRef.current.setValue(savedCode.current[language] || "");
-    previousLanguage.current = language;
-  }, [language]);
-
-  useEffect(() => {
     handleRoundChange();
   }, [starterCode]);
 
   useEffect(() => {
-    if (!editorReady) return;
-    updateStarterCode(
-      editorRef,
-      language,
-      starterCode,
-      savedCode.current,
-      onChange,
-    );
-  }, [editorReady, language, starterCode, onChange]);
+    // Ensure the editor is ready and the starter code is available before updating the editor content
+    if (!editorRef.current || !editorReady) return;
+
+    // Save the current code for the previous language before switching to the new language
+    const currentCode = editorRef.current.getValue();
+    savedCode.current[previousLanguage.current] = currentCode;
+
+    // Determine the next code to display: either the saved code for the new language, or its starter code, or an empty string if neither exists
+    const next = savedCode.current[language] || starterCode?.[language] || "";
+
+    // Update the editor content and call onChange with the new code
+    editorRef.current.setValue(next);
+    onChange?.(next);
+    previousLanguage.current = language;
+  }, [language, editorReady, starterCode, onChange]);
 
   // Highlight the error line (red) in the editor for the selected test case
   useEffect(() => {
