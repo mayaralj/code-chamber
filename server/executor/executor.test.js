@@ -1,8 +1,20 @@
 // Imports
-import { describe, it, expect, beforeAll, afterAll } from "vitest";
+import { describe, it, expect, beforeAll, afterAll, vi } from "vitest";
 import db from "../db.js";
-import runCode from "./executor.js";
 import { startPool, stopPool } from "./containerPool.js";
+
+// Mock containerPool's removeContainer to check if it's called after each runCode execution, and to actually remove the container to avoid test leaks
+vi.mock("./containerPool.js", async (importOriginal) => {
+  const actual = await importOriginal();
+  return {
+    ...actual,
+    removeContainer: vi.fn(actual.removeContainer),
+  };
+});
+
+// Import after the mock so runCode picks up the mocked removeContainer
+import runCode from "./executor.js";
+import { removeContainer } from "./containerPool.js";
 
 // Load all solutions and test cases from the database
 const { rows: solutions } = await db.query(`
@@ -22,23 +34,20 @@ for (const tc of allTestCases) {
   });
 }
 
-// Start the container pool before running tests and stop it afterward
+// Before all tests, start the container pool. After all tests, stop the pool.
 beforeAll(async () => {
   await startPool();
 }, 60000);
-
-// Stop the container pool after all tests have completed
 afterAll(async () => {
   await stopPool();
 });
 
-// Test suite for executor correctness per question and its solution(s)
+// Test that each solution passes its test cases for corresponding question
 describe("executor correctness per question and its solution(s)", () => {
   it("has at least one solution loaded", () => {
     expect(solutions.length).toBeGreaterThan(0);
   });
 
-  // Run each solution in its respective language and check if it passes all test cases
   for (const solution of solutions) {
     it.concurrent(
       `solves "${solution.question_title}" in ${solution.language} (${solution.approach})`,
@@ -55,6 +64,7 @@ describe("executor correctness per question and its solution(s)", () => {
     );
   }
 });
+
 // Tests for error handling (unsupported language, infinite loop, compile failure, runtime crash)
 describe("executor error handling", () => {
   it("returns an error for an unsupported language", async () => {
@@ -99,4 +109,28 @@ describe("executor error handling", () => {
     expect(result.testCasesResults[0].error).toBeTruthy();
     expect(result.testCasesResults[0].error).not.toBe("Time Limit Exceeded");
   });
+});
+
+// Test container cleanup after various outcomes (compile failure, runtime error, success, timeout)
+describe("executor container cleanup", () => {
+  it("removes the container after a compile failure", async () => {
+    removeContainer.mockClear();
+    const badCode = `int add(int a, int b) { return a + b `;
+    await runCode("cpp", badCode, "add", []);
+    expect(removeContainer).toHaveBeenCalled();
+  });
+
+  it("removes the container after a successful run", async () => {
+    removeContainer.mockClear();
+    const code = `function add(a, b) { return a + b; }`;
+    await runCode("javascript", code, "add", [{ input: [1, 2], expected: 3 }]);
+    expect(removeContainer).toHaveBeenCalled();
+  });
+
+  it("removes the container after a Time Limit Exceeded", async () => {
+    removeContainer.mockClear();
+    const code = `function slow() { while (true) {} }`;
+    await runCode("javascript", code, "slow", [{ input: [], expected: null }]);
+    expect(removeContainer).toHaveBeenCalled();
+  }, 15000);
 });
