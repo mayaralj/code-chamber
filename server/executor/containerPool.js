@@ -29,11 +29,19 @@ const createContainer = async (language, timeout = 30000) => {
 };
 
 // Helper to remove a container
+const removingContainers = new Set();
 export const removeContainer = async (containerId) => {
+  // Avoid removing the same container multiple times
+  if (removingContainers.has(containerId)) {
+    return;
+  }
+  removingContainers.add(containerId);
   try {
     await execAsync(`docker rm -f ${containerId}`, { timeout: 10000 });
   } catch (error) {
     console.error(`Error removing failed container ${containerId}:`, error);
+  } finally {
+    removingContainers.delete(containerId);
   }
 };
 
