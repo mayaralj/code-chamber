@@ -1,4 +1,6 @@
 // Imports
+import dotenv from "dotenv";
+dotenv.config();
 import { Pool, types } from "pg";
 
 // Override the default parsing of numeric types to return them as JavaScript numbers instead of strings
