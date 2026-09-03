@@ -235,7 +235,7 @@ export const processSubmission = async (
   } else if (result.executionTime) {
     roundData.averageExecutionTime[language] =
       (roundData.averageExecutionTime[language] + result.executionTime) /
-      roundData.roundResults.length;
+      roundData.roundResults.filter((r) => r.languageUsed === language).length;
   }
 
   return result;
