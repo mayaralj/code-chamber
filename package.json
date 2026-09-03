@@ -2,5 +2,8 @@
   "dependencies": {
     "p-limit": "^7.3.0",
     "pg": "^8.21.0"
+  },
+  "devDependencies": {
+    "vitest": "^4.1.11"
   }
 }
