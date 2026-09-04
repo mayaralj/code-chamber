@@ -12,7 +12,7 @@ const deleteRoom = (io, rooms, code, message) => {
     delete playersInRooms[player.userId];
   });
   broadcastRemoveRoom(io, code);
-  delete roomIdToCode[rooms[code].id];
+  delete roomIdToCode[rooms[code].roomId];
   currentRoomNames.delete(rooms[code].roomName);
   delete rooms[code];
   console.log(`Room ${code} deleted`);
