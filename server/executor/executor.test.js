@@ -196,6 +196,7 @@ describe("executor concurrency cap", () => {
     const elapsed = Date.now() - start;
 
     expect(result.passed).toBe(true);
+    // Check if its within the bounds where we know the executor is respecting the concurrency cap (not fully sequential or unbounded)
     expect(elapsed).toBeGreaterThan(1200); // rules out full parallelism
     expect(elapsed).toBeLessThan(4000); // rules out full sequential (~4500ms)
   }, 15000);
