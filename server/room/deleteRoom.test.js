@@ -50,7 +50,7 @@ describe("deleteRoom no-op guard", () => {
   it("does nothing when the room does not exist", () => {
     const io = makeIo();
 
-    deleteRoom(io, rooms, CODE, "some message");
+    deleteRoom(io, CODE, "some message");
 
     expect(broadcastRemoveRoom).not.toHaveBeenCalled();
     expect(io.to).not.toHaveBeenCalled();
@@ -68,7 +68,7 @@ describe("deleteRoom full cleanup", () => {
     playersInRooms["u2"] = CODE;
     currentRoomNames.add(room.roomName);
 
-    deleteRoom(io, rooms, CODE, "Host left the room");
+    deleteRoom(io, CODE, "Host left the room");
 
     expect(roomIdToCode[room.roomId]).toBeUndefined();
     expect(Object.keys(roomIdToCode)).toHaveLength(0);
@@ -97,7 +97,7 @@ describe("deleteRoom full cleanup", () => {
     const io = makeIo();
     rooms[CODE] = makeRoom();
 
-    deleteRoom(io, rooms, CODE);
+    deleteRoom(io, CODE);
 
     expect(io._emit).toHaveBeenCalledWith("room-deleted", {
       message: "Room deleted",
@@ -119,7 +119,7 @@ describe("deleteRoom full cleanup", () => {
     playersInRooms["u3"] = CODE;
     playersInRooms["u4"] = CODE;
 
-    deleteRoom(io, rooms, CODE);
+    deleteRoom(io, CODE);
 
     for (const id of ["u1", "u2", "u3", "u4"]) {
       expect(playersInRooms[id]).toBeUndefined();

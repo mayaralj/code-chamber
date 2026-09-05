@@ -1,8 +1,9 @@
 import { roomIdToCode, playersInRooms, currentRoomNames } from "../globals.js";
 import { broadcastRemoveRoom } from "../broadcast/broadcastRooms.js";
+import { rooms } from "../globals.js";
 
 // Helper to delete room
-const deleteRoom = (io, rooms, code, message) => {
+const deleteRoom = (io, code, message) => {
   if (!rooms[code]) {
     return;
   }

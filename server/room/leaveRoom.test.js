@@ -107,12 +107,7 @@ describe("leaveRoom when the host leaves", () => {
 
     leaveRoom(io, socket, CODE);
 
-    expect(deleteRoom).toHaveBeenCalledWith(
-      io,
-      rooms,
-      CODE,
-      "Host left the room",
-    );
+    expect(deleteRoom).toHaveBeenCalledWith(io, CODE, "Host left the room");
     expect(playersInRooms["u1"]).toBeUndefined();
     expect(socket.leave).toHaveBeenCalledWith(CODE);
     // Normal leave notifications should NOT fire in this branch
@@ -126,12 +121,7 @@ describe("leaveRoom when the host leaves", () => {
 
     leaveRoom(io, socket, CODE);
 
-    expect(deleteRoom).toHaveBeenCalledWith(
-      io,
-      rooms,
-      CODE,
-      "Host left the room",
-    );
+    expect(deleteRoom).toHaveBeenCalledWith(io, CODE, "Host left the room");
   });
 });
 
@@ -148,12 +138,7 @@ describe("leaveRoom when the last player leaves", () => {
 
     leaveRoom(io, socket, CODE);
 
-    expect(deleteRoom).toHaveBeenCalledWith(
-      io,
-      rooms,
-      CODE,
-      "Room became empty",
-    );
+    expect(deleteRoom).toHaveBeenCalledWith(io, CODE, "Room became empty");
     expect(playersInRooms["u2"]).toBeUndefined();
   });
 });

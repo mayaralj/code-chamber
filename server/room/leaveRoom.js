@@ -42,12 +42,12 @@ const leaveRoom = (io, socket, code) => {
 
   if (!room.host || room.host.userId === socket.data.id) {
     // Kick everyone when host leaves and delete room
-    deleteRoom(io, rooms, code, "Host left the room");
+    deleteRoom(io, code, "Host left the room");
     console.log(`Host left room ${code}, deleting room`);
   } else {
     // Delete room if empty
     if (room.players.length === 0) {
-      deleteRoom(io, rooms, code, "Room became empty");
+      deleteRoom(io, code, "Room became empty");
       console.log(`Room ${code} deleted as it became empty`);
     } else {
       // Notify players in the room that someone left

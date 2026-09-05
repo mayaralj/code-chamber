@@ -56,7 +56,7 @@ const leaveGame = (io, socket, code) => {
 
   // Check if no players remaining
   if (room.players.length === 0) {
-    deleteRoom(io, rooms, code, "Last player left the game");
+    deleteRoom(io, code, "Last player left the game");
     console.log(`Room ${code} deleted as last player left`);
     return;
   }

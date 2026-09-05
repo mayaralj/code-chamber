@@ -111,5 +111,5 @@ export const gameOver = async (io, code, roundData, winner) => {
 
   // Delete room
   console.log(`Game over in room ${code}, deleting room`);
-  deleteRoom(io, rooms, code, "Game over");
+  deleteRoom(io, code, "Game over");
 };
