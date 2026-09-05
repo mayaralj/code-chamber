@@ -101,7 +101,7 @@ const reconnectGame = async (io, socket, code) => {
   }
 
   // Get player round data
-  const playerRoundData = player?.gameData?.roundData[room.currentRound];
+  const playerRoundData = player?.gameData?.roundData?.[room.currentRound];
   if (!playerRoundData) {
     socket.emit("reconnect-game-error", {
       message: "No round data found for player",
