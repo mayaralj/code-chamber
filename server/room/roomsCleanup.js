@@ -12,7 +12,7 @@ import { broadcastRemoveRoom } from "../broadcast/broadcastRooms.js";
 const CLEANUP_INTERVAL = 30 * 1000;
 let cleanupTimer = null;
 const INACTIVITY_THRESHOLD = 10 * 60 * 1000; // 10 minutes
-const STALE_MATCH_THRESHOLD = "1 second";
+const STALE_MATCH_THRESHOLD = "1 hour"; // only crashed/abandoned games should ever hit this
 
 // Helper to delete inactive rooms and notify players
 const deleteInactiveRooms = (io) => {
@@ -46,16 +46,18 @@ const deleteInactiveRooms = (io) => {
       broadcastRemoveRoom(io, code);
       console.log(`Room ${code} deleted due to inactivity`);
 
-      // Remove room from database
-      db.query(`DELETE FROM rooms WHERE room_id = $1`, [room.roomId])
-        .then(() => {
-          console.log(`Room ${code} removed from database`);
-        })
-        .catch((err) => {
-          console.error(
-            `Error removing room ${code} from database: ${err.message}`,
-          );
-        });
+      // Only rooms that actually started a game were ever inserted into the db
+      if (room.isGameStarted) {
+        db.query(`DELETE FROM rooms WHERE room_id = $1`, [room.roomId])
+          .then(() => {
+            console.log(`Room ${code} removed from database`);
+          })
+          .catch((err) => {
+            console.error(
+              `Error removing room ${code} from database: ${err.message}`,
+            );
+          });
+      }
 
       // Finally, delete the room
       delete rooms[code];
@@ -63,19 +65,17 @@ const deleteInactiveRooms = (io) => {
   }
 };
 
-// Helper to delete rooms from db whose matches were started but never resolved
+// Helper to delete rooms from db whose games never resolved for any player OR games with no matches played (e.g. server crashed before tracking any matches)
 const deleteStaleUnfinishedMatches = async () => {
   try {
-    // Query but filter by past hour to avoid deleting recent matches that are still in progress
     const { rows } = await db.query(
-      `DELETE FROM rooms
-       WHERE room_id IN (
-         SELECT DISTINCT room_id
-         FROM matches
-         WHERE won IS NULL
-           AND played_at < NOW() - INTERVAL '${STALE_MATCH_THRESHOLD}'
-       )
-       RETURNING room_id`,
+      `DELETE FROM rooms r
+       WHERE r.created_at < NOW() - INTERVAL '${STALE_MATCH_THRESHOLD}'
+         AND NOT EXISTS (
+           SELECT 1 FROM matches m
+           WHERE m.room_id = r.room_id AND m.won IS NOT NULL
+         )
+       RETURNING r.room_id`,
     );
 
     // Log the deleted rooms
