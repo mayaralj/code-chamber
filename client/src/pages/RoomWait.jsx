@@ -6,6 +6,9 @@ import { LoaderCircle, Crown } from "lucide-react";
 import usePlayer from "../hooks/usePlayer.js";
 import toast from "react-hot-toast";
 
+// Config
+const MINIMUM_PLAYERS_TO_START = 2;
+
 // RoomWait component
 const RoomWait = () => {
   // Code and navigate
@@ -247,7 +250,7 @@ const RoomWait = () => {
     }
 
     // Ensure at least 1 player
-    if (players.length < 1) {
+    if (players.length < MINIMUM_PLAYERS_TO_START) {
       setGameStartingError("Not enough players to start game");
       return;
     }

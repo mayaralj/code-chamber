@@ -63,8 +63,8 @@ const handleStartGame = async (io, socket, code) => {
     return;
   }
 
-  // Check if more than 1 player
-  if (room.players.length < 1) {
+  // Check if more than 2 player
+  if (room.players.length < 2) {
     socket.emit("start-game-error", {
       message: "Not enough players to start game",
     });

@@ -35,7 +35,7 @@ export const isRoomStillValid = (io, socket, code) => {
   if (!room) return false;
 
   // If room has not enough players, cancel game start and delete room
-  if (room.players.length < 1) {
+  if (room.players.length < 2) {
     for (const player of room.players) {
       delete playersInRooms[player.userId];
     }
