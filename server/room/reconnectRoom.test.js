@@ -1,5 +1,6 @@
 // Imports
 import { describe, it, expect, vi, beforeEach } from "vitest";
+import { RECONNECT_TIMEOUT } from "./reconnectRoom.js";
 
 // Mock dependencies
 vi.mock("./leaveRoom.js", () => ({
@@ -153,7 +154,7 @@ describe("startReconnectTimeout", () => {
     startReconnectTimeout(io, socket);
     expect(leaveRoom).not.toHaveBeenCalled();
 
-    vi.advanceTimersByTime(3000);
+    vi.advanceTimersByTime(RECONNECT_TIMEOUT);
 
     expect(leaveRoom).toHaveBeenCalledWith(io, socket, CODE);
     vi.useRealTimers();

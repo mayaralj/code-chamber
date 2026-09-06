@@ -4,7 +4,7 @@ import leaveGame from "../game/leaveGame.js";
 import { buildPlayerList } from "../utils/playerList.js";
 
 // Config
-const RECONNECT_TIMEOUT = 3000;
+export const RECONNECT_TIMEOUT = 3 * 1000;
 
 // Helper to handle the reconnect timeout for a player
 export const startReconnectTimeout = (io, socket) => {

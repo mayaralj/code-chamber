@@ -6,8 +6,8 @@ import { rooms } from "../../globals.js";
 import { trackMatch } from "./roundUtils.js";
 
 // CONFIG
-const RESULTS_TIMER = 10 * 1000;
-const GAME_OVER_TIMER = 5 * 1000;
+export const RESULTS_TIMER = 10 * 1000;
+export const GAME_OVER_TIMER = 10 * 1000;
 
 // Helper to calculate score based on results
 export const calculateScore = (result, averageExecutionTime) => {

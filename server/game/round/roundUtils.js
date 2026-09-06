@@ -5,7 +5,7 @@ import { rooms } from "../../globals.js";
 import db from "../../db.js";
 
 // Config
-export const RECONNECT_TIMEOUT = 5 * 60 * 1000;
+export const ROUND_RECONNECT_TIMEOUT = 5 * 60 * 1000;
 
 // Helper to wait for reconnecting players to reconnect or timeout
 export const waitForReconnectingPlayers = async (io, code) => {
@@ -32,7 +32,7 @@ export const waitForReconnectingPlayers = async (io, code) => {
     io.to(code).emit("waiting-for-reconnect");
     // Store a cancellable sleep
     const { promise: reconnectSleepPromise, cancel: cancelReconnectSleep } =
-      cancellableSleep(RECONNECT_TIMEOUT);
+      cancellableSleep(ROUND_RECONNECT_TIMEOUT);
     roundData.reconnectSleepCancel = cancelReconnectSleep;
     await reconnectSleepPromise;
     roundData.reconnectSleepCancel = null;
