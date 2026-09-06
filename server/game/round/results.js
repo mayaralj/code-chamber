@@ -6,8 +6,8 @@ import { rooms } from "../../globals.js";
 import { trackMatch } from "./roundUtils.js";
 
 // CONFIG
-const RESULTS_TIMER = 10;
-const GAME_OVER_TIMER = 5;
+const RESULTS_TIMER = 10 * 1000;
+const GAME_OVER_TIMER = 5 * 1000;
 
 // Helper to calculate score based on results
 export const calculateScore = (result, averageExecutionTime) => {
@@ -76,7 +76,7 @@ export const sendResults = async (io, code, roundData) => {
   });
 
   // Sleep for results timer duration
-  await sleep(RESULTS_TIMER * 1000);
+  await sleep(RESULTS_TIMER);
 
   // Emit that results timer is finished
   io.to(code).emit("results-timer-finished");
@@ -101,7 +101,7 @@ export const gameOver = async (io, code, roundData, winner) => {
     });
 
     // Sleep for game over timer duration
-    await sleep(GAME_OVER_TIMER * 1000);
+    await sleep(GAME_OVER_TIMER);
 
     // Check if room still exists before deleting
     if (!rooms[code]) {

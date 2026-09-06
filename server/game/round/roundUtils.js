@@ -4,6 +4,9 @@ import { buildPlayerList } from "../../utils/playerList.js";
 import { rooms } from "../../globals.js";
 import db from "../../db.js";
 
+// Config
+export const RECONNECT_TIMEOUT = 5 * 60 * 1000;
+
 // Helper to wait for reconnecting players to reconnect or timeout
 export const waitForReconnectingPlayers = async (io, code) => {
   // Get room and round data
@@ -29,7 +32,7 @@ export const waitForReconnectingPlayers = async (io, code) => {
     io.to(code).emit("waiting-for-reconnect");
     // Store a cancellable sleep
     const { promise: reconnectSleepPromise, cancel: cancelReconnectSleep } =
-      cancellableSleep(1000 * 60 * 5);
+      cancellableSleep(RECONNECT_TIMEOUT);
     roundData.reconnectSleepCancel = cancelReconnectSleep;
     await reconnectSleepPromise;
     roundData.reconnectSleepCancel = null;
@@ -136,7 +139,7 @@ export const startRoundTimer = async (io, code, roundData, ROUND_TIMER) => {
   if (rooms[code].players.length > 0) {
     // Create a new promise and cancel function for the round timer
     const { promise: roundTimerPromise, cancel: cancelRoundTimer } =
-      cancellableSleep((ROUND_TIMER / timeMultiplier) * 1000);
+      cancellableSleep(ROUND_TIMER / timeMultiplier);
 
     // Save the cancel function in the room so it can be cancelled if all players submit early
     roundData.cancelRoundTimer = cancelRoundTimer;

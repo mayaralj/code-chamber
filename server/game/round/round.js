@@ -15,10 +15,10 @@ import beforeRound from "./beforeRound.js";
 
 // Config
 // Timers (ms)
-const COUNTDOWN_TIMER = 5 * 1000;
-const ROUND_TIMER = 180 * 1000;
-const WAIT_BEFORE_RESULTS = 5 * 1000;
-const FORCE_SUBMIT_TIMEOUT = 50000;
+export const COUNTDOWN_TIMER = 5 * 1000;
+export const ROUND_TIMER = 180 * 1000;
+export const WAIT_BEFORE_RESULTS = 5 * 1000;
+export const FORCE_SUBMIT_TIMEOUT = 50000;
 
 // Start round
 const startRound = async (io, socket, code) => {
