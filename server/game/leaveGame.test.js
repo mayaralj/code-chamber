@@ -105,7 +105,7 @@ describe("leaveGame elimination", () => {
 
     expect(trackMatch).toHaveBeenCalledWith(
       expect.objectContaining({ userId: "u1" }),
-      rooms[CODE],
+      rooms[CODE].roomId,
       false,
       expect.any(Number),
     );
