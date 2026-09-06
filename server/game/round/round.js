@@ -14,11 +14,10 @@ import {
 import beforeRound from "./beforeRound.js";
 
 // Config
-// Timers (s)
-const COUNTDOWN_TIMER = 5;
-const ROUND_TIMER = 180;
-const WAIT_BEFORE_RESULTS = 5;
-// Timeouts (ms)
+// Timers (ms)
+const COUNTDOWN_TIMER = 5 * 1000;
+const ROUND_TIMER = 180 * 1000;
+const WAIT_BEFORE_RESULTS = 5 * 1000;
 const FORCE_SUBMIT_TIMEOUT = 50000;
 
 // Start round
@@ -37,7 +36,7 @@ const startRound = async (io, socket, code) => {
   }
 
   // Wait for countdown
-  await sleep(COUNTDOWN_TIMER * 1000);
+  await sleep(COUNTDOWN_TIMER);
   // Check if room still exists
   if (!rooms[code]) {
     return;
@@ -125,7 +124,7 @@ const startRound = async (io, socket, code) => {
   calculateAllScores(io, code, roundData);
 
   // Wait before sending results (so players can see their own personal results before the full results are sent)
-  await sleep(WAIT_BEFORE_RESULTS * 1000);
+  await sleep(WAIT_BEFORE_RESULTS);
   // Check if room still exists
   if (!rooms[code]) {
     return;

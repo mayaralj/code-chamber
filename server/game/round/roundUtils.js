@@ -116,7 +116,7 @@ export const startRoundTimer = async (io, code, roundData, ROUND_TIMER) => {
   // Save start round time
   roundData.roundStartTime = Date.now();
   const timeMultiplier = roundEvents?.beforeRound?.fasterTimer || 1;
-  roundData.roundEndsAt = Date.now() + 1000 * ROUND_TIMER;
+  roundData.roundEndsAt = Date.now() + ROUND_TIMER;
 
   // Start game timer
   buildReconnectData(rooms[code], "round-tick");
@@ -126,7 +126,7 @@ export const startRoundTimer = async (io, code, roundData, ROUND_TIMER) => {
   });
 
   // Update server with multiplier tho
-  roundData.roundEndsAt = Date.now() + 1000 * (ROUND_TIMER / timeMultiplier);
+  roundData.roundEndsAt = Date.now() + ROUND_TIMER / timeMultiplier;
 
   // Allow submissions now
   roundData.submissionsAllowed = true;

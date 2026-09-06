@@ -20,7 +20,7 @@ const beforeRound = (room, COUNTDOWN_TIMER) => {
   });
 
   // Begin initial countdown
-  roundData.endsAt = Date.now() + 1000 * COUNTDOWN_TIMER;
+  roundData.endsAt = Date.now() + COUNTDOWN_TIMER;
 
   // Update timestamp for last activity
   room.lastActivity = Date.now();
