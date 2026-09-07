@@ -36,12 +36,12 @@ const useReconnection = (code, setPlayerList, setters) => {
     socket.once("reconnect-game-success", (reconnectData) => {
       // Update the base regardless of phase
       const { phase } = reconnectData;
-      setPlayerList(reconnectData.players);
-      setCurrentRound(reconnectData.curRound);
-      setBeforeRoundEvents(reconnectData.beforeRoundEvents);
-      setQuestion(reconnectData.question);
-      setStarterCode(reconnectData.question.starterCode);
-      setCodeStatus(reconnectData.codeStatus);
+      setPlayerList(reconnectData?.players);
+      setCurrentRound(reconnectData?.curRound);
+      setBeforeRoundEvents(reconnectData?.beforeRoundEvents);
+      setQuestion(reconnectData?.question);
+      setStarterCode(reconnectData?.question?.starterCode);
+      setCodeStatus(reconnectData?.codeStatus);
 
       // Handle phase specific updates
       switch (phase) {
@@ -49,22 +49,22 @@ const useReconnection = (code, setPlayerList, setters) => {
         case "game-started":
         case "new-round":
           // Update ends at
-          setTimerEndsAt(reconnectData.endsAt);
+          setTimerEndsAt(reconnectData?.endsAt);
           break;
         case "round-tick":
           // Disable countdown timer and update round timer
           setTimerFinished(true);
           setTimerEndsAt(null);
           // Update round timer
-          setRoundEndsAt(reconnectData.roundEndsAt);
-          setTimeMultiplier(reconnectData.timeMultiplier);
+          setRoundEndsAt(reconnectData?.roundEndsAt);
+          setTimeMultiplier(reconnectData?.timeMultiplier);
           break;
         case "results":
-          setResults(reconnectData.results);
+          setResults(reconnectData?.results);
           setResultsReady(true);
-          setEliminatedPlayers(reconnectData.eliminatedPlayers);
-          setMissedPlayer(reconnectData.missedPlayer);
-          setWinner(reconnectData.winner);
+          setEliminatedPlayers(reconnectData?.eliminatedPlayers);
+          setMissedPlayer(reconnectData?.missedPlayer);
+          setWinner(reconnectData?.winner);
           break;
       }
     });
