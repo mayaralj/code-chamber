@@ -72,10 +72,13 @@ const useReconnection = (code, setPlayerList, setters) => {
       navigate("/browse", { replace: true });
     });
 
-    // On connection, attempt to reconnect to game
-    socket.on("connect", () => {
+    // Notify server that player is attempting to reconnect
+    const emitReconnect = () => {
       socket.emit("reconnect-game", { code });
-    });
+    };
+
+    // On connection, attempt to reconnect to game
+    socket.on("connect", emitReconnect);
 
     // On waiting-for-reconnect, show toast notification
     socket.on("waiting-for-reconnect", () => {
@@ -92,7 +95,8 @@ const useReconnection = (code, setPlayerList, setters) => {
 
     // Cleanup
     return () => {
-      socket.off("reconnect-success");
+      socket.off("connect", emitReconnect);
+      socket.off("reconnect-game-success");
       socket.off("reconnect-failure");
       socket.off("waiting-for-reconnect");
       socket.off("players-reconnected");

@@ -49,7 +49,7 @@ const usePlayerLeave = (code, setPlayerList, roomDeletedRef, timerFinished) => {
     return () => window.removeEventListener("pagehide", handleUnload);
   }, [code]);
 
-  // Kick them out on player eliminated
+  // Set is eliminated to true if player is eliminated, will show eliminated screen
   useEffect(() => {
     socket.once("player-eliminated", () => {
       setIsEliminated(true);

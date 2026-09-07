@@ -122,6 +122,7 @@ const useCodeSubmission = (code, setPlayerList) => {
     });
 
     return () => {
+      socket.off("code-judging");
       socket.off("code-submitted");
       socket.off("submit-code-error");
       socket.off("request-code");
