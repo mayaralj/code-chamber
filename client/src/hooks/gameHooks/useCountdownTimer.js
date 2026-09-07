@@ -6,7 +6,9 @@ import { playAnyTimer } from "../../utils/timers.js";
 // Custom hook to handle countdown timer
 const useCountdownTimer = (initEndsAt) => {
   // States
-  const [timeLeft, setTimeLeft] = useState(5);
+  const [timeLeft, setTimeLeft] = useState(() =>
+    Boolean(initEndsAt && initEndsAt > Date.now() ? 5 : 0),
+  );
   const [timerFinished, setTimerFinished] = useState(() =>
     Boolean(initEndsAt && initEndsAt > Date.now() ? false : true),
   );
