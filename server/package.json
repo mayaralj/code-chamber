@@ -6,7 +6,8 @@
   "scripts": {
     "start": "node index.js",
     "dev": "node --watch --env-file=.env index.js",
-    "test": "vitest run"
+    "test": "vitest",
+    "test:ci": "vitest run"
   },
   "keywords": [],
   "author": "",
