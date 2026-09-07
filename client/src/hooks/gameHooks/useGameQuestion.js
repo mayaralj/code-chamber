@@ -13,7 +13,7 @@ const useGameQuestion = (initQuestion) => {
   useEffect(() => {
     const handleNewRound = ({ question }) => {
       setQuestion(question);
-      setStarterCode(question.starterCode);
+      setStarterCode(question.starterCode || "");
     };
 
     // Listen for new round event
