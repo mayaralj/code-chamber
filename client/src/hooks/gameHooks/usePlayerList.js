@@ -35,14 +35,16 @@ const usePlayerList = (players) => {
   }, []);
 
   useEffect(() => {
-    // Listen for player list update
-    socket.on("update-players", ({ players }) => {
+    const handleUpdatePlayers = ({ players }) => {
       setPlayerList(players);
-    });
+    };
+
+    // Listen for player list update
+    socket.on("update-players", handleUpdatePlayers);
 
     // Cleanup
     return () => {
-      socket.off("update-players");
+      socket.off("update-players", handleUpdatePlayers);
     };
   }, []);
 
