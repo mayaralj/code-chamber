@@ -84,7 +84,7 @@ const Game = () => {
   const { editorReady, setEditorReady } = useCodeEditor();
 
   // Round events
-  const { beforeRoundEvents, setBeforeRoundEvents, afterRoundEvents } =
+  const { beforeRoundEvents, setBeforeRoundEvents } =
     useRoundEvents(firstBeforeEvents);
 
   // Results
@@ -241,7 +241,6 @@ const Game = () => {
             missedPlayer={missedPlayer}
             eliminatedPlayers={eliminatedPlayers}
             winner={winner}
-            afterRoundEvents={afterRoundEvents}
           />
         )}
       </div>

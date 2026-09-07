@@ -1,10 +1,4 @@
-const Results = ({
-  results,
-  eliminatedPlayers,
-  missedPlayer,
-  winner,
-  afterRoundEvents,
-}) => {
+const Results = ({ results, eliminatedPlayers, missedPlayer, winner }) => {
   console.log("Rendering Results with results:", results);
   // Results modal that happens after every round centered in the middle
   return (
@@ -49,21 +43,7 @@ const Results = ({
             <span className="font-semibold text-[#ffd99d]">{result.score}</span>
           </div>
         ))}
-        {/* After round events */}
-        {afterRoundEvents && afterRoundEvents.length > 0 && (
-          <div className="rounded-lg border border-zinc-800 bg-zinc-950 p-4 text-center">
-            <p className="text-xs font-semibold uppercase tracking-wide text-zinc-400">
-              Round Recap
-            </p>
-            <ul className="mt-2 space-y-1">
-              {afterRoundEvents.map((event, index) => (
-                <li key={index} className="text-sm text-zinc-300">
-                  {event}
-                </li>
-              ))}
-            </ul>
-          </div>
-        )}
+
         {/* Missed Player */}
         {missedPlayer && (
           <div className="rounded-lg border border-[#4b4133]/20 bg-[#4b4133]/5 p-4 text-center">

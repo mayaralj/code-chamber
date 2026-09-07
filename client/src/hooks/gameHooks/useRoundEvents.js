@@ -6,13 +6,11 @@ import { socket } from "../../socket";
 const useRoundEvents = (firstBeforeEvents) => {
   // States
   const [beforeRoundEvents, setBeforeRoundEvents] = useState(firstBeforeEvents);
-  const [afterRoundEvents, setAfterRoundEvents] = useState(null);
 
   // Handle new round start by resetting states
   useEffect(() => {
     const handleNewRound = ({ beforeRoundEvents }) => {
       setBeforeRoundEvents(beforeRoundEvents);
-      setAfterRoundEvents(null);
     };
 
     socket.on("new-round", handleNewRound);
@@ -24,7 +22,7 @@ const useRoundEvents = (firstBeforeEvents) => {
   }, []);
 
   // Return
-  return { beforeRoundEvents, setBeforeRoundEvents, afterRoundEvents };
+  return { beforeRoundEvents, setBeforeRoundEvents };
 };
 
 export default useRoundEvents;
