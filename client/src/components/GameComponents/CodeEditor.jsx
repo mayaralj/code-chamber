@@ -2,9 +2,13 @@ import Editor from "@monaco-editor/react";
 import { useRef, useEffect, useState } from "react";
 import { Settings, RotateCcw, ChevronDown } from "lucide-react";
 import useResizableSplit from "../../hooks/gameHooks/useResizableSplit";
+import {
+  formatValueForDisplay,
+  stripOuterBrackets,
+} from "./codeEditor/codeEditorHelpers";
 
 // Config
-// Languages supported (No language support besides javascript for now)
+// Languages supported
 const LANGUAGES = {
   javascript: "JavaScript",
   python: "Python",
@@ -17,56 +21,6 @@ const DEFAULT_EDITOR_SETTINGS = {
   relativeLineNumbers: false,
   fontSize: 17,
   tabSize: 4,
-};
-
-// Helper to add a space after commas in a string, but not inside string literals
-const addSpaceAfterCommas = (str) => {
-  let result = "";
-  let inString = false;
-  for (let i = 0; i < str.length; i++) {
-    const char = str[i];
-    result += char;
-    if (char === '"' && str[i - 1] !== "\\") {
-      inString = !inString;
-    }
-    if (char === "," && !inString) {
-      result += " ";
-    }
-  }
-  return result;
-};
-
-// Convert a value to a JSON string, handling cases where the value is already a string or not
-const toJsonString = (value) => {
-  let str;
-  if (typeof value === "string") {
-    try {
-      str = JSON.stringify(JSON.parse(value));
-    } catch {
-      str = JSON.stringify(value);
-    }
-  } else {
-    str = JSON.stringify(value);
-  }
-  return addSpaceAfterCommas(str);
-};
-
-// Helper to strip outer brackets from a string if they exist
-const stripOuterBrackets = (input) => {
-  const str = toJsonString(input);
-  const trimmed = str.trim();
-  if (trimmed.startsWith("[") && trimmed.endsWith("]")) {
-    return trimmed.slice(1, -1).trim();
-  }
-  return trimmed;
-};
-
-// Helper to format a value for display in the output console, handling undefined, null, strings, and other types
-const formatValueForDisplay = (value) => {
-  if (value === undefined) return "undefined";
-  if (value === null) return "null";
-  if (typeof value === "string") return value;
-  return addSpaceAfterCommas(JSON.stringify(value));
 };
 
 const CodeEditor = ({
@@ -206,13 +160,17 @@ const CodeEditor = ({
     handleRoundChange();
   }, [starterCode]);
 
+  const hasLoadedOnce = useRef(false); // I added this ref because the default language is js and since editorRef current value is empty string, the savedCode becomes the empty string so we want to avoid any code switching on the first load, we only want to save code when switching languages after the first load
   useEffect(() => {
     // Ensure the editor is ready and the starter code is available before updating the editor content
     if (!editorRef.current || !editorReady) return;
 
-    // Save the current code for the previous language before switching to the new language
-    const currentCode = editorRef.current.getValue();
-    savedCode.current[previousLanguage.current] = currentCode;
+    // Save the current code for the previous language before switching to the new language (if the previous language is different from the new one)
+    if (hasLoadedOnce.current && previousLanguage.current !== language) {
+      const currentCode = editorRef.current.getValue();
+      savedCode.current[previousLanguage.current] = currentCode;
+    }
+    hasLoadedOnce.current = true;
 
     // Determine the next code to display: either the saved code for the new language, or its starter code, or an empty string if neither exists
     const next = savedCode.current[language] ?? starterCode?.[language] ?? "";
@@ -257,24 +215,19 @@ const CodeEditor = ({
       ref={splitRef}
       className="flex h-full flex-col overflow-hidden bg-[#1e1e1e] text-zinc-300"
     >
-      {/* Inline styles for the error-line highlight decoration */}
+      {/* Inline styles for the error-line highlight */}
       <style>{`.error-line-highlight { background-color: rgba(248, 113, 113, 0.15); }`}</style>
 
-      {/* Editor pane, height always driven by the resizable split percentage so dragging
-          works continuously even while the output is collapsed */}
       <div
         className="flex flex-col overflow-hidden"
         style={{ height: `${editorHeight}%` }}
       >
-        {/* Top bar: just the section label. Chrome is one shade off the content
-            behind it (zinc-900 vs #1e1e1e) instead of a jarring near-black jump */}
         <div className="flex items-center border-b border-zinc-800 bg-zinc-900 px-5 py-2.5">
           <span className="text-sm font-semibold uppercase tracking-wider text-zinc-400">
             Code
           </span>
         </div>
 
-        {/* Second, smaller bar: language on the left, reset + settings on the right */}
         <div className="flex items-center justify-between border-b border-zinc-800 bg-zinc-900 px-3 py-1">
           <div className="relative">
             <button
