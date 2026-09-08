@@ -338,8 +338,17 @@ const Browse = () => {
       </div>
 
       {showPrivateModal && (
-        <div className="fixed inset-0 z-[60] flex items-center justify-center bg-black/80 px-5 backdrop-blur-sm">
-          <div className="relative w-full max-w-[470px] border border-[#c99d46] bg-[#0b0b0b] p-10 shadow-[0_0_25px_rgba(201,157,70,0.25)]">
+        <div
+          className="fixed inset-0 z-[60] flex items-center justify-center bg-black/80 px-5 backdrop-blur-sm"
+          onClick={() => {
+            setShowPrivateModal(false);
+            setPrivateCode("");
+          }}
+        >
+          <div
+            className="relative w-full max-w-[470px] border border-[#c99d46] bg-[#0b0b0b] p-10 shadow-[0_0_25px_rgba(201,157,70,0.25)]"
+            onClick={(e) => e.stopPropagation()}
+          >
             <span className="absolute -top-3 left-6 bg-[#0b0b0b] px-2 text-[10px] font-bold tracking-[0.18em] text-[#e7c49d]">
               AUTHENTICATION_REQUIRED
             </span>
