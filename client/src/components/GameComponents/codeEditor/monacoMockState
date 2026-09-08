@@ -1,0 +1,25 @@
+// Monaco mock state is used to simulate the behavior of the Monaco editor in tests. It allows tests to control when the editor is mounted and to inspect the latest editor, monaco instance, and options used in the tests.
+export const monacoMockState = {
+  latestEditor: null,
+  latestMonaco: null,
+  latestOptions: null,
+
+  deferMount: false,
+  _pendingMount: null,
+
+  completeMount() {
+    if (this._pendingMount) {
+      const fireMount = this._pendingMount;
+      this._pendingMount = null;
+      fireMount();
+    }
+  },
+
+  reset() {
+    this.latestEditor = null;
+    this.latestMonaco = null;
+    this.latestOptions = null;
+    this.deferMount = false;
+    this._pendingMount = null;
+  },
+};
