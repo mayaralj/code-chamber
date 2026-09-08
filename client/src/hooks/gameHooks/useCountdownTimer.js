@@ -41,7 +41,7 @@ const useCountdownTimer = (initEndsAt) => {
   useEffect(() => {
     const handleNewRound = ({ newEndsAt }) => {
       setTimerEndsAt(newEndsAt);
-      setTimeLeft(0.01); // So timer finished doesnt instantly get set back to true
+      setTimeLeft(5);
       setTimerFinished(false);
     };
 

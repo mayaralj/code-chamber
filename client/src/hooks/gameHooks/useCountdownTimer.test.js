@@ -100,7 +100,7 @@ describe("useCountdownTimer", () => {
     expect(result.current.timerFinished).toBe(false);
   });
 
-  it("on new-round: resets timerFinished to false, sets timeLeft to 0.01, and starts a new timer", () => {
+  it("on new-round: resets timerFinished to false, sets timeLeft to 5, and starts a new timer", () => {
     const { result } = renderHook(() => useCountdownTimer(NOW - 5000));
     expect(result.current.timerFinished).toBe(true);
 
@@ -109,13 +109,13 @@ describe("useCountdownTimer", () => {
     });
 
     expect(result.current.timerFinished).toBe(false);
-    expect(result.current.timeLeft).toBe(0.01);
+    expect(result.current.timeLeft).toBe(5);
     expect(playAnyTimer).toHaveBeenCalledWith(
       expect.objectContaining({ endsAt: NOW + 4000 }),
     );
   });
 
-  it("does not immediately re-trigger timerFinished after new-round sets timeLeft to 0.01", () => {
+  it("does not immediately re-trigger timerFinished after new-round sets timeLeft to 5", () => {
     const { result } = renderHook(() => useCountdownTimer(NOW - 5000));
 
     act(() => {
