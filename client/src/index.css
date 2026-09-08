@@ -11,19 +11,19 @@
   animation: marquee 30s linear infinite;
 }
 
-.modal-scroll::-webkit-scrollbar {
+html::-webkit-scrollbar {
   width: 8px;
 }
 
-.modal-scroll::-webkit-scrollbar-track {
+html::-webkit-scrollbar-track {
   background: #0e0e0e;
 }
 
-.modal-scroll::-webkit-scrollbar-thumb {
+html::-webkit-scrollbar-thumb {
   background: #5d5549;
   border-radius: 4px;
 }
 
-.modal-scroll::-webkit-scrollbar-thumb:hover {
+html::-webkit-scrollbar-thumb:hover {
   background: #7c7468;
 }
