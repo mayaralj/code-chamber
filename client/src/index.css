@@ -11,19 +11,25 @@
   animation: marquee 30s linear infinite;
 }
 
-html::-webkit-scrollbar {
+*::-webkit-scrollbar {
   width: 8px;
 }
 
-html::-webkit-scrollbar-track {
+*::-webkit-scrollbar-track {
   background: #0e0e0e;
 }
 
-html::-webkit-scrollbar-thumb {
+*::-webkit-scrollbar-thumb {
   background: #5d5549;
   border-radius: 4px;
 }
 
-html::-webkit-scrollbar-thumb:hover {
+*::-webkit-scrollbar-thumb:hover {
   background: #7c7468;
+}
+
+/* Firefox */
+* {
+  scrollbar-width: thin;
+  scrollbar-color: #5d5549 #0e0e0e;
 }
