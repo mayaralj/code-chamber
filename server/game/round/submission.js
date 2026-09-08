@@ -187,15 +187,16 @@ export const processSubmission = async (
   let functionName = roundData.question.functionName[language];
 
   // Run the code against the test cases (handle missing code gracefully)
-  const result = codeInput
-    ? await runCode(language, codeInput, functionName, testCases)
-    : createDummyResult(
-        player,
-        language,
-        roundData,
-        submitTime,
-        testCases.length,
-      );
+  const result =
+    codeInput !== undefined && codeInput !== null
+      ? await runCode(language, codeInput, functionName, testCases)
+      : createDummyResult(
+          player,
+          language,
+          roundData,
+          submitTime,
+          testCases.length,
+        );
 
   // Fill in the result object with additional information
   result.submitTime = submitTime;
