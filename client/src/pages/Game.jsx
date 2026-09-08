@@ -1,12 +1,12 @@
 // Imports
 import { useEffect, useRef } from "react";
 import { useNavigate, useLocation, useParams } from "react-router";
-import Question from "../components/GameComponents/Question";
-import CodeEditor from "../components/GameComponents/CodeEditor";
-import Timer from "../components/GameComponents/Timer";
-import Results from "../components/GameComponents/Results";
-import GameNavbar from "../components/GameComponents/GameNavbar";
-import GameStatusBar from "../components/GameComponents/GameStatusBar";
+import Question from "../components/gameComponents/Question";
+import CodeEditor from "../components/gameComponents/codeEditor/CodeEditor";
+import Timer from "../components/gameComponents/Timer";
+import Results from "../components/gameComponents/Results";
+import GameNavbar from "../components/gameComponents/GameNavbar";
+import GameStatusBar from "../components/gameComponents/GameStatusBar";
 import useCountdownTimer from "../hooks/gameHooks/useCountdownTimer";
 import useRoundTimer from "../hooks/gameHooks/useRoundTimer";
 import useGameQuestion from "../hooks/gameHooks/useGameQuestion";
@@ -20,17 +20,19 @@ import useReconnection from "../hooks/gameHooks/useReconnection";
 import useDisconnection from "../hooks/gameHooks/useDisconnection";
 import usePlayer from "../hooks/usePlayer";
 import useResizableSplit from "../hooks/gameHooks/useResizableSplit";
-import Eliminated from "../components/GameComponents/Eliminated";
-import Missed from "../components/GameComponents/Missed";
+import Eliminated from "../components/gameComponents/Eliminated";
+import Missed from "../components/gameComponents/Missed";
 import toast from "react-hot-toast";
 import useStatusEvents from "../hooks/gameHooks/useStatusEvents";
 import { socket } from "../socket";
 
-// Game component
 const Game = () => {
-  // Game Code
   const { code } = useParams();
+  return <GameInner key={code} code={code} />;
+};
 
+// Game component
+const GameInner = ({ code }) => {
   // Get Info passed from RoomWait
   const location = useLocation();
   const {
