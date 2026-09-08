@@ -80,6 +80,7 @@ const useCodeSubmission = (code, setPlayerList) => {
 
       setCodeStatus("not-submitted");
       codeStatusRef.current = "not-submitted";
+      setTestCasesResults([]);
     };
 
     // Listen for new round event
