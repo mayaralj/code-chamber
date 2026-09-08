@@ -69,6 +69,10 @@ const useRoundTimer = (initRoundEndsAt, initTimeMultiplier) => {
     return () => {
       socket.off("round-tick");
       socket.off("round-timer-finished");
+      if (roundTimerCleanupRef.current) {
+        roundTimerCleanupRef.current();
+        roundTimerCleanupRef.current = null;
+      }
     };
   }, []);
 
