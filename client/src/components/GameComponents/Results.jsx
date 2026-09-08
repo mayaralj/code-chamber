@@ -57,7 +57,7 @@ const Results = ({ results, eliminatedPlayers, missedPlayer, winner }) => {
         {eliminatedPlayers.length > 0 && (
           <div className="rounded-lg border border-rose-500/20 bg-rose-500/5 p-4 text-center">
             <p className="text-xs font-semibold uppercase tracking-wide text-rose-400">
-              Players Eliminated
+              Player{eliminatedPlayers.length > 1 ? "s" : ""} Eliminated
             </p>
             <ul className="mt-2 space-y-1">
               {eliminatedPlayers.map((player, index) => (
