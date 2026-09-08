@@ -103,6 +103,7 @@ const useResults = () => {
       });
       setResults(results);
       setResultsReady(true);
+      setMissedPlayer(null);
       setEliminatedPlayers(eliminatedPlayers);
       setWinner(winner);
       if (cleanupRef.current) {
