@@ -34,6 +34,9 @@ for (const tc of allTestCases) {
   });
 }
 
+// Vars
+const REQUIRED_LANGUAGES = ["javascript", "python", "cpp"];
+
 // Before all tests, start the container pool. After all tests, stop the pool.
 beforeAll(async () => {
   await startPool();
@@ -200,4 +203,96 @@ describe("executor concurrency cap", () => {
     expect(elapsed).toBeGreaterThan(1200); // rules out full parallelism
     expect(elapsed).toBeLessThan(4000); // rules out full sequential (~4500ms)
   }, 15000);
+});
+
+// LEFT JOIN so a question with zero starter_code rows still appears in the
+// result set (with sc.language = null), not just ones missing one language.
+const { rows: starterCodeRows } = await db.query(`
+  SELECT
+    q.id AS question_id,
+    q.title,
+    sc.language,
+    sc.code,
+    sc.function_name
+  FROM questions q
+  LEFT JOIN starter_code sc ON sc.question_id = q.id
+`);
+
+// Group rows by question so we can check per-question language coverage.
+const byQuestion = {};
+for (const row of starterCodeRows) {
+  if (!byQuestion[row.question_id]) {
+    byQuestion[row.question_id] = { title: row.title, entries: [] };
+  }
+  if (row.language) {
+    byQuestion[row.question_id].entries.push({
+      language: row.language,
+      code: row.code,
+      function_name: row.function_name,
+    });
+  }
+}
+const questions = Object.values(byQuestion);
+
+describe("starter code coverage per question and language", () => {
+  it("has at least one question loaded", () => {
+    expect(questions.length).toBeGreaterThan(0);
+  });
+
+  it("every question has exactly one starter_code row per required language (no missing, no duplicates)", () => {
+    const problems = [];
+    for (const question of questions) {
+      for (const language of REQUIRED_LANGUAGES) {
+        const matches = question.entries.filter((e) => e.language === language);
+        if (matches.length === 0) {
+          problems.push(`${question.title}: missing ${language}`);
+        } else if (matches.length > 1) {
+          problems.push(
+            `${question.title}: ${matches.length} duplicate rows for ${language}`,
+          );
+        }
+      }
+    }
+    expect(problems, problems.join(" | ")).toEqual([]);
+  });
+
+  for (const question of questions) {
+    for (const language of REQUIRED_LANGUAGES) {
+      const entry = question.entries.find((e) => e.language === language);
+
+      it(`has non-empty code and function_name for "${question.title}" in ${language}`, () => {
+        expect(
+          entry,
+          `No starter_code row at all for "${question.title}" / ${language}`,
+        ).toBeTruthy();
+        expect(typeof entry.code).toBe("string");
+        expect(entry.code.trim().length).toBeGreaterThan(0);
+        expect(typeof entry.function_name).toBe("string");
+        expect(entry.function_name.trim().length).toBeGreaterThan(0);
+      });
+    }
+  }
+
+  it("does not have any unexpected/misspelled language values", () => {
+    const unexpected = [];
+    for (const question of questions) {
+      for (const entry of question.entries) {
+        if (!REQUIRED_LANGUAGES.includes(entry.language)) {
+          unexpected.push(`${question.title}: "${entry.language}"`);
+        }
+      }
+    }
+    expect(unexpected, unexpected.join(" | ")).toEqual([]);
+  });
+
+  it("uses the same function_name across all languages for a given question", () => {
+    const mismatches = [];
+    for (const question of questions) {
+      const names = new Set(question.entries.map((e) => e.function_name));
+      if (names.size > 1) {
+        mismatches.push(`${question.title}: ${[...names].join(" vs ")}`);
+      }
+    }
+    expect(mismatches, mismatches.join(" | ")).toEqual([]);
+  });
 });
