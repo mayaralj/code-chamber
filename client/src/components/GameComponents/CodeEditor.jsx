@@ -169,9 +169,9 @@ const CodeEditor = ({
   // Refs to track the current language and saved code for each language, so switching languages doesn't lose code
   const previousLanguage = useRef(language);
   const savedCode = useRef({
-    javascript: "",
-    python: "",
-    cpp: "",
+    javascript: null,
+    python: null,
+    cpp: null,
   });
 
   // Handle editor changes, updating the saved code for the current language and calling onChange
@@ -182,7 +182,7 @@ const CodeEditor = ({
 
   // Reset the saved code for all languages when the round changes (new question)
   const handleRoundChange = () => {
-    savedCode.current = { javascript: "", python: "", cpp: "" };
+    savedCode.current = { javascript: null, python: null, cpp: null };
   };
 
   // Reset the current language's code back to its starter code
@@ -215,7 +215,7 @@ const CodeEditor = ({
     savedCode.current[previousLanguage.current] = currentCode;
 
     // Determine the next code to display: either the saved code for the new language, or its starter code, or an empty string if neither exists
-    const next = savedCode.current[language] || starterCode?.[language] || "";
+    const next = savedCode.current[language] ?? starterCode?.[language] ?? "";
 
     // Update the editor content and call onChange with the new code
     editorRef.current.setValue(next);
