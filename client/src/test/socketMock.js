@@ -1,3 +1,4 @@
+// Imports
 import { vi } from "vitest";
 
 // Creates a fake socket.io-client instance with real listener so tests can register handlers via on/once and simulate server events via __trigger, without ever opening a real connection.
