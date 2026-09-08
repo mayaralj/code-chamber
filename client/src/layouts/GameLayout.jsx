@@ -1,5 +1,5 @@
 import { Outlet } from "react-router";
-import GameNavbar from "../components/GameComponents/GameNavbar";
+import GameNavbar from "../components/gameComponents/GameNavbar";
 
 const GameLayout = () => {
   return (

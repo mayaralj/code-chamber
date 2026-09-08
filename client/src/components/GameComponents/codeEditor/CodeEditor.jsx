@@ -1,11 +1,8 @@
 import Editor from "@monaco-editor/react";
 import { useRef, useEffect, useState } from "react";
 import { Settings, RotateCcw, ChevronDown } from "lucide-react";
-import useResizableSplit from "../../hooks/gameHooks/useResizableSplit";
-import {
-  formatValueForDisplay,
-  stripOuterBrackets,
-} from "./codeEditor/codeEditorHelpers";
+import useResizableSplit from "../../../hooks/gameHooks/useResizableSplit";
+import { formatValueForDisplay, stripOuterBrackets } from "./codeEditorHelpers";
 
 // Config
 // Languages supported

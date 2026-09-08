@@ -11,12 +11,12 @@ import Profile from "./pages/Profile";
 import ChooseUsername from "./pages/ChooseUsername";
 import Leaderboard from "./pages/Leaderboard";
 
-import RequireUsername from "./components/RouteCheckers/RequireUsername";
-import RequireNoUsername from "./components/RouteCheckers/RequireNoUsername";
-import RequireSocket from "./components/RouteCheckers/RequireSocket";
-import RequireLogin from "./components/RouteCheckers/RequireLogin";
-import RequireNotLoggedIn from "./components/RouteCheckers/RequireNotLoggedIn";
-import RequireServer from "./components/RouteCheckers/RequireServer";
+import RequireUsername from "./components/routeCheckers/RequireUsername";
+import RequireNoUsername from "./components/routeCheckers/RequireNoUsername";
+import RequireSocket from "./components/routeCheckers/RequireSocket";
+import RequireLogin from "./components/routeCheckers/RequireLogin";
+import RequireNotLoggedIn from "./components/routeCheckers/RequireNotLoggedIn";
+import RequireServer from "./components/routeCheckers/RequireServer";
 import MainLayout from "./layouts/MainLayout";
 
 const router = createBrowserRouter([
