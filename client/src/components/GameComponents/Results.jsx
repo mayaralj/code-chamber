@@ -1,5 +1,4 @@
 const Results = ({ results, eliminatedPlayers, missedPlayer, winner }) => {
-  console.log("Rendering Results with results:", results);
   // Results modal that happens after every round centered in the middle
   return (
     <div className="absolute inset-0 z-50 flex items-center justify-center bg-black/70 backdrop-blur-sm">
@@ -36,7 +35,9 @@ const Results = ({ results, eliminatedPlayers, missedPlayer, winner }) => {
             </span>
             <span>{result?.testCasesPassed}</span>
             <span>
-              {result.executionTime ? Math.round(result.executionTime) : "N/A"}
+              {result.executionTime != null
+                ? Math.round(result.executionTime)
+                : "N/A"}
             </span>
             <span>{result?.submitTime}</span>
             {/* Total score */}
