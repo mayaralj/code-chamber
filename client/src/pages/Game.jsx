@@ -1,7 +1,7 @@
 // Imports
 import { useEffect, useRef } from "react";
 import { useNavigate, useLocation, useParams } from "react-router";
-import Question from "../components/gameComponents/Question";
+import Question from "../components/gameComponents/question/Question";
 import CodeEditor from "../components/gameComponents/codeEditor/CodeEditor";
 import Timer from "../components/gameComponents/Timer";
 import Results from "../components/gameComponents/Results";
