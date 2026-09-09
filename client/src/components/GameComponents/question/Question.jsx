@@ -1,32 +1,4 @@
-// Map each difficulty level to its corresponding badge styling
-const DIFFICULTY_STYLES = {
-  easy: "border-emerald-500/30 bg-emerald-500/10 text-emerald-400",
-  medium: "border-[#ffd687]/30 bg-[#ffd687]/10 text-[#ffd687]",
-  hard: "border-rose-500/30 bg-rose-500/10 text-rose-400",
-};
-
-// Helper to highlight specific words within description
-const highlightWords = (description, wordsToHighlight) => {
-  if (!description) return description;
-
-  // lower case words for case-insensitive matching
-  const lowerWords = wordsToHighlight.map((w) => w.toLowerCase());
-
-  const parts = description.split(
-    new RegExp(`\\b(${wordsToHighlight.join("|")})\\b`, "gi"),
-  );
-
-  // Check if the part matches any of the words to highlight (case-insensitive) and wrap it in a span with styling
-  return parts.map((part, index) =>
-    lowerWords.includes(part.toLowerCase()) ? (
-      <span key={index} className="font-medium text-xl text-zinc-100">
-        {part}
-      </span>
-    ) : (
-      <span key={index}>{part}</span>
-    ),
-  );
-};
+import { DIFFICULTY_STYLES, highlightWords } from "./questionHelpers";
 
 // Question component
 const Question = ({ question }) => {
