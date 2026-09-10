@@ -6,7 +6,7 @@ import { playAnyTimer } from "../../utils/timers.js";
 // Custom hook to handle game results and related states
 const useResults = () => {
   // States
-  const [results, setResults] = useState(null);
+  const [results, setResults] = useState([]);
   const [resultsTimer, setResultsTimer] = useState(null);
   const [resultsReady, setResultsReady] = useState(false);
   const [eliminatedPlayers, setEliminatedPlayers] = useState([]);
@@ -20,7 +20,7 @@ const useResults = () => {
   // Handle new round start by resetting states
   useEffect(() => {
     const handleNewRound = () => {
-      setResults(null);
+      setResults([]);
       setResultsTimer(null);
       setResultsReady(false);
       setMissedPlayer(null);
@@ -64,15 +64,15 @@ const useResults = () => {
       missedPlayer,
     }) => {
       console.log("Results received from server:");
-      setResults(results);
+      setResults(results || []);
       setResultsReady(true);
       setMissedPlayer(missedPlayer);
-      setEliminatedPlayers(eliminatedPlayers);
+      setEliminatedPlayers(eliminatedPlayers || []);
       if (cleanupRef.current) {
         cleanupRef.current();
       }
       cleanupRef.current = playAnyTimer({
-        endsAt: resultsEndsAt,
+        endsAt: resultsEndsAt || Date.now() + 5000,
         functionSetter: setResultsTimer,
       });
     };
@@ -101,16 +101,16 @@ const useResults = () => {
         eliminatedPlayers,
         winner,
       });
-      setResults(results);
+      setResults(results || []);
       setResultsReady(true);
       setMissedPlayer(null);
-      setEliminatedPlayers(eliminatedPlayers);
+      setEliminatedPlayers(eliminatedPlayers || []);
       setWinner(winner);
       if (cleanupRef.current) {
         cleanupRef.current();
       }
       cleanupRef.current = playAnyTimer({
-        endsAt: gameOverEndsAt,
+        endsAt: gameOverEndsAt || Date.now() + 8000,
         functionSetter: setResultsTimer,
       });
     };

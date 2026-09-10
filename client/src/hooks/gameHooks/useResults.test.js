@@ -39,7 +39,7 @@ describe("useResults", () => {
   it("initializes with the expected default state", () => {
     const { result } = renderHook(() => useResults());
 
-    expect(result.current.results).toBeNull();
+    expect(result.current.results).toEqual([]);
     expect(result.current.resultsReady).toBe(false);
     expect(result.current.eliminatedPlayers).toEqual([]);
     expect(result.current.missedPlayer).toBeNull();
@@ -237,7 +237,7 @@ describe("useResults", () => {
       socket.__trigger("new-round");
     });
 
-    expect(result.current.results).toBeNull();
+    expect(result.current.results).toEqual([]);
     expect(result.current.resultsReady).toBe(false);
     expect(result.current.missedPlayer).toBeNull();
     expect(result.current.eliminatedPlayers).toEqual([]);
@@ -255,7 +255,7 @@ describe("useResults", () => {
       });
     }).not.toThrow();
 
-    expect(result.current.results).toBeNull();
+    expect(result.current.results).toEqual([]);
   });
 
   it("unsubscribes all five listeners and clears any active timer on unmount", () => {
