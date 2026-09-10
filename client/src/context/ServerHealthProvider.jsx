@@ -28,11 +28,15 @@ const ServerHealthProvider = ({ children }) => {
           abortControllerRef.current.signal,
           AbortSignal.timeout(SERVER_UNREACHABLE_TIMEOUT),
         ]);
-        await fetch(SERVER_HEALTH_CHECK_URL, {
+        const response = await fetch(SERVER_HEALTH_CHECK_URL, {
           method: "GET",
           signal: combinedSignal,
         });
-        setServerUnreachable(false);
+        if (response.ok) {
+          setServerUnreachable(false);
+        } else {
+          setServerUnreachable(true);
+        }
       } catch (error) {
         // Ignore abort errors, but set server unreachable for other errors
         if (error.name !== "AbortError") {
