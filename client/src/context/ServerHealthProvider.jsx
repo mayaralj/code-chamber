@@ -17,12 +17,11 @@ const ServerHealthProvider = ({ children }) => {
 
   // Constantly check server health
   useEffect(() => {
-    // Abort controller to cancel fetch requests if the component unmounts
-    abortControllerRef.current?.abort();
-    abortControllerRef.current = new AbortController();
-
     // Function to check server health
     const checkServer = async () => {
+      // Abort controller to cancel fetch requests if the component unmounts
+      abortControllerRef.current?.abort();
+      abortControllerRef.current = new AbortController();
       try {
         const combinedSignal = AbortSignal.any([
           abortControllerRef.current.signal,
@@ -32,11 +31,7 @@ const ServerHealthProvider = ({ children }) => {
           method: "GET",
           signal: combinedSignal,
         });
-        if (response.ok) {
-          setServerUnreachable(false);
-        } else {
-          setServerUnreachable(true);
-        }
+        setServerUnreachable(!response.ok);
       } catch (error) {
         // Ignore abort errors, but set server unreachable for other errors
         if (error.name !== "AbortError") {
