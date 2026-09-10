@@ -35,7 +35,7 @@ const PlayerProvider = ({ children }) => {
       // Check if already in lost-connection state or timer is already running
       if (
         serverDownTimerRef.current ||
-        connectionStatus === "lost-connection"
+        connectionStatusRef.current === "lost-connection"
       ) {
         return;
       }

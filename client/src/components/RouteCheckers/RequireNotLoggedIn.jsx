@@ -1,4 +1,4 @@
-// RequireLogin.jsx
+// Imports
 import { Navigate, Outlet, useLocation } from "react-router";
 import useStableSession from "../../hooks/useStableSession";
 
