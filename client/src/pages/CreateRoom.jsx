@@ -4,6 +4,7 @@ import { socket } from "../socket";
 
 // Config
 const CREATE_ROOM_TIMEOUT = 3000;
+const MIN_ROOM_NAME_LENGTH = 3;
 const MAX_ROOM_NAME_LENGTH = 20;
 
 const CreateRoom = () => {
@@ -29,11 +30,11 @@ const CreateRoom = () => {
       setCreateError("Room name is required");
       return;
     }
-    if (trimmedRoomName.length > 20) {
+    if (trimmedRoomName.length > MAX_ROOM_NAME_LENGTH) {
       setCreateError("Room name is too long");
       return;
     }
-    if (trimmedRoomName.length < 3) {
+    if (trimmedRoomName.length < MIN_ROOM_NAME_LENGTH) {
       setCreateError("Room name is too short");
       return;
     }
