@@ -18,6 +18,7 @@ const CreateRoom = () => {
 
   // Refs
   const lastRoomIdRef = useRef(null);
+  const isMountedRef = useRef(true);
 
   // Navigate
   const navigate = useNavigate();
@@ -55,6 +56,7 @@ const CreateRoom = () => {
         difficulty,
       },
       (err, response) => {
+        if (!isMountedRef.current) return;
         setIsCreating(false);
         if (err) {
           // Notify server to stop server creation
@@ -92,6 +94,7 @@ const CreateRoom = () => {
     return () => {
       window.removeEventListener("pagehide", handleBeforeUnload);
       handleBeforeUnload(); // Call it to cancel room creation if needed
+      isMountedRef.current = false;
     };
   }, []);
 
