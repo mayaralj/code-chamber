@@ -98,7 +98,7 @@ const Home = () => {
 
   // Handle incoming events
   useEffect(() => {
-    const source = new EventSource("http://localhost:5000/api/liveStats");
+    const source = new EventSource("/api/liveStats");
 
     // Handle each data set
     source.onmessage = (event) => {
