@@ -145,7 +145,6 @@ const Leaderboard = () => {
     } catch (error) {
       // ignore abort errors
       if (error.name === "AbortError") {
-        console.log("Leaderboard fetch aborted");
         return;
       }
       // if leaderboard data already exists, don't show an error message
