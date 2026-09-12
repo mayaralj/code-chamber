@@ -105,7 +105,6 @@ const RoomWait = () => {
 
     // Game start cancelled
     socket.once("game-start-cancelled", ({ message }) => {
-      console.log("Game start cancelled, redirecting to home");
       toast.error(message);
       navigate("/browse", { replace: true });
     });
@@ -115,7 +114,6 @@ const RoomWait = () => {
       "game-started",
       ({ code, serverPlayers, endsAt, question, beforeRoundEvents }) => {
         gameStartedRef.current = true;
-        console.log(`Game started in room ${code}`);
         navigate(`/game/${code}`, {
           replace: true,
           state: {
@@ -156,7 +154,6 @@ const RoomWait = () => {
 
     // if game started while dc it will listen here
     socket.on("reconnect-game-success", (reconnectData) => {
-      console.log("Reconnected to game successfully");
       toast.success("Reconnected to game successfully");
       navigate(`/game/${code}`, {
         replace: true,
@@ -182,16 +179,13 @@ const RoomWait = () => {
   // Handle rejoins
   useEffect(() => {
     const reconnect = () => {
-      console.log("Socket reconnected, attempting to reconnect to room");
       socket.emit("reconnect-room", { code });
     };
     const onRoomReconnected = ({ roomInfo }) => {
-      console.log("Room reconnected");
       setPlayers(roomInfo.players);
       setRoomInfo(roomInfo);
     };
     const rejoinError = () => {
-      console.log("Room reconnected error, redirecting to browse");
       toast.error("Reconnection failed");
       if (isHost) {
         navigate("/create", { replace: true });
@@ -214,7 +208,6 @@ const RoomWait = () => {
   // Handle leaving room on page unload (so tab closes dont get flagged as reconnecting)
   useEffect(() => {
     const handleUnload = () => {
-      console.log("Page unload, leaving room");
       socket.emit("leave-room", { code });
     };
 
@@ -250,15 +243,9 @@ const RoomWait = () => {
       return;
     }
 
-    // Ensure at least 1 player
+    // Ensure at least MINIMUM_PLAYERS_TO_START player
     if (players.length < MINIMUM_PLAYERS_TO_START) {
       setGameStartingError("Not enough players to start game");
-      return;
-    }
-
-    // Check connection
-    if (connectionStatus !== "connected") {
-      setGameStartingError("Connection unstable, cannot start game");
       return;
     }
 
