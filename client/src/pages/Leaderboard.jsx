@@ -104,6 +104,12 @@ const Leaderboard = () => {
 
   // Refs
   const abortController = useRef(null);
+  const hasDataRef = useRef(false);
+
+  // Update hasDataRef whenever leaderboardData changes
+  useEffect(() => {
+    hasDataRef.current = leaderboardData != null;
+  }, [leaderboardData]);
 
   // Fetch leaderboard data from the server
   const fetchLeaderboardData = useCallback(async () => {
@@ -143,7 +149,7 @@ const Leaderboard = () => {
         return;
       }
       // if leaderboard data already exists, don't show an error message
-      if (leaderboardData) {
+      if (hasDataRef.current) {
         setFetchStatus("success");
         return;
       }
