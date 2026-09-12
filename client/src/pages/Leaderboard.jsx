@@ -97,7 +97,7 @@ const Leaderboard = () => {
   // States
   const [leaderboardData, setLeaderboardData] = useState(null);
   const [errorMessage, setErrorMessage] = useState("");
-  const [fetchStatus, setFetchStatus] = useState("loading");
+  const [fetchStatus, setFetchStatus] = useState("fetching");
   const [language, setLanguage] = useState("ALL");
   const [metric, setMetric] = useState("matches_won");
   const [difficulty, setDifficulty] = useState("ALL");
