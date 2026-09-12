@@ -142,6 +142,11 @@ const Leaderboard = () => {
         console.log("Leaderboard fetch aborted");
         return;
       }
+      // if leaderboard data already exists, don't show an error message
+      if (leaderboardData) {
+        setFetchStatus("success");
+        return;
+      }
       console.error("Error fetching leaderboard data:", error);
       setFetchStatus("error");
       setErrorMessage("Could not load leaderboard data.");
