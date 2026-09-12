@@ -33,7 +33,6 @@ const Browse = () => {
   // Fetch list of public rooms
   useEffect(() => {
     socket.on("rooms-list", (rooms) => {
-      console.log(`Received rooms list: ${rooms.length} rooms`);
       setRooms(rooms);
     });
 
@@ -49,9 +48,6 @@ const Browse = () => {
   useEffect(() => {
     // Room batch updates
     socket.on("rooms-batch-update", ({ added, updated, removed }) => {
-      console.log(
-        `Received rooms batch update: ${added.length} added, ${updated.length} updated, ${removed.length} removed`,
-      );
       setRooms((prevRooms) => {
         // Remove new rooms
         let next = prevRooms.filter((r) => !removed.includes(r.code));
@@ -79,7 +75,7 @@ const Browse = () => {
       return;
     }
     // Check  for length (pretty much just for private joining)
-    if (code.length != CODE_LENGTH) {
+    if (code.trim().length != CODE_LENGTH) {
       setError({
         code: "",
         message: `Code length must be ${CODE_LENGTH} characters long`,
@@ -92,7 +88,7 @@ const Browse = () => {
     socket.off("room-join-error");
 
     // Emit join room to server
-    socket.emit("join-room", { code });
+    socket.emit("join-room", { code: code.trim() });
 
     // Listen for room joined event
     socket.once("room-joined", ({ roomInfo }) => {
@@ -101,7 +97,7 @@ const Browse = () => {
       // Clear error state
       setError({ code: "", message: "" });
       // Navigate to room wait with the room code and players list
-      navigate(`/room-wait/${code}`, {
+      navigate(`/room-wait/${code.trim()}`, {
         state: { roomInfo }, // Temp username
       });
     });
@@ -111,7 +107,7 @@ const Browse = () => {
       // Turn off other socket listener
       socket.off("room-joined");
       // Set error message
-      setError({ code, message });
+      setError({ code: code.trim(), message });
     });
   };
 
@@ -230,7 +226,6 @@ const Browse = () => {
             const isFull = room.playerCount >= room.maxPlayers;
             const gameStarted = room.isGameStarted;
             const gameStarting = room.isGameStarting;
-            console.log(gameStarted);
 
             return (
               <article
