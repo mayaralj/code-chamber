@@ -74,7 +74,7 @@ const Signup = () => {
     setIsLoading(true);
 
     try {
-      const { data, error } = await withTimeout(
+      const { error } = await withTimeout(
         authClient.signUp.email({
           name: username,
           username,
@@ -83,23 +83,24 @@ const Signup = () => {
         }),
         8000,
       );
-
       if (error) {
         setErrorMessage(error.message || "Unable to create account.");
         setIsLoading(false);
         return;
       }
-
-      console.log("Account created:", data.user);
-      await refreshSocketConnection();
-
-      setIsLoading(false);
-      navigate("/profile", { replace: true });
     } catch (err) {
       setErrorMessage(err.message || "Something went wrong. Try again.");
       setIsLoading(false);
       return;
     }
+
+    try {
+      await refreshSocketConnection();
+    } catch (socketError) {
+      console.error("Signup succeeded but socket refresh failed:", socketError);
+    }
+
+    navigate("/profile", { replace: true });
   };
 
   // Render
