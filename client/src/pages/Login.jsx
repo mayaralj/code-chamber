@@ -62,7 +62,7 @@ const Login = () => {
     setIsLoading(true);
 
     try {
-      const { data, error } = await withTimeout(
+      const { error } = await withTimeout(
         authClient.signIn.username({
           username: form.username.trim(),
           password: form.password,
@@ -74,7 +74,6 @@ const Login = () => {
         setIsLoading(false);
         return;
       }
-      console.log("Logged in:", data.user);
     } catch (err) {
       setErrorMessage(err.message || "Something went wrong. Try again.");
       setIsLoading(false);
@@ -181,6 +180,7 @@ const Login = () => {
               className="flex items-center justify-center border border-[#645a4b] py-4 text-[#e8d9c0] transition hover:border-[#ffd89a] hover:bg-[#1b1917] cursor-pointer"
               type="button"
               onClick={() => loginWithSocial("google")}
+              disabled={isLoading}
               aria-label="Continue with Google"
             >
               <FaGoogle size={22} />
@@ -190,6 +190,7 @@ const Login = () => {
               className="flex items-center justify-center border border-[#645a4b] py-4 text-[#e8d9c0] transition hover:border-[#ffd89a] hover:bg-[#1b1917] cursor-pointer"
               type="button"
               onClick={() => loginWithSocial("github")}
+              disabled={isLoading}
               aria-label="Continue with GitHub"
             >
               <FaGithub size={24} />
@@ -199,6 +200,7 @@ const Login = () => {
               className="flex items-center justify-center border border-[#645a4b] py-4 text-[#e8d9c0] transition hover:border-[#ffd89a] hover:bg-[#1b1917] cursor-pointer"
               type="button"
               onClick={() => loginWithSocial("discord")}
+              disabled={isLoading}
               aria-label="Continue with Discord"
             >
               <FaDiscord size={24} />

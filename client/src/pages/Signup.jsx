@@ -192,6 +192,7 @@ const Signup = () => {
             <button
               className="flex items-center justify-center border border-[#645a4b] py-4 text-[#e8d9c0] transition hover:border-[#ffd89a] hover:bg-[#1b1917] cursor-pointer"
               type="button"
+              disabled={isLoading}
               onClick={() => continueWithSocial("google")}
               aria-label="Continue with Google"
             >
@@ -201,6 +202,7 @@ const Signup = () => {
             <button
               className="flex items-center justify-center border border-[#645a4b] py-4 text-[#e8d9c0] transition hover:border-[#ffd89a] hover:bg-[#1b1917] cursor-pointer"
               type="button"
+              disabled={isLoading}
               onClick={() => continueWithSocial("github")}
               aria-label="Continue with GitHub"
             >
@@ -211,6 +213,7 @@ const Signup = () => {
               className="flex items-center justify-center border border-[#645a4b] py-4 text-[#e8d9c0] transition hover:border-[#ffd89a] hover:bg-[#1b1917] cursor-pointer"
               type="button"
               onClick={() => continueWithSocial("discord")}
+              disabled={isLoading}
               aria-label="Continue with Discord"
             >
               <FaDiscord size={24} />
