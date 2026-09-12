@@ -59,7 +59,7 @@ const RoomWait = () => {
     // Emit check-player event to server with the room code
     socket.emit("check-player", { code });
     const handleResponse = ({ message, valid }) => {
-      checkInProgressRef.current = false; // reset here, on actual completion
+      checkInProgressRef.current = false;
       if (!valid) {
         toast.error(message);
         if (isHost) {
@@ -75,6 +75,7 @@ const RoomWait = () => {
 
     return () => {
       socket.off("check-player-response", handleResponse);
+      checkInProgressRef.current = false;
     };
   }, [code, navigate, isHost]);
 
