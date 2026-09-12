@@ -62,10 +62,6 @@ const Profile = () => {
   const [isLanguageStatsOpen, setIsLanguageStatsOpen] = useState(false);
   const [isMatchHistoryOpen, setIsMatchHistoryOpen] = useState(false);
   const [expandedMatchId, setExpandedMatchId] = useState(null);
-  // Tracks how many matches are currently visible inside the "ALL MATCHES" modal
-  const [visibleMatchCount, setVisibleMatchCount] = useState(
-    MATCH_HISTORY_PAGE_SIZE,
-  );
 
   // Refs
   const abortControllerRef = useRef(null);
@@ -311,14 +307,12 @@ const Profile = () => {
 
   // Open the "ALL MATCHES" modal, resetting pagination back to the first page
   const openMatchHistoryModal = () => {
-    setVisibleMatchCount(MATCH_HISTORY_PAGE_SIZE);
     setIsMatchHistoryOpen(true);
   };
 
   // Close the "ALL MATCHES" modal, resetting pagination
   const closeMatchHistoryModal = () => {
     setIsMatchHistoryOpen(false);
-    setVisibleMatchCount(MATCH_HISTORY_PAGE_SIZE);
   };
 
   // Reveal the next page of matches
@@ -997,13 +991,13 @@ const renderMatchCard = (match, expandedMatchId, setExpandedMatchId) => {
                   <div>
                     <p className="mb-1 text-xs text-[#c6baa5]">Exec Time</p>
                     <p className="text-sm font-bold text-[#e8d9c0]">
-                      {submission.executionTime.toFixed(2)}ms
+                      {formatStat(roundStat(submission.executionTime), "ms")}
                     </p>
                   </div>
                   <div>
                     <p className="mb-1 text-xs text-[#c6baa5]">Submit Time</p>
                     <p className="text-sm font-bold text-[#e8d9c0]">
-                      {submission.submissionTime.toFixed(2)}s
+                      {formatStat(roundStat(submission.submissionTime), "s")}
                     </p>
                   </div>
                 </div>
