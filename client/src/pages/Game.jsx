@@ -153,7 +153,7 @@ const GameInner = ({ code }) => {
   // Check with server if user is supposed to be here
   useEffect(() => {
     socket.emit("check-player", { code });
-    socket.on("check-player-response", ({ message, valid }) => {
+    socket.once("check-player-response", ({ message, valid }) => {
       if (!valid) {
         toast.error(message);
         navigate("/browse", { replace: true });
