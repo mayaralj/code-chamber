@@ -16,12 +16,19 @@ import beforeRound from "./beforeRound.js";
 // Config
 // Timers (ms)
 export const COUNTDOWN_TIMER = 5 * 1000;
-export const ROUND_TIMER = 180 * 1000;
+export const ROUND_TIMER_MAP = {
+  easy: 300 * 1000,
+  medium: 450 * 1000,
+  hard: 600 * 1000,
+};
 export const WAIT_BEFORE_RESULTS = 5 * 1000;
 export const FORCE_SUBMIT_TIMEOUT = 50000;
 
 // Start round
 const startRound = async (io, socket, code) => {
+  // Round Specific Config
+  const ROUND_TIMER = ROUND_TIMER_MAP[rooms[code].difficulty];
+
   // Before Round
   const [curRound, roundData, roundEvents] = beforeRound(
     rooms[code],
