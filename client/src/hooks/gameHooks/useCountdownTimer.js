@@ -7,7 +7,7 @@ import { playAnyTimer } from "../../utils/timers.js";
 const useCountdownTimer = (initEndsAt) => {
   // States
   const [timeLeft, setTimeLeft] = useState(() =>
-    Boolean(initEndsAt && initEndsAt > Date.now() ? 5 : 0),
+    initEndsAt && initEndsAt > Date.now() ? 5 : 0,
   );
   const [timerFinished, setTimerFinished] = useState(() =>
     Boolean(initEndsAt && initEndsAt > Date.now() ? false : true),
@@ -24,22 +24,33 @@ const useCountdownTimer = (initEndsAt) => {
 
   // On time endsAt change, start the timer
   useEffect(() => {
+    // Cleanup prev
+    if (cleanupRef.current) {
+      cleanupRef.current();
+    }
     if (timerEndsAt && timerEndsAt > Date.now()) {
-      // Cleanup prev
-      if (cleanupRef.current) {
-        cleanupRef.current();
-      }
       // Start new timer
       cleanupRef.current = playAnyTimer({
         endsAt: timerEndsAt,
         functionSetter: setTimeLeft,
       });
     }
+
+    // Cleanup on unmount
+    return () => {
+      if (cleanupRef.current) {
+        cleanupRef.current();
+      }
+    };
   }, [timerEndsAt]);
 
   // Handle new round start by resetting states
   useEffect(() => {
     const handleNewRound = ({ newEndsAt }) => {
+      if (cleanupRef.current) {
+        cleanupRef.current();
+        cleanupRef.current = null;
+      }
       setTimerEndsAt(newEndsAt);
       setTimeLeft(5);
       setTimerFinished(false);
@@ -69,9 +80,6 @@ const useCountdownTimer = (initEndsAt) => {
     // Cleanup on unmount
     return () => {
       socket.off("timer-finished");
-      if (cleanupRef.current) {
-        cleanupRef.current();
-      }
     };
   }, []);
 
