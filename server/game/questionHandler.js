@@ -53,13 +53,23 @@ export const setUpGameQuestions = async (rooms, code) => {
       return;
     }
 
+    // Get all solutions
+    const { rows: solutionRows } = await db.query(
+      "SELECT question_id, language, code, function_name, approach FROM solutions WHERE question_id = ANY($1)",
+      [questions.map((q) => q.id)],
+    );
+
+    // Check room still exists after await
+    if (!rooms[code]) {
+      return;
+    }
+
     // Attach starter code, per-language function names, and test cases to each question
     questions.forEach((q) => {
       const starterCodeForQuestion = starterCodeRows.filter(
         (sc) => sc.question_id === q.id,
       );
 
-      // Store in question
       q.starterCode = starterCodeForQuestion.reduce((acc, sc) => {
         acc[sc.language] = sc.code;
         return acc;
@@ -69,6 +79,20 @@ export const setUpGameQuestions = async (rooms, code) => {
         return acc;
       }, {});
       q.testCases = testCases.filter((tc) => tc.question_id === q.id);
+
+      // Group solutions by language, then by approach
+      const solutionsForQuestion = solutionRows.filter(
+        (s) => s.question_id === q.id,
+      );
+
+      q.solutions = solutionsForQuestion.reduce((acc, s) => {
+        if (!acc[s.language]) acc[s.language] = {};
+        acc[s.language][s.approach] = {
+          code: s.code,
+          functionName: s.function_name,
+        };
+        return acc;
+      }, {});
     });
   } catch (error) {
     console.error("Error setting up game questions from database:", error);
