@@ -67,7 +67,6 @@ export const sendResults = async (io, code, roundData) => {
   // Send results to players in room
   io.to(code).emit("send-results", {
     results: roundData.roundResults,
-    resultsEndsAt: roundData.resultsEndsAt,
     eliminatedPlayers:
       roundData?.eliminatedPlayers?.map((p) => p.username) || [],
     players: buildPlayerList(room),
@@ -77,9 +76,6 @@ export const sendResults = async (io, code, roundData) => {
 
   // Sleep for results timer duration
   await sleep(RESULTS_TIMER);
-
-  // Emit that results timer is finished
-  io.to(code).emit("results-timer-finished");
 };
 
 // Game over helper
@@ -91,10 +87,9 @@ export const gameOver = async (io, code, roundData, winner) => {
     );
     trackMatch(winner, rooms[code].roomId, true, survivalTime);
     // Send game over data
-    const gameOverEndsAt = Date.now() + GAME_OVER_TIMER;
+    roundData.gameOverEndsAt = Date.now() + GAME_OVER_TIMER;
     io.to(code).emit("game-over", {
       results: roundData.roundResults,
-      gameOverEndsAt,
       eliminatedPlayers:
         roundData.eliminatedPlayers?.map((p) => p.username) || [],
       winner: winner?.username,
