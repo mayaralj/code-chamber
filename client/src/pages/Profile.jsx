@@ -123,6 +123,7 @@ const Profile = () => {
 
     try {
       const { error } = await authClient.signOut();
+      localStorage.setItem("wasLoggedIn", "false"); // Set as false regardless of success or failure
 
       if (error) {
         console.error("Logout failed:", error);

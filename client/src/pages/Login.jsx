@@ -48,10 +48,13 @@ const Login = () => {
       if (error) {
         setErrorMessage(error.message || "Social login failed. Try again.");
         setIsLoading(false);
+        localStorage.setItem("wasLoggedIn", "false");
       }
+      localStorage.setItem("wasLoggedIn", "true");
     } catch (err) {
       setErrorMessage(err.message || "Something went wrong. Try again.");
       setIsLoading(false);
+      localStorage.setItem("wasLoggedIn", "false");
     }
   };
 
@@ -72,11 +75,15 @@ const Login = () => {
       if (error) {
         setErrorMessage(error.message || "Invalid username or password.");
         setIsLoading(false);
+        localStorage.setItem("wasLoggedIn", "false");
         return;
       }
+      // Set in Local storage
+      localStorage.setItem("wasLoggedIn", "true");
     } catch (err) {
       setErrorMessage(err.message || "Something went wrong. Try again.");
       setIsLoading(false);
+      localStorage.setItem("wasLoggedIn", "false");
       return;
     }
 

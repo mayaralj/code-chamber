@@ -55,10 +55,14 @@ const Signup = () => {
       if (error) {
         setErrorMessage(error.message || "Social authentication failed.");
         setIsLoading(false);
+        localStorage.setItem("wasLoggedIn", "false");
+        return;
       }
+      localStorage.setItem("wasLoggedIn", "true");
     } catch (err) {
       setErrorMessage(err.message || "Something went wrong. Try again.");
       setIsLoading(false);
+      localStorage.setItem("wasLoggedIn", "false");
       return;
     }
   };
@@ -86,11 +90,14 @@ const Signup = () => {
       if (error) {
         setErrorMessage(error.message || "Unable to create account.");
         setIsLoading(false);
+        localStorage.setItem("wasLoggedIn", "false");
         return;
       }
+      localStorage.setItem("wasLoggedIn", "true");
     } catch (err) {
       setErrorMessage(err.message || "Something went wrong. Try again.");
       setIsLoading(false);
+      localStorage.setItem("wasLoggedIn", "false");
       return;
     }
 

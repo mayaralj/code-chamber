@@ -7,7 +7,8 @@ const Navbar = () => {
   const location = useLocation();
   const navigate = useNavigate();
   const isLogin = location.pathname === "/login";
-  const { session } = useStableSession();
+  const { session, isPending } = useStableSession();
+  const wasLoggedIn = localStorage.getItem("wasLoggedIn") === "true";
 
   const linkClass =
     () =>
@@ -45,7 +46,7 @@ const Navbar = () => {
       </div>
 
       <div className="flex-shrink-0 flex items-center gap-6 justify-self-end whitespace-nowrap">
-        {session ? (
+        {session || wasLoggedIn ? (
           <NavLink
             to="/profile"
             className={({ isActive }) =>

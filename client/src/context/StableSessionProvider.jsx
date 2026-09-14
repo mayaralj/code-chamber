@@ -14,6 +14,15 @@ export const StableSessionProvider = ({ children }) => {
   const [stableSession, setStableSession] = useState(session);
   const [hasLoadedOnce, setHasLoadedOnce] = useState(false);
 
+  useEffect(() => {
+    if (
+      hasLoadedOnce &&
+      localStorage.getItem("wasLoggedIn") !== (stableSession ? "true" : "false")
+    ) {
+      localStorage.setItem("wasLoggedIn", stableSession ? "true" : "false");
+    }
+  }, [hasLoadedOnce, stableSession]);
+
   // Refetch session if server becomes reachable again
   useEffect(() => {
     if (wasUnreachable.current && !serverUnreachable) {
