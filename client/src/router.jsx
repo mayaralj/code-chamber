@@ -1,4 +1,4 @@
-import { createBrowserRouter, RouterProvider, Navigate } from "react-router";
+import { createBrowserRouter } from "react-router";
 
 import Home from "./pages/Home";
 import CreateRoom from "./pages/CreateRoom";
@@ -10,6 +10,7 @@ import Login from "./pages/Login";
 import Profile from "./pages/Profile";
 import ChooseUsername from "./pages/ChooseUsername";
 import Leaderboard from "./pages/Leaderboard";
+import NotFound from "./pages/NotFound";
 
 import RequireUsername from "./components/routeCheckers/RequireUsername";
 import RequireNoUsername from "./components/routeCheckers/RequireNoUsername";
@@ -26,6 +27,8 @@ const router = createBrowserRouter([
     children: [
       // Anyone allowed
       { index: true, element: <Home /> },
+      // unknown route, redirect to home
+      { path: "*", element: <NotFound /> },
 
       {
         // Need a server connection to access these routes
@@ -92,9 +95,6 @@ const router = createBrowserRouter([
       },
     ],
   },
-
-  // unknown route, redirect to home
-  { path: "*", element: <Navigate to="/" replace /> },
 ]);
 
 export default router;
