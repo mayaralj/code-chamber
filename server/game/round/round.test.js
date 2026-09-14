@@ -2,7 +2,7 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
 import {
   COUNTDOWN_TIMER,
-  ROUND_TIMER,
+  ROUND_TIMER_MAP,
   WAIT_BEFORE_RESULTS,
   FORCE_SUBMIT_TIMEOUT,
 } from "./round.js";
@@ -63,6 +63,7 @@ const makeIo = () => {
 };
 const makeRoom = (overrides = {}) => ({
   code: CODE,
+  difficulty: "easy",
   players: [{ userId: "u1" }, { userId: "u2" }, { userId: "u3" }],
   ...overrides,
 });
@@ -114,7 +115,7 @@ describe("startRound phase sequencing", () => {
       io,
       CODE,
       expect.any(Object),
-      ROUND_TIMER,
+      ROUND_TIMER_MAP["easy"],
     );
     expect(io._emit).toHaveBeenCalledWith("round-timer-finished");
     expect(waitForReconnectingPlayers).toHaveBeenCalled();

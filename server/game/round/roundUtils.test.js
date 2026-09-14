@@ -1,6 +1,6 @@
 // Imports
 import { describe, it, expect, vi, beforeEach } from "vitest";
-import { ROUND_TIMER } from "./round.js";
+import { ROUND_TIMER_MAP } from "./round.js";
 import { ROUND_RECONNECT_TIMEOUT } from "./roundUtils.js";
 
 // Mock dependencies
@@ -40,6 +40,7 @@ const makeRoom = (overrides = {}) => ({
   code: CODE,
   currentRound: 1,
   roundData: { 1: { question: { title: "Two Sum" } } },
+  difficulty: "easy",
   players: [],
   ...overrides,
 });
@@ -233,7 +234,7 @@ describe("startRoundTimer", () => {
     rooms[CODE] = makeRoom({ players: [] });
     const roundData = {};
 
-    await startRoundTimer(io, CODE, roundData, ROUND_TIMER);
+    await startRoundTimer(io, CODE, roundData, ROUND_TIMER_MAP["easy"]);
 
     expect(cancellableSleep).not.toHaveBeenCalled();
     expect(roundData.submissionsAllowed).toBe(true);
@@ -245,13 +246,18 @@ describe("startRoundTimer", () => {
     const roundData = {};
     const { resolvePromise } = makeCancellableSleepMock();
 
-    const donePromise = startRoundTimer(io, CODE, roundData, ROUND_TIMER);
+    const donePromise = startRoundTimer(
+      io,
+      CODE,
+      roundData,
+      ROUND_TIMER_MAP["easy"],
+    );
 
     expect(io._emit).toHaveBeenCalledWith(
       "round-tick",
       expect.objectContaining({ timeMultiplier: 1 }),
     );
-    expect(cancellableSleep).toHaveBeenCalledWith(ROUND_TIMER);
+    expect(cancellableSleep).toHaveBeenCalledWith(ROUND_TIMER_MAP["easy"]);
 
     resolvePromise();
     await donePromise;
@@ -265,8 +271,15 @@ describe("startRoundTimer", () => {
     const roundData = { roundEvents: { beforeRound: { fasterTimer: 1.5 } } };
     const { resolvePromise } = makeCancellableSleepMock();
 
-    const donePromise = startRoundTimer(io, CODE, roundData, ROUND_TIMER);
-    expect(cancellableSleep).toHaveBeenCalledWith(ROUND_TIMER / 1.5);
+    const donePromise = startRoundTimer(
+      io,
+      CODE,
+      roundData,
+      ROUND_TIMER_MAP["easy"],
+    );
+    expect(cancellableSleep).toHaveBeenCalledWith(
+      ROUND_TIMER_MAP["easy"] / 1.5,
+    );
 
     resolvePromise();
     await donePromise;
@@ -278,7 +291,12 @@ describe("startRoundTimer", () => {
     const roundData = {};
     const { cancel, resolvePromise } = makeCancellableSleepMock();
 
-    const donePromise = startRoundTimer(io, CODE, roundData, ROUND_TIMER);
+    const donePromise = startRoundTimer(
+      io,
+      CODE,
+      roundData,
+      ROUND_TIMER_MAP["easy"],
+    );
 
     expect(roundData.cancelRoundTimer).toBe(cancel);
 
