@@ -33,3 +33,9 @@
   scrollbar-width: thin;
   scrollbar-color: #5d5549 #0e0e0e;
 }
+
+/* index.css or global stylesheet */
+html, body, #root {
+  background-color: #0b0b0b;
+  min-height: 100%;
+}
