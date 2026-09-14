@@ -1,5 +1,5 @@
 // Imports
-import { useEffect, useRef } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useNavigate, useLocation, useParams } from "react-router";
 import Question from "../components/gameComponents/question/Question";
 import CodeEditor from "../components/gameComponents/codeEditor/CodeEditor";
@@ -157,6 +157,7 @@ const GameInner = ({ code }) => {
   useDisconnection(code, roomDeletedRef);
 
   // Check with server if user is supposed to be here
+  const [checkingAccess, setCheckingAccess] = useState(true);
   useEffect(() => {
     socket.emit("check-player", { code });
     socket.once("check-player-response", ({ message, valid }) => {
@@ -164,6 +165,7 @@ const GameInner = ({ code }) => {
         toast.error(message);
         navigate("/browse", { replace: true });
       }
+      setCheckingAccess(false);
     });
 
     // Cleanup
@@ -181,6 +183,10 @@ const GameInner = ({ code }) => {
   }, [location.state, navigate]);
 
   if (!location.state) return null;
+
+  if (checkingAccess) {
+    return <div className="min-h-screen bg-[#0b0b0b]" />;
+  }
 
   // Vars
   const isReconnecting = connectionStatus === "reconnecting";
