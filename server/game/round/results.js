@@ -63,7 +63,7 @@ export const sendResults = async (io, code, roundData) => {
   }
 
   // Calculate results ends at
-  roundData.resultsEndsAt = Date.now() + 1000 * RESULTS_TIMER;
+  roundData.resultsEndsAt = Date.now() + RESULTS_TIMER;
   // Send results to players in room
   io.to(code).emit("send-results", {
     results: roundData.roundResults,
@@ -91,7 +91,7 @@ export const gameOver = async (io, code, roundData, winner) => {
     );
     trackMatch(winner, rooms[code].roomId, true, survivalTime);
     // Send game over data
-    const gameOverEndsAt = Date.now() + 1000 * GAME_OVER_TIMER;
+    const gameOverEndsAt = Date.now() + GAME_OVER_TIMER;
     io.to(code).emit("game-over", {
       results: roundData.roundResults,
       gameOverEndsAt,
