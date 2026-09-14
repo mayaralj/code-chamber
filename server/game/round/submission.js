@@ -444,6 +444,22 @@ export const forceSubmitAll = async (io, code, unsubmittedPlayersCode) => {
   const roundStartTime = roundData.roundStartTime || Date.now();
   const submitTime = (Date.now() - roundStartTime) / 1000;
 
+  // If last player remaining, force submit with solution code because it was unvoluntary (they were the only one left and didnt submit so submitting their code would be unfair)
+  if (unsubmittedPlayersCode.length === 1) {
+    const solution =
+      roundData.question.solutions?.[unsubmittedPlayersCode[0].language]?.[
+        "optimal"
+      ].code;
+    await processSubmission(
+      io,
+      code,
+      unsubmittedPlayersCode[0].player,
+      solution || unsubmittedPlayersCode[0].codeInput,
+      unsubmittedPlayersCode[0].language,
+      submitTime,
+    );
+    return;
+  }
   // Process all of the unsubmitted players code and force submit them
   await Promise.all(
     unsubmittedPlayersCode.map(({ player, codeInput, language }) => {
