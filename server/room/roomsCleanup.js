@@ -12,7 +12,7 @@ import { broadcastRemoveRoom } from "../broadcast/broadcastRooms.js";
 const CLEANUP_INTERVAL = 30 * 1000;
 let cleanupTimer = null;
 const INACTIVITY_THRESHOLD = 10 * 60 * 1000; // 10 minutes
-const STALE_MATCH_THRESHOLD = "1 hour"; // only crashed/abandoned games should ever hit this
+const STALE_MATCH_THRESHOLD = "2 hours"; // only crashed/abandoned games should ever hit this
 
 // Helper to delete inactive rooms and notify players
 const deleteInactiveRooms = (io) => {
