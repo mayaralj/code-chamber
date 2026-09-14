@@ -4,7 +4,7 @@ import { socket } from "../../socket";
 import { playAnyTimer } from "../../utils/timers.js";
 
 // Custom hook to handle countdown timer
-const useCountdownTimer = (initEndsAt) => {
+const useCountdownTimer = (initEndsAt, newRoundPayload) => {
   // States
   const [timeLeft, setTimeLeft] = useState(() =>
     initEndsAt && initEndsAt > Date.now() ? 5 : 0,
@@ -13,6 +13,13 @@ const useCountdownTimer = (initEndsAt) => {
     Boolean(initEndsAt && initEndsAt > Date.now() ? false : true),
   );
   const [timerEndsAt, setTimerEndsAt] = useState(initEndsAt);
+  const [appliedPayLoad, setAppliedPayLoad] = useState(null);
+  if (newRoundPayload && newRoundPayload !== appliedPayLoad) {
+    setAppliedPayLoad(newRoundPayload);
+    setTimerEndsAt(newRoundPayload?.newEndsAt);
+    setTimeLeft(5);
+    setTimerFinished(false);
+  }
 
   // Refs
   const cleanupRef = useRef(null);
@@ -44,31 +51,9 @@ const useCountdownTimer = (initEndsAt) => {
     };
   }, [timerEndsAt]);
 
-  // Handle new round start by resetting states
-  useEffect(() => {
-    const handleNewRound = ({ newEndsAt }) => {
-      if (cleanupRef.current) {
-        cleanupRef.current();
-        cleanupRef.current = null;
-      }
-      setTimerEndsAt(newEndsAt);
-      setTimeLeft(5);
-      setTimerFinished(false);
-    };
-
-    // Listen for new round event
-    socket.on("new-round", handleNewRound);
-
-    // Cleanup
-    return () => {
-      socket.off("new-round", handleNewRound);
-    };
-  }, []);
-
   useEffect(() => {
     // Listen for timer finished event
     socket.on("timer-finished", () => {
-      console.log("Timer finished event received from server");
       setTimerFinished(true);
       setTimeLeft(0);
       if (cleanupRef.current) {

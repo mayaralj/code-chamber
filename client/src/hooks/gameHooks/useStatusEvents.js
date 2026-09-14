@@ -3,13 +3,24 @@ import { useState, useEffect } from "react";
 import { socket } from "../../socket";
 
 // Status Events
-const useStatusEvents = () => {
+const useStatusEvents = (newRoundPayload) => {
   // States
   const [statusEvents, setStatusEvents] = useState([
     // Initial with game started and round 1 started
     { type: "game", message: "Game started" },
     { type: "round", message: "Round 1 started" },
   ]);
+  const [appliedPayLoad, setAppliedPayLoad] = useState(null);
+  if (newRoundPayload && newRoundPayload !== appliedPayLoad) {
+    setAppliedPayLoad(newRoundPayload);
+    setStatusEvents((prevEvents) => [
+      ...prevEvents,
+      {
+        type: "round",
+        message: `Round ${newRoundPayload?.currentRound} started`,
+      },
+    ]);
+  }
 
   // Handle eliminated and missed players from results
   useEffect(() => {
@@ -54,27 +65,6 @@ const useStatusEvents = () => {
     return () => {
       socket.off("send-results", handleStatusResults);
       socket.off("game-over", handleStatusResults);
-    };
-  }, []);
-
-  // Handle new round start by resetting states
-  useEffect(() => {
-    const handleNewRound = ({ currentRound }) => {
-      setStatusEvents((prevEvents) => [
-        ...prevEvents,
-        {
-          type: "round",
-          message: `Round ${currentRound} started`,
-        },
-      ]);
-    };
-
-    // Listen for new round event
-    socket.on("new-round", handleNewRound);
-
-    // Cleanup
-    return () => {
-      socket.off("new-round", handleNewRound);
     };
   }, []);
 

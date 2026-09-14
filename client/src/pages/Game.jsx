@@ -24,6 +24,7 @@ import Eliminated from "../components/gameComponents/Eliminated";
 import Missed from "../components/gameComponents/Missed";
 import toast from "react-hot-toast";
 import useStatusEvents from "../hooks/gameHooks/useStatusEvents";
+import useNewRound from "../hooks/gameHooks/useNewRound";
 import { socket } from "../socket";
 
 const Game = () => {
@@ -50,13 +51,16 @@ const GameInner = ({ code }) => {
   // Connection status
   const { connectionStatus } = usePlayer();
 
+  // New Round payload
+  const newRoundPayload = useNewRound();
+
   // Hooks
   // Player List
-  const { playerList, setPlayerList } = usePlayerList(players);
+  const { playerList, setPlayerList } = usePlayerList(players, newRoundPayload);
 
   // Countdown Timer
   const { timeLeft, timerFinished, setTimerFinished, setTimerEndsAt } =
-    useCountdownTimer(initEndsAt);
+    useCountdownTimer(initEndsAt, newRoundPayload);
 
   // Round Timer
   const {
@@ -65,7 +69,7 @@ const GameInner = ({ code }) => {
     setCurrentRound,
     setRoundEndsAt,
     setTimeMultiplier,
-  } = useRoundTimer(roundEndsAt, timeMultiplier);
+  } = useRoundTimer(roundEndsAt, timeMultiplier, newRoundPayload);
 
   // Code Submission
   const {
@@ -76,18 +80,20 @@ const GameInner = ({ code }) => {
     handleSubmit,
     handleLanguageChange,
     testCasesResults,
-  } = useCodeSubmission(code, setPlayerList);
+  } = useCodeSubmission(code, setPlayerList, newRoundPayload);
 
   // Question
   const { question, setQuestion, starterCode, setStarterCode } =
-    useGameQuestion(initQuestion);
+    useGameQuestion(initQuestion, newRoundPayload);
 
   // Editor Ready
   const { editorReady, setEditorReady } = useCodeEditor();
 
   // Round events
-  const { beforeRoundEvents, setBeforeRoundEvents } =
-    useRoundEvents(firstBeforeEvents);
+  const { beforeRoundEvents, setBeforeRoundEvents } = useRoundEvents(
+    firstBeforeEvents,
+    newRoundPayload,
+  );
 
   // Results
   const {
@@ -103,10 +109,10 @@ const GameInner = ({ code }) => {
     setIsMissed,
     winner,
     setWinner,
-  } = useResults(code);
+  } = useResults(code, newRoundPayload);
 
   // Status Events
-  const { statusEvents } = useStatusEvents();
+  const { statusEvents } = useStatusEvents(newRoundPayload);
 
   // Refs
   const roomDeletedRef = useRef(false);

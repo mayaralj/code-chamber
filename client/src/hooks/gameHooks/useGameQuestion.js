@@ -1,29 +1,19 @@
 // Imports
-import { useState, useEffect } from "react";
-import { socket } from "../../socket";
+import { useState } from "react";
 
 // Custom hook to handle game question and starter code
-const useGameQuestion = (initQuestion) => {
+const useGameQuestion = (initQuestion, newRoundPayload) => {
+  // States
   const [question, setQuestion] = useState(initQuestion || null);
   const [starterCode, setStarterCode] = useState(
     initQuestion?.starterCode || "",
   );
-
-  // Handle new round start by setting new question and starter code
-  useEffect(() => {
-    const handleNewRound = ({ question }) => {
-      setQuestion(question);
-      setStarterCode(question.starterCode || "");
-    };
-
-    // Listen for new round event
-    socket.on("new-round", handleNewRound);
-
-    // Cleanup
-    return () => {
-      socket.off("new-round", handleNewRound);
-    };
-  }, []);
+  const [appliedPayLoad, setAppliedPayLoad] = useState(null);
+  if (newRoundPayload && newRoundPayload !== appliedPayLoad) {
+    setAppliedPayLoad(newRoundPayload);
+    setQuestion(newRoundPayload?.question || null);
+    setStarterCode(newRoundPayload?.question?.starterCode || "");
+  }
 
   return { question, setQuestion, starterCode, setStarterCode };
 };

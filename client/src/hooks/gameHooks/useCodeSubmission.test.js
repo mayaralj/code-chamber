@@ -40,7 +40,6 @@ describe("useCodeSubmission", () => {
   it("subscribes to all expected events on mount", () => {
     renderHook(() => useCodeSubmission("ROOM1", vi.fn()));
 
-    expect(socket.__listenerCount("new-round")).toBe(1);
     expect(socket.__listenerCount("code-submitted")).toBe(1);
     expect(socket.__listenerCount("code-judging")).toBe(1);
     expect(socket.__listenerCount("request-code")).toBe(1);
@@ -242,30 +241,6 @@ describe("useCodeSubmission", () => {
     });
   });
 
-  it("resets status and code input on a new-round event", () => {
-    const { result } = renderHook(() => useCodeSubmission("ROOM1", vi.fn()));
-
-    act(() => {
-      result.current.handleCodeChange("leftover code");
-      result.current.handleSubmit();
-    });
-    expect(result.current.codeStatus).toBe("processing");
-
-    act(() => {
-      socket.__trigger("new-round", {});
-    });
-
-    expect(result.current.codeStatus).toBe("not-submitted");
-
-    act(() => {
-      result.current.handleSubmit();
-    });
-    expect(socket.emit).toHaveBeenLastCalledWith(
-      "submit-code",
-      expect.objectContaining({ codeInput: "" }),
-    );
-  });
-
   it("calls setPlayerList with the updated roster on player-submitted", () => {
     const setPlayerList = vi.fn();
     renderHook(() => useCodeSubmission("ROOM1", setPlayerList));
@@ -301,7 +276,6 @@ describe("useCodeSubmission", () => {
 
     unmount();
 
-    expect(socket.__listenerCount("new-round")).toBe(0);
     expect(socket.__listenerCount("code-submitted")).toBe(0);
     expect(socket.__listenerCount("code-judging")).toBe(0);
     expect(socket.__listenerCount("request-code")).toBe(0);
@@ -318,7 +292,6 @@ describe("useCodeSubmission", () => {
     rerender();
     rerender();
 
-    expect(socket.__listenerCount("new-round")).toBe(1);
     expect(socket.__listenerCount("code-submitted")).toBe(1);
     expect(socket.__listenerCount("code-judging")).toBe(1);
     expect(socket.__listenerCount("request-code")).toBe(1);

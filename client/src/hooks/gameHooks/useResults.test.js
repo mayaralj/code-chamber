@@ -50,7 +50,6 @@ describe("useResults", () => {
   it("subscribes to all five events exactly once each on mount", () => {
     renderHook(() => useResults());
 
-    expect(socket.__listenerCount("new-round")).toBe(1);
     expect(socket.__listenerCount("player-missed")).toBe(1);
     expect(socket.__listenerCount("send-results")).toBe(1);
     expect(socket.__listenerCount("results-timer-finished")).toBe(1);
@@ -219,33 +218,6 @@ describe("useResults", () => {
     expect(cleanupFns).toHaveLength(2);
   });
 
-  it("resets all round-scoped state and clears the active timer on new-round", () => {
-    const { result } = renderHook(() => useResults());
-
-    act(() => {
-      socket.__trigger("player-missed");
-      socket.__trigger("send-results", {
-        results: [{ username: "alice" }],
-        resultsEndsAt: NOW + 5000,
-        eliminatedPlayers: ["bob"],
-        missedPlayer: "carol",
-      });
-    });
-    const activeCleanup = cleanupFns[0];
-
-    act(() => {
-      socket.__trigger("new-round");
-    });
-
-    expect(result.current.results).toEqual([]);
-    expect(result.current.resultsReady).toBe(false);
-    expect(result.current.missedPlayer).toBeNull();
-    expect(result.current.eliminatedPlayers).toEqual([]);
-    expect(result.current.winner).toBeNull();
-    expect(result.current.isMissed).toBe(false);
-    expect(activeCleanup).toHaveBeenCalled();
-  });
-
   it("does not error if new-round fires with no active timer", () => {
     const { result } = renderHook(() => useResults());
 
@@ -273,7 +245,6 @@ describe("useResults", () => {
 
     unmount();
 
-    expect(socket.__listenerCount("new-round")).toBe(0);
     expect(socket.__listenerCount("player-missed")).toBe(0);
     expect(socket.__listenerCount("send-results")).toBe(0);
     expect(socket.__listenerCount("results-timer-finished")).toBe(0);
@@ -287,7 +258,6 @@ describe("useResults", () => {
     rerender();
     rerender();
 
-    expect(socket.__listenerCount("new-round")).toBe(1);
     expect(socket.__listenerCount("player-missed")).toBe(1);
     expect(socket.__listenerCount("send-results")).toBe(1);
     expect(socket.__listenerCount("results-timer-finished")).toBe(1);

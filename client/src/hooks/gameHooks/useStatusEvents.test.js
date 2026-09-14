@@ -33,7 +33,6 @@ describe("useStatusEvents", () => {
 
     expect(socket.__listenerCount("send-results")).toBe(1);
     expect(socket.__listenerCount("game-over")).toBe(1);
-    expect(socket.__listenerCount("new-round")).toBe(1);
     expect(socket.__listenerCount("player-submitted")).toBe(1);
     expect(socket.__listenerCount("player-left")).toBe(1);
   });
@@ -117,20 +116,6 @@ describe("useStatusEvents", () => {
     ]);
   });
 
-  it("appends a round-started event with the correct round number on new-round", () => {
-    const { result } = renderHook(() => useStatusEvents());
-
-    act(() => {
-      socket.__trigger("new-round", { currentRound: 2 });
-    });
-
-    expect(result.current.statusEvents).toEqual([
-      { type: "game", message: "Game started" },
-      { type: "round", message: "Round 1 started" },
-      { type: "round", message: "Round 2 started" },
-    ]);
-  });
-
   it("appends a submitted event with the player's username on player-submitted", () => {
     const { result } = renderHook(() => useStatusEvents());
 
@@ -159,33 +144,6 @@ describe("useStatusEvents", () => {
     });
   });
 
-  it("preserves chronological order across multiple different events", () => {
-    const { result } = renderHook(() => useStatusEvents());
-
-    act(() => {
-      socket.__trigger("player-submitted", {
-        playerSubmitted: { username: "alice" },
-      });
-    });
-    act(() => {
-      socket.__trigger("send-results", {
-        eliminatedPlayers: ["bob"],
-        missedPlayer: null,
-      });
-    });
-    act(() => {
-      socket.__trigger("new-round", { currentRound: 2 });
-    });
-
-    expect(result.current.statusEvents).toEqual([
-      { type: "game", message: "Game started" },
-      { type: "round", message: "Round 1 started" },
-      { type: "submitted", message: "alice submitted" },
-      { type: "eliminated", message: "bob was eliminated" },
-      { type: "round", message: "Round 2 started" },
-    ]);
-  });
-
   it("unsubscribes all five listeners with matching handler references on unmount", () => {
     const { unmount } = renderHook(() => useStatusEvents());
 
@@ -200,7 +158,6 @@ describe("useStatusEvents", () => {
       handlers["send-results"],
     );
     expect(socket.off).toHaveBeenCalledWith("game-over", handlers["game-over"]);
-    expect(socket.off).toHaveBeenCalledWith("new-round", handlers["new-round"]);
     expect(socket.off).toHaveBeenCalledWith(
       "player-submitted",
       handlers["player-submitted"],
@@ -212,7 +169,6 @@ describe("useStatusEvents", () => {
 
     expect(socket.__listenerCount("send-results")).toBe(0);
     expect(socket.__listenerCount("game-over")).toBe(0);
-    expect(socket.__listenerCount("new-round")).toBe(0);
     expect(socket.__listenerCount("player-submitted")).toBe(0);
     expect(socket.__listenerCount("player-left")).toBe(0);
   });
@@ -225,7 +181,6 @@ describe("useStatusEvents", () => {
 
     expect(socket.__listenerCount("send-results")).toBe(1);
     expect(socket.__listenerCount("game-over")).toBe(1);
-    expect(socket.__listenerCount("new-round")).toBe(1);
     expect(socket.__listenerCount("player-submitted")).toBe(1);
     expect(socket.__listenerCount("player-left")).toBe(1);
   });

@@ -3,9 +3,15 @@ import { useState, useEffect } from "react";
 import { socket } from "../../socket";
 
 // Custom hook to handle player list updates
-const usePlayerList = (players) => {
-  // Player list
+const usePlayerList = (players, newRoundPayload) => {
+  // States
   const [playerList, setPlayerList] = useState(players || []);
+  // Handle new round payload to update player list
+  const [appliedPayLoad, setAppliedPayLoad] = useState(null);
+  if (newRoundPayload && newRoundPayload !== appliedPayLoad) {
+    setAppliedPayLoad(newRoundPayload);
+    setPlayerList(newRoundPayload?.players || []);
+  }
 
   // Handle results (only update player list here)
   useEffect(() => {
@@ -16,21 +22,6 @@ const usePlayerList = (players) => {
 
     return () => {
       socket.off("send-results", handleResults);
-    };
-  }, []);
-
-  // Handle new round start by resetting states
-  useEffect(() => {
-    const handleNewRound = ({ players }) => {
-      setPlayerList(players);
-    };
-
-    // Listen for new round event
-    socket.on("new-round", handleNewRound);
-
-    // Cleanup
-    return () => {
-      socket.off("new-round", handleNewRound);
     };
   }, []);
 

@@ -3,8 +3,9 @@ import { useState, useEffect, useRef, useCallback } from "react";
 import { socket } from "../../socket";
 
 // Hook to handle code submission
-const useCodeSubmission = (code, setPlayerList) => {
+const useCodeSubmission = (code, setPlayerList, newRoundPayload) => {
   // Code input (ref because its faster to update + no need the actual state for any ui)
+  const [codeInput, setCodeInput] = useState(""); // only used to reset the code input on new round
   const codeInputRef = useRef("");
 
   // Code status
@@ -17,6 +18,20 @@ const useCodeSubmission = (code, setPlayerList) => {
   // Language
   const [language, setLanguage] = useState("javascript");
   const languageRef = useRef("javascript");
+
+  // Handle new round payload to reset states
+  const [appliedPayLoad, setAppliedPayLoad] = useState(null);
+  if (newRoundPayload && newRoundPayload !== appliedPayLoad) {
+    setAppliedPayLoad(newRoundPayload);
+    setCodeStatus("not-submitted");
+    setCodeInput("");
+    setTestCasesResults([]);
+  }
+
+  // On code input update the ref
+  useEffect(() => {
+    codeInputRef.current = codeInput;
+  }, [codeInput]);
 
   // On code status update the ref
   useEffect(() => {
@@ -72,25 +87,6 @@ const useCodeSubmission = (code, setPlayerList) => {
       timeSubmitted,
     });
   };
-
-  // Handle new round start by resetting states
-  useEffect(() => {
-    const handleNewRound = () => {
-      codeInputRef.current = "";
-
-      setCodeStatus("not-submitted");
-      codeStatusRef.current = "not-submitted";
-      setTestCasesResults([]);
-    };
-
-    // Listen for new round event
-    socket.on("new-round", handleNewRound);
-
-    // Cleanup
-    return () => {
-      socket.off("new-round", handleNewRound);
-    };
-  }, []);
 
   // Listen for submission updates and errors
   useEffect(() => {

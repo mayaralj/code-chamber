@@ -1,25 +1,15 @@
 // Imports
-import { useState, useEffect } from "react";
-import { socket } from "../../socket";
+import { useState } from "react";
 
 // Round Timer
-const useRoundEvents = (firstBeforeEvents) => {
+const useRoundEvents = (firstBeforeEvents, newRoundPayload) => {
   // States
   const [beforeRoundEvents, setBeforeRoundEvents] = useState(firstBeforeEvents);
-
-  // Handle new round start by resetting states
-  useEffect(() => {
-    const handleNewRound = ({ beforeRoundEvents }) => {
-      setBeforeRoundEvents(beforeRoundEvents);
-    };
-
-    socket.on("new-round", handleNewRound);
-
-    // Cleanup
-    return () => {
-      socket.off("new-round", handleNewRound);
-    };
-  }, []);
+  const [appliedPayLoad, setAppliedPayLoad] = useState(null);
+  if (newRoundPayload && newRoundPayload !== appliedPayLoad) {
+    setAppliedPayLoad(newRoundPayload);
+    setBeforeRoundEvents(newRoundPayload?.beforeRoundEvents || []);
+  }
 
   // Return
   return { beforeRoundEvents, setBeforeRoundEvents };

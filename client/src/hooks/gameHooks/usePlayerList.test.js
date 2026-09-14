@@ -37,7 +37,6 @@ describe("usePlayerList", () => {
     renderHook(() => usePlayerList([]));
 
     expect(socket.__listenerCount("send-results")).toBe(1);
-    expect(socket.__listenerCount("new-round")).toBe(1);
     expect(socket.__listenerCount("update-players")).toBe(1);
   });
 
@@ -47,17 +46,6 @@ describe("usePlayerList", () => {
 
     act(() => {
       socket.__trigger("send-results", { players: nextPlayers });
-    });
-
-    expect(result.current.playerList).toEqual(nextPlayers);
-  });
-
-  it("updates playerList on a new-round event", () => {
-    const { result } = renderHook(() => usePlayerList([]));
-    const nextPlayers = [{ username: "dave" }];
-
-    act(() => {
-      socket.__trigger("new-round", { players: nextPlayers });
     });
 
     expect(result.current.playerList).toEqual(nextPlayers);
@@ -80,16 +68,11 @@ describe("usePlayerList", () => {
     const sendResultsHandler = socket.on.mock.calls.find(
       (call) => call[0] === "send-results",
     )[1];
-    const newRoundHandler = socket.on.mock.calls.find(
-      (call) => call[0] === "new-round",
-    )[1];
 
     unmount();
 
     expect(socket.off).toHaveBeenCalledWith("send-results", sendResultsHandler);
-    expect(socket.off).toHaveBeenCalledWith("new-round", newRoundHandler);
     expect(socket.__listenerCount("send-results")).toBe(0);
-    expect(socket.__listenerCount("new-round")).toBe(0);
   });
 
   it("does not leave stray listeners behind across re-renders", () => {
@@ -99,7 +82,6 @@ describe("usePlayerList", () => {
     rerender();
 
     expect(socket.__listenerCount("send-results")).toBe(1);
-    expect(socket.__listenerCount("new-round")).toBe(1);
     expect(socket.__listenerCount("update-players")).toBe(1);
   });
 

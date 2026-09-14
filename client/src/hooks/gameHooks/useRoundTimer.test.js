@@ -60,21 +60,6 @@ describe("useRoundTimer", () => {
     });
   });
 
-  it("resets roundTimeLeft and updates currentRound on a new-round event", () => {
-    const { result } = renderHook(() => useRoundTimer(NOW + 5000, 1));
-
-    const functionSetter = playAnyTimer.mock.calls[0][0].functionSetter;
-    act(() => functionSetter(3));
-    expect(result.current.roundTimeLeft).toBe(3);
-
-    act(() => {
-      socket.__trigger("new-round", { currentRound: 2 });
-    });
-
-    expect(result.current.currentRound).toBe(2);
-    expect(result.current.roundTimeLeft).toBe(0);
-  });
-
   it("restarts the timer with new endsAt/multiplier on a round-tick event", () => {
     renderHook(() => useRoundTimer());
 
@@ -147,10 +132,9 @@ describe("useRoundTimer", () => {
     expect(cleanupFns).toHaveLength(2);
   });
 
-  it("subscribes to new-round, round-tick, and round-timer-finished exactly once each on mount", () => {
+  it("subscribes to round-tick, and round-timer-finished exactly once each on mount", () => {
     renderHook(() => useRoundTimer(NOW + 5000, 1));
 
-    expect(socket.__listenerCount("new-round")).toBe(1);
     expect(socket.__listenerCount("round-tick")).toBe(1);
     expect(socket.__listenerCount("round-timer-finished")).toBe(1);
   });
@@ -160,7 +144,6 @@ describe("useRoundTimer", () => {
 
     unmount();
 
-    expect(socket.__listenerCount("new-round")).toBe(0);
     expect(socket.__listenerCount("round-tick")).toBe(0);
     expect(socket.__listenerCount("round-timer-finished")).toBe(0);
   });
@@ -179,7 +162,6 @@ describe("useRoundTimer", () => {
     rerender();
     rerender();
 
-    expect(socket.__listenerCount("new-round")).toBe(1);
     expect(socket.__listenerCount("round-tick")).toBe(1);
     expect(socket.__listenerCount("round-timer-finished")).toBe(1);
   });

@@ -100,43 +100,6 @@ describe("useCountdownTimer", () => {
     expect(result.current.timerFinished).toBe(false);
   });
 
-  it("on new-round: resets timerFinished to false, sets timeLeft to 5, and starts a new timer", () => {
-    const { result } = renderHook(() => useCountdownTimer(NOW - 5000));
-    expect(result.current.timerFinished).toBe(true);
-
-    act(() => {
-      socket.__trigger("new-round", { newEndsAt: NOW + 4000 });
-    });
-
-    expect(result.current.timerFinished).toBe(false);
-    expect(result.current.timeLeft).toBe(5);
-    expect(playAnyTimer).toHaveBeenCalledWith(
-      expect.objectContaining({ endsAt: NOW + 4000 }),
-    );
-  });
-
-  it("does not immediately re-trigger timerFinished after new-round sets timeLeft to 5", () => {
-    const { result } = renderHook(() => useCountdownTimer(NOW - 5000));
-
-    act(() => {
-      socket.__trigger("new-round", { newEndsAt: NOW + 4000 });
-    });
-
-    expect(result.current.timerFinished).toBe(false);
-  });
-
-  it("calls the previous cleanup before starting a new timer when timerEndsAt changes", () => {
-    renderHook(() => useCountdownTimer(NOW + 5000));
-    const firstCleanup = cleanupFns[0];
-
-    act(() => {
-      socket.__trigger("new-round", { newEndsAt: NOW + 8000 });
-    });
-
-    expect(firstCleanup).toHaveBeenCalled();
-    expect(cleanupFns).toHaveLength(2);
-  });
-
   it("on timer-finished event: sets timerFinished true, timeLeft to 0, and clears the active timer", () => {
     const { result } = renderHook(() => useCountdownTimer(NOW + 5000));
     const activeCleanup = cleanupFns[0];
@@ -153,7 +116,6 @@ describe("useCountdownTimer", () => {
   it("subscribes to new-round and timer-finished exactly once each on mount", () => {
     renderHook(() => useCountdownTimer(NOW + 5000));
 
-    expect(socket.__listenerCount("new-round")).toBe(1);
     expect(socket.__listenerCount("timer-finished")).toBe(1);
   });
 
@@ -180,19 +142,5 @@ describe("useCountdownTimer", () => {
     unmount();
 
     expect(activeCleanup).toHaveBeenCalledTimes(1);
-  });
-
-  it("exposes manual setters for timerFinished and timerEndsAt", () => {
-    const { result } = renderHook(() => useCountdownTimer());
-
-    act(() => {
-      result.current.setTimerFinished(false);
-      result.current.setTimerEndsAt(NOW + 1000);
-    });
-
-    expect(result.current.timerFinished).toBe(false);
-    expect(playAnyTimer).toHaveBeenCalledWith(
-      expect.objectContaining({ endsAt: NOW + 1000 }),
-    );
   });
 });

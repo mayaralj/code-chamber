@@ -4,7 +4,7 @@ import { socket } from "../../socket";
 import { playAnyTimer } from "../../utils/timers.js";
 
 // Custom hook to handle game results and related states
-const useResults = () => {
+const useResults = (newRoundPayload) => {
   // States
   const [results, setResults] = useState([]);
   const [resultsTimer, setResultsTimer] = useState(null);
@@ -13,34 +13,26 @@ const useResults = () => {
   const [missedPlayer, setMissedPlayer] = useState(null);
   const [isMissed, setIsMissed] = useState(false);
   const [winner, setWinner] = useState(null);
+  const [appliedPayLoad, setAppliedPayLoad] = useState(null);
+  if (newRoundPayload && newRoundPayload !== appliedPayLoad) {
+    setAppliedPayLoad(newRoundPayload);
+    setResults([]);
+    setResultsTimer(null);
+    setResultsReady(false);
+    setMissedPlayer(null);
+    setEliminatedPlayers([]);
+    setWinner(null);
+    setIsMissed(false);
+  }
+  useEffect(() => {
+    if (cleanupRef.current) {
+      cleanupRef.current();
+      cleanupRef.current = null;
+    }
+  }, [newRoundPayload]);
 
   // refs
   const cleanupRef = useRef(null);
-
-  // Handle new round start by resetting states
-  useEffect(() => {
-    const handleNewRound = () => {
-      setResults([]);
-      setResultsTimer(null);
-      setResultsReady(false);
-      setMissedPlayer(null);
-      setEliminatedPlayers([]);
-      setWinner(null);
-      setIsMissed(false);
-      if (cleanupRef.current) {
-        cleanupRef.current();
-        cleanupRef.current = null;
-      }
-    };
-
-    // Listen for new round event
-    socket.on("new-round", handleNewRound);
-
-    // Cleanup
-    return () => {
-      socket.off("new-round", handleNewRound);
-    };
-  }, []);
 
   // Handle missed player event
   useEffect(() => {
@@ -63,7 +55,6 @@ const useResults = () => {
       eliminatedPlayers,
       missedPlayer,
     }) => {
-      console.log("Results received from server:");
       setResults(results || []);
       setResultsReady(true);
       setMissedPlayer(missedPlayer);

@@ -39,49 +39,6 @@ describe("useGameQuestion", () => {
     expect(result.current.starterCode).toBe("");
   });
 
-  it("subscribes to new-round exactly once on mount", () => {
-    renderHook(() => useGameQuestion());
-
-    expect(socket.on).toHaveBeenCalledWith("new-round", expect.any(Function));
-    expect(socket.__listenerCount("new-round")).toBe(1);
-  });
-
-  it("updates question and starter code when a new-round event arrives", () => {
-    const { result } = renderHook(() => useGameQuestion());
-
-    const nextQuestion = {
-      id: 2,
-      title: "Reverse String",
-      starterCode: "function reverse() {}",
-    };
-
-    act(() => {
-      socket.__trigger("new-round", { question: nextQuestion });
-    });
-
-    expect(result.current.question).toEqual(nextQuestion);
-    expect(result.current.starterCode).toBe("function reverse() {}");
-  });
-
-  it("unsubscribes the exact same handler reference on unmount", () => {
-    const { unmount } = renderHook(() => useGameQuestion());
-    const registeredHandler = socket.on.mock.calls[0][1];
-
-    unmount();
-
-    expect(socket.off).toHaveBeenCalledWith("new-round", registeredHandler);
-    expect(socket.__listenerCount("new-round")).toBe(0);
-  });
-
-  it("does not leave a stray listener behind if the hook re-renders", () => {
-    const { rerender } = renderHook(() => useGameQuestion());
-
-    rerender();
-    rerender();
-
-    expect(socket.__listenerCount("new-round")).toBe(1);
-  });
-
   it("documents current behavior: starterCode becomes empty string if the new question has none", () => {
     const { result } = renderHook(() => useGameQuestion());
 

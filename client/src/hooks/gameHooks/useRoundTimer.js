@@ -4,12 +4,22 @@ import { socket } from "../../socket";
 import { playAnyTimer } from "../../utils/timers.js";
 
 // Round Timer
-const useRoundTimer = (initRoundEndsAt, initTimeMultiplier) => {
+const useRoundTimer = (
+  initRoundEndsAt,
+  initTimeMultiplier,
+  newRoundPayload,
+) => {
   // States
   const [roundTimeLeft, setRoundTimeLeft] = useState(0);
   const [timeMultiplier, setTimeMultiplier] = useState(initTimeMultiplier);
   const [roundEndsAt, setRoundEndsAt] = useState(initRoundEndsAt);
   const [currentRound, setCurrentRound] = useState(1);
+  const [appliedPayLoad, setAppliedPayLoad] = useState(null);
+  if (newRoundPayload && newRoundPayload !== appliedPayLoad) {
+    setAppliedPayLoad(newRoundPayload);
+    setCurrentRound(newRoundPayload?.currentRound);
+    setRoundTimeLeft(0);
+  }
 
   // Refs
   const roundTimerCleanupRef = useRef(null);
@@ -29,23 +39,6 @@ const useRoundTimer = (initRoundEndsAt, initTimeMultiplier) => {
       });
     }
   }, [roundEndsAt, timeMultiplier]);
-
-  // Handle new round start by resetting states
-  useEffect(() => {
-    // Handle new round event
-    const handleNewRound = ({ currentRound }) => {
-      setCurrentRound(currentRound);
-      setRoundTimeLeft(0);
-    };
-
-    // Listen for new round event
-    socket.on("new-round", handleNewRound);
-
-    // Cleanup
-    return () => {
-      socket.off("new-round", handleNewRound);
-    };
-  }, []);
 
   useEffect(() => {
     socket.on("round-tick", ({ roundEndsAt, timeMultiplier }) => {
