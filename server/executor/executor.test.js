@@ -222,7 +222,11 @@ const { rows: starterCodeRows } = await db.query(`
 const byQuestion = {};
 for (const row of starterCodeRows) {
   if (!byQuestion[row.question_id]) {
-    byQuestion[row.question_id] = { title: row.title, entries: [] };
+    byQuestion[row.question_id] = {
+      id: row.question_id,
+      title: row.title,
+      entries: [],
+    };
   }
   if (row.language) {
     byQuestion[row.question_id].entries.push({
@@ -294,5 +298,25 @@ describe("starter code coverage per question and language", () => {
       }
     }
     expect(mismatches, mismatches.join(" | ")).toEqual([]);
+  });
+});
+
+describe("solution coverage per question, language, and approach", () => {
+  it("every question has an 'optimal' solution for each required language", () => {
+    const problems = [];
+    for (const question of questions) {
+      for (const language of REQUIRED_LANGUAGES) {
+        const hasOptimal = solutions.some(
+          (s) =>
+            s.question_id === question.id &&
+            s.language === language &&
+            s.approach === "optimal",
+        );
+        if (!hasOptimal) {
+          problems.push(`${question.title}: missing optimal/${language}`);
+        }
+      }
+    }
+    expect(problems, problems.join(" | ")).toEqual([]);
   });
 });
