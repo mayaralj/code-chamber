@@ -130,7 +130,7 @@ const Home = () => {
     <>
       <span className="text-[15px] mr-8">
         {liveStats
-          ? "ACTIVE PLAYERS: " + liveStats.active_users
+          ? "PLAYERS ONLINE: " + liveStats.active_users
           : "CONNECTING TO LIVE FEED..."}
       </span>
       <span className="text-[15px] mr-8">|</span>
