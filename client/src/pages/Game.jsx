@@ -109,7 +109,7 @@ const GameInner = ({ code }) => {
     setIsMissed,
     winner,
     setWinner,
-  } = useResults(code, newRoundPayload);
+  } = useResults(newRoundPayload);
 
   // Status Events
   const { statusEvents } = useStatusEvents(newRoundPayload);
