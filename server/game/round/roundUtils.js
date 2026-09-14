@@ -136,7 +136,7 @@ export const startRoundTimer = async (io, code, roundData, ROUND_TIMER) => {
 
   // Wait for round timer to finish or be cancelled
   // Only start round timer if enough players are still in the room
-  if (rooms[code].players.length > 0) {
+  if (rooms[code].players.length > 1) {
     // Create a new promise and cancel function for the round timer
     const { promise: roundTimerPromise, cancel: cancelRoundTimer } =
       cancellableSleep(ROUND_TIMER / timeMultiplier);
