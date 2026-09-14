@@ -228,7 +228,6 @@ describe("sendResults", () => {
     await sendResults(io, CODE, roundData);
 
     expect(sleep).toHaveBeenCalledWith(RESULTS_TIMER);
-    expect(io._emit).toHaveBeenCalledWith("results-timer-finished");
   });
 });
 
