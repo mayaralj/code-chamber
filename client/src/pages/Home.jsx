@@ -196,7 +196,7 @@ const Home = () => {
             CODE CHAMBER
           </h1>
           <p className="mt-4 text-md font-bold tracking-[0.08em] text-[#fcdca9]">
-            CHALLENGE YOURSELF. TEST YOUR SKILLS. OUTLAST THE COMPETITION.
+            The Multiplayer Way To Sharpen Your Coding Skills.
           </p>
           <p className="mt-6 text-[15px] leading-7 text-[#c7b499]">
             A high-stakes multiplayer coding game where your DSA skills can
