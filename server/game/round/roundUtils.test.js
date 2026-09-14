@@ -242,7 +242,7 @@ describe("startRoundTimer", () => {
 
   it("uses a 1x multiplier by default and emits round-tick", async () => {
     const io = makeIo();
-    rooms[CODE] = makeRoom({ players: [{ userId: "u1" }] });
+    rooms[CODE] = makeRoom({ players: [{ userId: "u1" }, { userId: "u2" }] });
     const roundData = {};
     const { resolvePromise } = makeCancellableSleepMock();
 
@@ -267,7 +267,7 @@ describe("startRoundTimer", () => {
 
   it("applies the fasterTimer multiplier to the actual round duration", async () => {
     const io = makeIo();
-    rooms[CODE] = makeRoom({ players: [{ userId: "u1" }] });
+    rooms[CODE] = makeRoom({ players: [{ userId: "u1" }, { userId: "u2" }] });
     const roundData = { roundEvents: { beforeRound: { fasterTimer: 1.5 } } };
     const { resolvePromise } = makeCancellableSleepMock();
 
@@ -287,7 +287,7 @@ describe("startRoundTimer", () => {
 
   it("stores a cancel function while the timer is running", async () => {
     const io = makeIo();
-    rooms[CODE] = makeRoom({ players: [{ userId: "u1" }] });
+    rooms[CODE] = makeRoom({ players: [{ userId: "u1" }, { userId: "u2" }] });
     const roundData = {};
     const { cancel, resolvePromise } = makeCancellableSleepMock();
 

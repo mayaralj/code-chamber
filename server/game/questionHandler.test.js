@@ -59,7 +59,8 @@ const mockHappyPathQueries = () => {
   db.query
     .mockResolvedValueOnce({ rows: QUESTIONS })
     .mockResolvedValueOnce({ rows: STARTER_CODE_ROWS })
-    .mockResolvedValueOnce({ rows: TEST_CASE_ROWS });
+    .mockResolvedValueOnce({ rows: TEST_CASE_ROWS })
+    .mockResolvedValueOnce({ rows: [] }); // solutions query
 };
 
 // Reset mocks before each test
