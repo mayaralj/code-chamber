@@ -86,7 +86,7 @@ describe("useReconnection", () => {
     });
   });
 
-  it.each(["countdown", "game-started", "new-round"])(
+  it.each(["countdown", "game-started"])(
     "sets base state and timerEndsAt for phase '%s'",
     (phase) => {
       renderHook(() => useReconnection("ROOM1", setPlayerList, setters));

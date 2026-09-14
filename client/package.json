@@ -15,6 +15,7 @@
     "@monaco-editor/react": "^4.7.0",
     "@tailwindcss/vite": "^4.3.0",
     "better-auth": "^1.6.23",
+    "framer-motion": "^13.2.0",
     "lucide-react": "^1.26.0",
     "react": "^19.2.6",
     "react-dom": "^19.2.6",

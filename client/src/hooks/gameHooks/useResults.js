@@ -1,13 +1,11 @@
 // Custom hook to handle game results and related states
 import { useState, useEffect, useRef } from "react";
 import { socket } from "../../socket";
-import { playAnyTimer } from "../../utils/timers.js";
 
 // Custom hook to handle game results and related states
 const useResults = (newRoundPayload) => {
   // States
   const [results, setResults] = useState([]);
-  const [resultsTimer, setResultsTimer] = useState(null);
   const [resultsReady, setResultsReady] = useState(false);
   const [eliminatedPlayers, setEliminatedPlayers] = useState([]);
   const [missedPlayer, setMissedPlayer] = useState(null);
@@ -18,7 +16,6 @@ const useResults = (newRoundPayload) => {
     console.log("New round payload detected, resetting results state");
     setAppliedPayLoad(newRoundPayload);
     setResults([]);
-    setResultsTimer(null);
     setResultsReady(false);
     setMissedPlayer(null);
     setEliminatedPlayers([]);

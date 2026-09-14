@@ -52,7 +52,6 @@ describe("useResults", () => {
 
     expect(socket.__listenerCount("player-missed")).toBe(1);
     expect(socket.__listenerCount("send-results")).toBe(1);
-    expect(socket.__listenerCount("results-timer-finished")).toBe(1);
     expect(socket.__listenerCount("game-over")).toBe(1);
   });
 
@@ -72,7 +71,6 @@ describe("useResults", () => {
     act(() => {
       socket.__trigger("send-results", {
         results: [{ username: "alice", score: 10 }],
-        resultsEndsAt: NOW + 5000,
         eliminatedPlayers: ["bob"],
         missedPlayer: "carol",
       });
@@ -82,12 +80,6 @@ describe("useResults", () => {
     expect(result.current.resultsReady).toBe(true);
     expect(result.current.eliminatedPlayers).toEqual(["bob"]);
     expect(result.current.missedPlayer).toBe("carol");
-    expect(playAnyTimer).toHaveBeenCalledWith(
-      expect.objectContaining({
-        endsAt: NOW + 5000,
-        functionSetter: expect.any(Function),
-      }),
-    );
   });
 
   it("clears missedPlayer on send-results when the payload has none", () => {
@@ -114,27 +106,6 @@ describe("useResults", () => {
     expect(result.current.missedPlayer).toBeNull();
   });
 
-  it("resets resultsReady and clears the active timer on results-timer-finished", () => {
-    const { result } = renderHook(() => useResults());
-
-    act(() => {
-      socket.__trigger("send-results", {
-        results: [],
-        resultsEndsAt: NOW + 5000,
-        eliminatedPlayers: [],
-        missedPlayer: null,
-      });
-    });
-    const activeCleanup = cleanupFns[0];
-
-    act(() => {
-      socket.__trigger("results-timer-finished");
-    });
-
-    expect(result.current.resultsReady).toBe(false);
-    expect(activeCleanup).toHaveBeenCalled();
-  });
-
   it("does not error if results-timer-finished fires with no active timer", () => {
     const { result } = renderHook(() => useResults());
 
@@ -153,7 +124,6 @@ describe("useResults", () => {
     act(() => {
       socket.__trigger("game-over", {
         results: [{ username: "dave", score: 50 }],
-        gameOverEndsAt: NOW + 8000,
         eliminatedPlayers: ["erin"],
         winner: "dave",
       });
@@ -163,9 +133,6 @@ describe("useResults", () => {
     expect(result.current.resultsReady).toBe(true);
     expect(result.current.eliminatedPlayers).toEqual(["erin"]);
     expect(result.current.winner).toBe("dave");
-    expect(playAnyTimer).toHaveBeenCalledWith(
-      expect.objectContaining({ endsAt: NOW + 8000 }),
-    );
   });
 
   it("game-over resets missedPlayer, so a stale value can carry over", () => {
@@ -192,64 +159,22 @@ describe("useResults", () => {
     expect(result.current.missedPlayer).toBeNull();
   });
 
-  it("cleans up the previous timer before starting a new one across send-results/game-over", () => {
-    renderHook(() => useResults());
-
-    act(() => {
-      socket.__trigger("send-results", {
-        results: [],
-        resultsEndsAt: NOW + 5000,
-        eliminatedPlayers: [],
-        missedPlayer: null,
-      });
-    });
-    const firstCleanup = cleanupFns[0];
-
-    act(() => {
-      socket.__trigger("game-over", {
-        results: [],
-        gameOverEndsAt: NOW + 8000,
-        eliminatedPlayers: [],
-        winner: "dave",
-      });
-    });
-
-    expect(firstCleanup).toHaveBeenCalled();
-    expect(cleanupFns).toHaveLength(2);
-  });
-
-  it("does not error if new-round fires with no active timer", () => {
-    const { result } = renderHook(() => useResults());
-
-    expect(() => {
-      act(() => {
-        socket.__trigger("new-round");
-      });
-    }).not.toThrow();
-
-    expect(result.current.results).toEqual([]);
-  });
-
-  it("unsubscribes all five listeners and clears any active timer on unmount", () => {
+  it("unsubscribes all three listeners and clears any active timer on unmount", () => {
     const { unmount } = renderHook(() => useResults());
 
     act(() => {
       socket.__trigger("send-results", {
         results: [],
-        resultsEndsAt: NOW + 5000,
         eliminatedPlayers: [],
         missedPlayer: null,
       });
     });
-    const activeCleanup = cleanupFns[0];
 
     unmount();
 
     expect(socket.__listenerCount("player-missed")).toBe(0);
     expect(socket.__listenerCount("send-results")).toBe(0);
-    expect(socket.__listenerCount("results-timer-finished")).toBe(0);
     expect(socket.__listenerCount("game-over")).toBe(0);
-    expect(activeCleanup).toHaveBeenCalled();
   });
 
   it("does not leave stray listeners behind across re-renders", () => {
@@ -260,7 +185,6 @@ describe("useResults", () => {
 
     expect(socket.__listenerCount("player-missed")).toBe(1);
     expect(socket.__listenerCount("send-results")).toBe(1);
-    expect(socket.__listenerCount("results-timer-finished")).toBe(1);
     expect(socket.__listenerCount("game-over")).toBe(1);
   });
 

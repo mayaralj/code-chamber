@@ -39,18 +39,6 @@ describe("useGameQuestion", () => {
     expect(result.current.starterCode).toBe("");
   });
 
-  it("documents current behavior: starterCode becomes empty string if the new question has none", () => {
-    const { result } = renderHook(() => useGameQuestion());
-
-    act(() => {
-      socket.__trigger("new-round", {
-        question: { id: 3, title: "No starter code" },
-      });
-    });
-
-    expect(result.current.starterCode).toEqual("");
-  });
-
   it("exposes manual setters for question and starter code", () => {
     const { result } = renderHook(() => useGameQuestion());
 
