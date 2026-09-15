@@ -46,7 +46,7 @@ const Navbar = () => {
       </div>
 
       <div className="flex-shrink-0 flex items-center gap-6 justify-self-end whitespace-nowrap">
-        {session || wasLoggedIn ? (
+        {session || (wasLoggedIn && isPending) ? (
           <NavLink
             to="/profile"
             className={({ isActive }) =>
