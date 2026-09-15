@@ -11,6 +11,8 @@ import Profile from "./pages/Profile";
 import ChooseUsername from "./pages/ChooseUsername";
 import Leaderboard from "./pages/Leaderboard";
 import NotFound from "./pages/NotFound";
+import Terms from "./pages/Terms";
+import Privacy from "./pages/Privacy";
 
 import RequireUsername from "./components/routeCheckers/RequireUsername";
 import RequireNoUsername from "./components/routeCheckers/RequireNoUsername";
@@ -29,6 +31,10 @@ const router = createBrowserRouter([
       { index: true, element: <Home /> },
       // unknown route, redirect to home
       { path: "*", element: <NotFound /> },
+
+      // Privacy and Terms pages
+      { path: "terms", element: <Terms /> },
+      { path: "privacy", element: <Privacy /> },
 
       {
         // Need a server connection to access these routes
