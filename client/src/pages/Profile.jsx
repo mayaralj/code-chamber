@@ -10,6 +10,7 @@ import {
   FaTimes,
   FaClipboardList,
   FaChevronDown,
+  FaExclamationTriangle,
 } from "react-icons/fa";
 import { Link, useNavigate, useSearchParams } from "react-router";
 import authClient from "../authClient";
@@ -62,6 +63,8 @@ const Profile = () => {
   const [isLanguageStatsOpen, setIsLanguageStatsOpen] = useState(false);
   const [isMatchHistoryOpen, setIsMatchHistoryOpen] = useState(false);
   const [expandedMatchId, setExpandedMatchId] = useState(null);
+  const [isDeleteConfirmOpen, setIsDeleteConfirmOpen] = useState(false);
+  const [isDeletingAccount, setIsDeletingAccount] = useState(false);
 
   // Refs
   const abortControllerRef = useRef(null);
@@ -143,6 +146,39 @@ const Profile = () => {
     }
     navigate("/", { replace: true });
   };
+
+  // Handle delete account function (UI only for now, logic to be added later)
+  const handleDeleteAccount = async () => {
+    setIsDeletingAccount(true);
+    setErrorMessage("");
+    try {
+      const { error } = await authClient.deleteUser();
+
+      if (error) {
+        setErrorMessage(error.message || "Could not delete account.");
+        setIsDeletingAccount(false);
+        return;
+      }
+
+      localStorage.setItem("wasLoggedIn", "false");
+    } catch (error) {
+      console.error(
+        "Error refreshing socket connection after delete account:",
+        error,
+      );
+      setErrorMessage("Error occurred while deleting account.");
+      setIsDeletingAccount(false);
+    }
+
+    try {
+      await refreshSocketConnection();
+    } catch (error) {
+      console.error(
+        "Error refreshing socket connection after delete account:",
+        error,
+      );
+    }
+    navigate("/", { replace: true });
   };
 
   // Handle displayname change
@@ -712,7 +748,8 @@ const Profile = () => {
             </>
           )}
         </section>
-        <div className="mt-10 text-center">
+
+        <div className="mt-10 flex flex-col items-center gap-4">
           <button
             className="inline-flex cursor-pointer items-center gap-3 border border-[#c9847c] px-8 py-3 font-mono text-sm font-bold tracking-[0.14em] text-[#e6aaa2] transition hover:bg-[#301c1b] disabled:cursor-not-allowed disabled:opacity-50"
             type="button"
@@ -721,6 +758,15 @@ const Profile = () => {
           >
             <FaSignOutAlt size={15} />
             {isLoggingOut ? "LOGGING OUT..." : "LOGOUT"}
+          </button>
+
+          <button
+            className="mt-2 inline-flex cursor-pointer items-center gap-3 border border-red-700 bg-red-950/20 px-8 py-3 font-mono text-sm font-bold tracking-[0.14em] text-red-400 transition hover:bg-red-950/50 hover:text-red-300 disabled:cursor-not-allowed disabled:opacity-50"
+            type="button"
+            onClick={() => setIsDeleteConfirmOpen(true)}
+          >
+            <FaExclamationTriangle size={15} />
+            DELETE ACCOUNT
           </button>
         </div>
 
@@ -874,6 +920,55 @@ const Profile = () => {
                 </button>
               </>
             )}
+          </div>
+        </div>
+      )}
+
+      {isDeleteConfirmOpen && (
+        <div
+          className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 px-5"
+          onClick={() => !isDeletingAccount && setIsDeleteConfirmOpen(false)}
+        >
+          <div
+            className="relative w-full max-w-[440px] border border-red-700 bg-[#0e0e0e] p-7"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div className="mb-5 flex items-center gap-3">
+              <FaExclamationTriangle className="text-red-500" size={22} />
+              <h2 className="font-mono text-sm font-black tracking-[0.17em] text-red-400">
+                DELETE ACCOUNT
+              </h2>
+            </div>
+
+            <p className="mb-2 font-mono text-sm text-[#e8d9c0]">
+              This action is{" "}
+              <span className="font-bold text-red-400">permanent</span> and
+              cannot be undone.
+            </p>
+            <p className="mb-7 font-mono text-sm text-[#c6baa5]">
+              Deleting your account will remove your profile, linked accounts,
+              and match history. You will be immediately signed out.
+            </p>
+
+            <div className="flex gap-3">
+              <button
+                className="flex-1 cursor-pointer border border-[#5d5549] py-3 font-mono text-xs font-bold tracking-[0.14em] text-[#c6baa5] transition hover:border-[#c6baa5] disabled:cursor-not-allowed disabled:opacity-50"
+                type="button"
+                onClick={() => setIsDeleteConfirmOpen(false)}
+                disabled={isDeletingAccount}
+              >
+                CANCEL
+              </button>
+
+              <button
+                className="flex-1 cursor-pointer border border-red-600 bg-red-950/40 py-3 font-mono text-xs font-bold tracking-[0.14em] text-red-300 transition hover:bg-red-900/60 disabled:cursor-not-allowed disabled:opacity-50"
+                type="button"
+                onClick={handleDeleteAccount}
+                disabled={isDeletingAccount}
+              >
+                {isDeletingAccount ? "DELETING..." : "DELETE MY ACCOUNT"}
+              </button>
+            </div>
           </div>
         </div>
       )}

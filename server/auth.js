@@ -3,6 +3,8 @@ import { username } from "better-auth/plugins";
 import { Kysely, PostgresDialect } from "kysely";
 import pool from "./db.js";
 import "dotenv/config";
+import leaveRoom from "./room/leaveRoom.js";
+import leaveGame from "./game/leaveGame.js";
 
 // Initialize Kysely with Postgres dialect and connection pool
 const db = new Kysely({
@@ -45,6 +47,22 @@ const auth = betterAuth({
     discord: {
       clientId: process.env.DISCORD_CLIENT_ID,
       clientSecret: process.env.DISCORD_CLIENT_SECRET,
+    },
+  },
+
+  user: {
+    deleteUser: {
+      enabled: true,
+      beforeDelete: async (user) => {
+        try {
+          // Leave the room if the user is in one
+          leaveRoom(user.id);
+          // Leave the game if the user is in one
+          leaveGame(user.id);
+        } catch (error) {
+          console.error("Error during user deletion cleanup:", error);
+        }
+      },
     },
   },
 });
