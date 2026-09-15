@@ -123,22 +123,26 @@ const Profile = () => {
 
     try {
       const { error } = await authClient.signOut();
-      localStorage.setItem("wasLoggedIn", "false"); // Set as false regardless of success or failure
-
       if (error) {
         console.error("Logout failed:", error);
         setErrorMessage(error.message || "Logout failed.");
         setIsLoggingOut(false);
         return;
       }
-
-      await refreshSocketConnection();
-      navigate("/", { replace: true });
+      localStorage.setItem("wasLoggedIn", "false");
     } catch (error) {
       console.error("Error during logout:", error);
       setErrorMessage("Logout failed.");
       setIsLoggingOut(false);
     }
+
+    try {
+      await refreshSocketConnection();
+    } catch (error) {
+      console.error("Error refreshing socket connection after logout:", error);
+    }
+    navigate("/", { replace: true });
+  };
   };
 
   // Handle displayname change
