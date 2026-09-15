@@ -4,6 +4,7 @@ import { buildPlayerList } from "../../utils/playerList.js";
 import deleteRoom from "../../room/deleteRoom.js";
 import { rooms } from "../../globals.js";
 import { trackMatch } from "./roundUtils.js";
+import db from "../../db.js";
 
 // CONFIG
 export const RESULTS_TIMER = 10 * 1000;
@@ -78,8 +79,26 @@ export const sendResults = async (io, code, roundData) => {
   await sleep(RESULTS_TIMER);
 };
 
+// Helper to mark room as is_completed in db
+export const markRoomAsCompletedInDB = async (room) => {
+  try {
+    await db.query(`UPDATE rooms SET is_completed = TRUE WHERE room_id = $1`, [
+      room.roomId,
+    ]);
+    console.log(`Room ${room.roomName} marked as completed in database`);
+  } catch (error) {
+    console.error(
+      `Error marking room ${room.roomName} as completed in database:`,
+      error,
+    );
+  }
+};
+
 // Game over helper
 export const gameOver = async (io, code, roundData, winner) => {
+  // Mark room as completed in db
+  await markRoomAsCompletedInDB(rooms[code]);
+
   // Track match for winner
   if (winner) {
     const survivalTime = Math.round(
