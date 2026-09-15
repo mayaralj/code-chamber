@@ -209,10 +209,6 @@ const CreateRoom = () => {
             >
               {isCreating ? "INITIALIZING CHAMBER..." : "CREATE CHAMBER ›"}
             </button>
-
-            <p className="mt-7 text-center text-[10px] font-bold tracking-[0.18em] text-[#564b3c]">
-              STANDARD LOBBY PROTOCOL ACTIVE
-            </p>
           </div>
         </div>
       </div>
