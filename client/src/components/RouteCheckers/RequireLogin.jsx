@@ -18,7 +18,7 @@ const RequireLogin = () => {
   if (error) {
     return (
       <main className="min-h-[calc(100vh-72px)] grid place-items-center bg-[#0b0b0b] font-mono text-[#e7c49d]">
-        "SESSION ERROR — PLEASE LOG IN AGAIN"
+        SESSION ERROR — RETRYING...
       </main>
     );
   }
