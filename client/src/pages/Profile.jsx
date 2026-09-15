@@ -721,7 +721,7 @@ const Profile = () => {
         </div>
 
         <footer className="mt-9 text-center font-mono text-xs tracking-[0.1em] text-[#504c45]">
-          CODE_CHAMBER.v1.0.0 // SESSION_SECURE
+          SESSION_SECURE
         </footer>
       </section>
 
