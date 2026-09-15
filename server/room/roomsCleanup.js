@@ -71,14 +71,10 @@ const deleteStaleUnfinishedMatches = async () => {
     const { rows } = await db.query(
       `DELETE FROM rooms r
        WHERE r.created_at < NOW() - INTERVAL '${STALE_MATCH_THRESHOLD}'
-         AND NOT EXISTS (
-           SELECT 1 FROM matches m
-           WHERE m.room_id = r.room_id AND m.won IS NOT NULL
-         )
+         AND r.is_completed = FALSE
        RETURNING r.room_id`,
     );
 
-    // Log the deleted rooms
     if (rows.length > 0) {
       console.log(
         `Removed ${rows.length} stale unfinished match room(s): ${rows
@@ -87,7 +83,6 @@ const deleteStaleUnfinishedMatches = async () => {
       );
     }
   } catch (err) {
-    // Log the error but don't throw, as we want the cleanup to continue
     console.error("Error cleaning up stale unfinished matches:", err.message);
   }
 };
