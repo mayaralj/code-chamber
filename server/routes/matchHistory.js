@@ -94,20 +94,20 @@ const matchHistoryRouter = () => {
         roomIds.length
           ? db.query(
               `SELECT id, room_id, language, execution_time, submit_time, test_cases_passed, total_test_cases, round_number, submitted_at
-               FROM submissions
-               WHERE user_id = $1 AND room_id = ANY($2::text[])
-               ORDER BY room_id, round_number ASC, submitted_at ASC`,
+         FROM submissions
+         WHERE user_id = $1 AND room_id = ANY($2::text[])
+         ORDER BY room_id, round_number ASC, submitted_at ASC`,
               [userId, roomIds],
             )
           : { rows: [] },
         roomIds.length
           ? db.query(
               `SELECT se.submission_id, se.eliminated_user_id,
-                      COALESCE(u.username, u.name) AS eliminated_name
-               FROM submission_eliminations se
-               JOIN submissions s ON se.submission_id = s.id
-               JOIN "user" u ON se.eliminated_user_id = u.id
-               WHERE s.user_id = $1 AND s.room_id = ANY($2::text[])`,
+                COALESCE(u.username, u.name) AS eliminated_name
+         FROM submission_eliminations se
+         JOIN submissions s ON se.submission_id = s.id
+         LEFT JOIN "user" u ON se.eliminated_user_id = u.id
+         WHERE s.user_id = $1 AND s.room_id = ANY($2::text[])`,
               [userId, roomIds],
             )
           : { rows: [] },
@@ -117,7 +117,9 @@ const matchHistoryRouter = () => {
       const eliminationsBySubmission = {};
       for (const row of eliminationsResult.rows) {
         const name =
-          row.eliminated_user_id === userId ? "YOU" : row.eliminated_name;
+          row.eliminated_user_id === userId
+            ? "YOU"
+            : (row.eliminated_name ?? "DELETED USER");
         (eliminationsBySubmission[row.submission_id] ??= []).push(name);
       }
 
