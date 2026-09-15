@@ -1,6 +1,7 @@
 // RequireLogin.jsx
 import { Navigate, Outlet, useLocation } from "react-router";
 import useStableSession from "../../hooks/useStableSession";
+import toast from "react-hot-toast";
 
 const RequireLogin = () => {
   const { session, isPending, error } = useStableSession();
@@ -23,6 +24,9 @@ const RequireLogin = () => {
   }
 
   if (!session?.user) {
+    toast.error(
+      "You must be logged in to access this page. Redirecting to login.",
+    );
     return <Navigate to="/login" replace state={{ from: location.pathname }} />;
   }
 
