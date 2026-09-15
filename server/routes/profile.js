@@ -187,7 +187,7 @@ const profileRouter = () => {
         return {
           id: m.room_id,
           won: m.won,
-          host: m.host_name ?? "Unknown",
+          host: m.host_name ?? "deleted user",
           difficulty: m.difficulty,
           date: m.played_at,
           totalRounds: summary.total_rounds,

@@ -25,7 +25,7 @@ const buildLiveStatsData = async () => {
            AVG(submit_time) AS avg_submission_time
          FROM submissions`,
     ),
-    // Overall match-level stats — dedupe by room_id so a 2-player match counts once
+    // Overall match-level stats
     db.query(
       `SELECT
            COUNT(DISTINCT room_id)::int AS total_matches,
@@ -40,7 +40,7 @@ const buildLiveStatsData = async () => {
          GROUP BY language
          ORDER BY count DESC`,
     ),
-    // Difficulty usage — dedupe by room_id so each match's difficulty is counted once,
+    // Difficulty usage
     db.query(
       `SELECT difficulty, COUNT(DISTINCT room_id)::int AS count
          FROM matches
