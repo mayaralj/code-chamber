@@ -1,9 +1,10 @@
 // Imports
-import { describe, it, expect, vi, beforeEach } from "vitest";
+import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
 import { useContext } from "react";
-import { render, screen } from "@testing-library/react";
+import { render, screen, act } from "@testing-library/react";
 import StableSessionProvider from "./StableSessionProvider";
 import StableSessionContext from "./StableSessionContext";
+import { createLocalStorageMock } from "../test/localStorageMock";
 
 // Mocks
 vi.mock("../authClient", () => ({
@@ -16,6 +17,11 @@ vi.mock("../hooks/useServerHealth", () => ({
 // Imports after mocks
 import authClient from "../authClient";
 import useServerHealth from "../hooks/useServerHealth";
+
+// Config mirrors the values in StableSessionProvider.jsx
+const RETRY_BASE_DELAY = 1500;
+const RETRY_MAX_DELAY = 10000;
+const DEGRADED_AFTER_ATTEMPTS = 6;
 
 // mock refetch
 const refetchMock = vi.fn();
@@ -37,7 +43,8 @@ const setServerHealth = (serverUnreachable) => {
 
 // Consumer component to access StableSessionContext values for testing
 const Consumer = () => {
-  const { session, isPending, error } = useContext(StableSessionContext);
+  const { session, isPending, error, persistentError } =
+    useContext(StableSessionContext);
   return (
     <div>
       <span data-testid="session">
@@ -45,6 +52,7 @@ const Consumer = () => {
       </span>
       <span data-testid="pending">{String(isPending)}</span>
       <span data-testid="error">{error ? error.message : "none"}</span>
+      <span data-testid="persistentError">{String(persistentError)}</span>
     </div>
   );
 };
@@ -59,13 +67,28 @@ const Tree = () => (
 // Helper function to render the Tree component for testing (used for rerendering in tests)
 const renderProvider = () => render(<Tree />);
 
-// Before each test, clear the refetch mock and set server health to unreachable to ensure a clean slate for each test
+// Advances fake timers and flushes any pending microtasks/state updates
+// spawned by the async retry loop (setTimeout -> refetch -> setState).
+const advance = async (ms) => {
+  await act(async () => {
+    await vi.advanceTimersByTimeAsync(ms);
+  });
+};
+
 beforeEach(() => {
   refetchMock.mockClear();
   setServerHealth(false);
+  vi.useFakeTimers();
+  vi.stubGlobal("localStorage", createLocalStorageMock());
 });
 
-// StableSessionProvider tests
+afterEach(() => {
+  vi.useRealTimers();
+  vi.unstubAllGlobals();
+});
+
+// --- Pre-existing behavior (kept as-is) ---
+
 describe("StableSessionProvider - initial pending state", () => {
   it("exposes the raw session and isPending true before the session ever resolves", () => {
     setSessionState({ data: undefined, isPending: true });
@@ -224,5 +247,176 @@ describe("StableSessionProvider - refetch on server reachability", () => {
 
     rerender(<Tree />);
     expect(refetchMock).toHaveBeenCalledTimes(1);
+  });
+});
+
+describe("StableSessionProvider - error-driven retry loop", () => {
+  it("does not start a retry loop when there is no error", async () => {
+    setSessionState({ data: { id: "u1" }, isPending: false });
+    renderProvider();
+
+    await advance(RETRY_MAX_DELAY * 3);
+
+    expect(refetchMock).not.toHaveBeenCalled();
+    expect(screen.getByTestId("persistentError")).toHaveTextContent("false");
+  });
+
+  it("calls refetch after the base delay once an error appears", async () => {
+    setSessionState({ data: { id: "u1" }, isPending: false });
+    const { rerender } = renderProvider();
+
+    setSessionState({
+      data: undefined,
+      isPending: false,
+      error: { message: "down" },
+    });
+    rerender(<Tree />);
+
+    await advance(RETRY_BASE_DELAY - 1);
+    expect(refetchMock).not.toHaveBeenCalled();
+
+    await advance(1);
+    expect(refetchMock).toHaveBeenCalledTimes(1);
+  });
+
+  it("backs off exponentially between attempts, capped at RETRY_MAX_DELAY", async () => {
+    setSessionState({
+      data: undefined,
+      isPending: false,
+      error: { message: "down" },
+    });
+    renderProvider();
+
+    // attempt 1 at 1500ms
+    await advance(RETRY_BASE_DELAY);
+    expect(refetchMock).toHaveBeenCalledTimes(1);
+
+    // attempt 2 at +3000ms
+    await advance(RETRY_BASE_DELAY * 2);
+    expect(refetchMock).toHaveBeenCalledTimes(2);
+
+    // attempt 3 at +6000ms
+    await advance(RETRY_BASE_DELAY * 4);
+    expect(refetchMock).toHaveBeenCalledTimes(3);
+
+    // attempt 4 would be 12000ms uncapped, but should be capped at 10000ms
+    await advance(RETRY_MAX_DELAY);
+    expect(refetchMock).toHaveBeenCalledTimes(4);
+
+    // subsequent attempts stay capped at RETRY_MAX_DELAY (10000ms)
+    await advance(RETRY_MAX_DELAY);
+    expect(refetchMock).toHaveBeenCalledTimes(5);
+  });
+
+  it("keeps retrying indefinitely while the error persists, without a hard stop", async () => {
+    setSessionState({
+      data: undefined,
+      isPending: false,
+      error: { message: "down" },
+    });
+    renderProvider();
+
+    const delays = [1500, 3000, 6000, 10000, 10000, 10000, 10000, 10000];
+    for (let i = 0; i < delays.length; i++) {
+      await advance(delays[i]);
+      expect(refetchMock).toHaveBeenCalledTimes(i + 1);
+    }
+  });
+
+  it("flips persistentError to true only once DEGRADED_AFTER_ATTEMPTS is reached", async () => {
+    setSessionState({
+      data: undefined,
+      isPending: false,
+      error: { message: "down" },
+    });
+    renderProvider();
+
+    const delays = [1500, 3000, 6000, 10000, 10000, 10000];
+    for (let i = 0; i < DEGRADED_AFTER_ATTEMPTS; i++) {
+      await advance(delays[i]);
+      if (i < DEGRADED_AFTER_ATTEMPTS - 1) {
+        expect(screen.getByTestId("persistentError")).toHaveTextContent(
+          "false",
+        );
+      }
+    }
+
+    expect(refetchMock).toHaveBeenCalledTimes(DEGRADED_AFTER_ATTEMPTS);
+    expect(screen.getByTestId("persistentError")).toHaveTextContent("true");
+  });
+
+  it("stops retrying and resets persistentError as soon as the error clears", async () => {
+    setSessionState({
+      data: undefined,
+      isPending: false,
+      error: { message: "down" },
+    });
+    const { rerender } = renderProvider();
+
+    const delays = [1500, 3000, 6000, 10000, 10000, 10000];
+    for (const delay of delays) {
+      await advance(delay);
+    }
+    expect(refetchMock).toHaveBeenCalledTimes(DEGRADED_AFTER_ATTEMPTS);
+    expect(screen.getByTestId("persistentError")).toHaveTextContent("true");
+
+    setSessionState({ data: { id: "u1" }, isPending: false, error: null });
+    rerender(<Tree />);
+
+    expect(screen.getByTestId("persistentError")).toHaveTextContent("false");
+
+    refetchMock.mockClear();
+    await advance(RETRY_MAX_DELAY * 3);
+
+    expect(refetchMock).not.toHaveBeenCalled();
+  });
+
+  it("stops the retry loop on unmount and issues no further refetch calls", async () => {
+    setSessionState({
+      data: undefined,
+      isPending: false,
+      error: { message: "down" },
+    });
+    const { unmount } = renderProvider();
+
+    await advance(RETRY_BASE_DELAY);
+    expect(refetchMock).toHaveBeenCalledTimes(1);
+
+    unmount();
+    refetchMock.mockClear();
+
+    await advance(RETRY_MAX_DELAY * 3);
+    expect(refetchMock).not.toHaveBeenCalled();
+  });
+
+  it("restarts the attempt counter from zero the next time an error reappears", async () => {
+    setSessionState({
+      data: undefined,
+      isPending: false,
+      error: { message: "down" },
+    });
+    const { rerender } = renderProvider();
+
+    const delays = [1500, 3000, 6000, 10000, 10000, 10000];
+    for (const delay of delays) {
+      await advance(delay);
+    }
+    expect(screen.getByTestId("persistentError")).toHaveTextContent("true");
+
+    setSessionState({ data: { id: "u1" }, isPending: false, error: null });
+    rerender(<Tree />);
+    expect(screen.getByTestId("persistentError")).toHaveTextContent("false");
+
+    refetchMock.mockClear();
+    setSessionState({
+      data: undefined,
+      isPending: false,
+      error: { message: "down again" },
+    });
+    rerender(<Tree />);
+
+    await advance(RETRY_BASE_DELAY);
+    expect(refetchMock).toHaveBeenCalledTimes(1);
+    expect(screen.getByTestId("persistentError")).toHaveTextContent("false");
   });
 });
