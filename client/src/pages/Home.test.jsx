@@ -74,7 +74,7 @@ describe("Home - hero and action cards", () => {
 
     expect(screen.getByText("CODE CHAMBER")).toBeInTheDocument();
     expect(
-      screen.getByText(/CHALLENGE YOURSELF\. TEST YOUR SKILLS\./),
+      screen.getByText(/The Multiplayer Way To Sharpen Your Coding Skills/),
     ).toBeInTheDocument();
   });
 
@@ -144,7 +144,7 @@ describe("Home - live stats ticker (SSE)", () => {
       });
     });
 
-    expect(screen.getAllByText(/ACTIVE PLAYERS: 42/).length).toBeGreaterThan(0);
+    expect(screen.getAllByText(/PLAYERS ONLINE: 42/).length).toBeGreaterThan(0);
     expect(screen.getAllByText(/AVG PASS RATE: 75%/).length).toBeGreaterThan(0);
     expect(screen.getAllByText(/AVG EXEC TIME: 123ms/).length).toBeGreaterThan(
       0,
@@ -179,7 +179,7 @@ describe("Home - live stats ticker (SSE)", () => {
         data: JSON.stringify(completeLiveStats),
       });
     });
-    expect(screen.getAllByText(/ACTIVE PLAYERS: 42/).length).toBeGreaterThan(0);
+    expect(screen.getAllByText(/PLAYERS ONLINE: 42/).length).toBeGreaterThan(0);
 
     act(() => {
       latestEventSource().onmessage({
