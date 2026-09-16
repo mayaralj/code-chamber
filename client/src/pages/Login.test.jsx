@@ -3,6 +3,7 @@ import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
 import { render, screen, fireEvent, act } from "@testing-library/react";
 import { MemoryRouter } from "react-router";
 import Login from "./Login";
+import { createLocalStorageMock } from "../test/localStorageMock";
 
 // Mocks
 const navigateMock = vi.fn();
@@ -66,10 +67,12 @@ beforeEach(() => {
   refreshSocketConnection.mockReset();
   vi.spyOn(console, "log").mockImplementation(() => {});
   vi.spyOn(console, "error").mockImplementation(() => {});
+  vi.stubGlobal("localStorage", createLocalStorageMock());
 });
 
 afterEach(() => {
   vi.restoreAllMocks();
+  vi.unstubAllGlobals();
 });
 
 // Login page tests
