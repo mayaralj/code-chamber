@@ -220,6 +220,18 @@ const setupDefaultHooks = () => {
   hookMocks.useDisconnection.mockReturnValue(undefined);
 };
 
+// Renders Game and immediately resolves the check-player access gate as
+// valid, so tests unrelated to that gate get deterministic access to the
+// real game UI instead of depending on leftover mock state from whatever
+// test happened to run before them.
+const renderReadyGame = () => {
+  const utils = render(<Game />);
+  act(() => {
+    fakeSocket.__trigger("check-player-response", { valid: true, message: "" });
+  });
+  return utils;
+};
+
 // beforeEach and afterEach to reset mocks and set up default hook return values
 beforeEach(() => {
   mockParams = { code: "ABCD" };
@@ -295,7 +307,7 @@ describe("Game check-player-response handling", () => {
 describe("Game elimination / missed branching", () => {
   it("renders the Eliminated screen when isEliminated is true, instead of the game UI", () => {
     hookMocks.usePlayerLeave.mockReturnValue({ isEliminated: true });
-    render(<Game />);
+    renderReadyGame();
 
     expect(screen.getByTestId("eliminated-screen")).toBeInTheDocument();
     expect(screen.queryByTestId("code-editor")).not.toBeInTheDocument();
@@ -316,7 +328,7 @@ describe("Game elimination / missed branching", () => {
       winner: null,
       setWinner: vi.fn(),
     });
-    render(<Game />);
+    renderReadyGame();
 
     expect(screen.getByTestId("missed-screen")).toBeInTheDocument();
     expect(screen.queryByTestId("code-editor")).not.toBeInTheDocument();
@@ -338,7 +350,7 @@ describe("Game elimination / missed branching", () => {
       winner: null,
       setWinner: vi.fn(),
     });
-    render(<Game />);
+    renderReadyGame();
 
     expect(screen.getByTestId("eliminated-screen")).toBeInTheDocument();
     expect(screen.queryByTestId("missed-screen")).not.toBeInTheDocument();
@@ -360,7 +372,7 @@ describe("Game elimination / missed branching", () => {
       winner: null,
       setWinner: vi.fn(),
     });
-    render(<Game />);
+    renderReadyGame();
 
     screen.getByTestId("missed-screen").click();
     expect(setIsMissed).toHaveBeenCalledWith(false);
@@ -375,7 +387,7 @@ describe("Game timer / editor visibility", () => {
       setTimerFinished: vi.fn(),
       setTimerEndsAt: vi.fn(),
     });
-    render(<Game />);
+    renderReadyGame();
 
     expect(screen.getByTestId("timer")).toBeInTheDocument();
     const editorBlock = screen
@@ -395,7 +407,7 @@ describe("Game timer / editor visibility", () => {
       editorReady: false,
       setEditorReady: vi.fn(),
     });
-    render(<Game />);
+    renderReadyGame();
 
     expect(screen.getByTestId("timer")).toBeInTheDocument();
   });
@@ -413,7 +425,7 @@ describe("Game timer / editor visibility", () => {
       starterCode: "",
       setStarterCode: vi.fn(),
     });
-    render(<Game />);
+    renderReadyGame();
 
     expect(screen.getByTestId("timer")).toBeInTheDocument();
   });
@@ -425,7 +437,7 @@ describe("Game timer / editor visibility", () => {
       setTimerFinished: vi.fn(),
       setTimerEndsAt: vi.fn(),
     });
-    render(<Game />);
+    renderReadyGame();
 
     expect(screen.queryByTestId("timer")).not.toBeInTheDocument();
     const editorBlock = screen
@@ -446,7 +458,7 @@ describe("Game prop wiring to child components", () => {
   });
 
   it("passes the question down to the Question component", () => {
-    render(<Game />);
+    renderReadyGame();
     expect(screen.getByTestId("question")).toHaveTextContent("Two Sum");
   });
 
@@ -467,7 +479,7 @@ describe("Game prop wiring to child components", () => {
       setRoundEndsAt: vi.fn(),
       setTimeMultiplier: vi.fn(),
     });
-    render(<Game />);
+    renderReadyGame();
 
     expect(screen.getByTestId("game-navbar")).toHaveTextContent(
       "submitting:42:stable",
@@ -476,7 +488,7 @@ describe("Game prop wiring to child components", () => {
 
   it("marks GameNavbar as reconnecting when connectionStatus is 'reconnecting'", () => {
     hookMocks.usePlayer.mockReturnValue({ connectionStatus: "reconnecting" });
-    render(<Game />);
+    renderReadyGame();
 
     expect(screen.getByTestId("game-navbar")).toHaveTextContent("reconnecting");
   });
@@ -487,15 +499,16 @@ describe("Game prop wiring to child components", () => {
       editorReady: false,
       setEditorReady,
     });
-    render(<Game />);
+    renderReadyGame();
 
     screen.getByTestId("fire-editor-mount").click();
     expect(setEditorReady).toHaveBeenCalledWith(true);
   });
 
   it("shows Results only when resultsReady is true", () => {
-    render(<Game />);
+    const { unmount } = renderReadyGame();
     expect(screen.queryByTestId("results")).not.toBeInTheDocument();
+    unmount();
 
     hookMocks.useResults.mockReturnValue({
       results: [{ username: "hostuser", passed: true }],
@@ -511,7 +524,7 @@ describe("Game prop wiring to child components", () => {
       winner: "hostuser",
       setWinner: vi.fn(),
     });
-    render(<Game />);
+    renderReadyGame();
     expect(screen.getByTestId("results")).toHaveTextContent("winner:hostuser");
   });
 
@@ -523,7 +536,7 @@ describe("Game prop wiring to child components", () => {
       setRoundEndsAt: vi.fn(),
       setTimeMultiplier: vi.fn(),
     });
-    render(<Game />);
+    renderReadyGame();
 
     expect(screen.getByTestId("game-status-bar")).toHaveTextContent("round:3");
   });
@@ -531,12 +544,18 @@ describe("Game prop wiring to child components", () => {
 
 describe("Game remount on room code change", () => {
   it("remounts GameInner (fresh hook calls) when the route's code param changes", () => {
-    const { rerender } = render(<Game />);
+    const { rerender } = renderReadyGame();
     const initialCallCount = hookMocks.usePlayerList.mock.calls.length;
 
     mockParams = { code: "WXYZ" };
     mockLocation = { state: { ...defaultLocationState } };
     rerender(<Game />);
+    act(() => {
+      fakeSocket.__trigger("check-player-response", {
+        valid: true,
+        message: "",
+      });
+    });
 
     expect(hookMocks.usePlayerList.mock.calls.length).toBeGreaterThan(
       initialCallCount,
