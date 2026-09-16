@@ -1,9 +1,10 @@
 // Imports
-import { describe, it, expect, vi, beforeEach } from "vitest";
+import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
 import { render, screen, fireEvent } from "@testing-library/react";
 import { MemoryRouter, useLocation } from "react-router";
 import Navbar from "./Navbar";
 import useStableSession from "../../hooks/useStableSession";
+import { createLocalStorageMock } from "../../test/localStorageMock";
 
 // Mocks
 vi.mock("../../hooks/useStableSession");
@@ -35,6 +36,11 @@ const isActiveNavLink = (link) => link.className.includes("border-b-1");
 // Before each test in this suite, mock the useStableSession hook to return a null session
 beforeEach(() => {
   useStableSession.mockReturnValue({ session: null });
+  vi.stubGlobal("localStorage", createLocalStorageMock());
+});
+
+afterEach(() => {
+  vi.unstubAllGlobals();
 });
 
 // Tests for the Navbar component
