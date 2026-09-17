@@ -19,6 +19,12 @@ export const authLimiter = rateLimit({
   standardHeaders: true,
   legacyHeaders: false,
 });
+export const sessionCheckLimiter = rateLimit({
+  windowMs: MINUTE,
+  max: 120,
+  standardHeaders: true,
+  legacyHeaders: false,
+});
 
 // Profile Limiter
 export const profileLimiter = rateLimit({

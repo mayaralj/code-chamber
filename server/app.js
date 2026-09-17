@@ -12,6 +12,7 @@ import cors from "cors";
 import {
   globalLimiter,
   authLimiter,
+  sessionCheckLimiter,
   profileLimiter,
   leaderboardLimiter,
   matchHistoryLimiter,
@@ -34,7 +35,21 @@ export const createApp = () => {
   app.use(globalLimiter);
 
   // Auth limiter
-  app.use("/api/auth", authLimiter);
+  const SENSITIVE_AUTH_PATHS = [
+    "/api/auth/sign-in",
+    "/api/auth/sign-up",
+    "/api/auth/forget-password",
+    "/api/auth/reset-password",
+  ];
+
+  app.use("/api/auth", (req, res, next) => {
+    const isSensitive = SENSITIVE_AUTH_PATHS.some((path) =>
+      req.path.startsWith(path.replace("/api/auth", "")),
+    );
+    return isSensitive
+      ? authLimiter(req, res, next)
+      : sessionCheckLimiter(req, res, next);
+  });
   app.all("/api/auth/*splat", toNodeHandler(auth));
 
   // express json middleware
