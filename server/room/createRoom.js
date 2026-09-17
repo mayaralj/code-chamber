@@ -45,6 +45,11 @@ const generateRandomUniqueCode = () => {
 
 // Helper to create a room
 const createRoom = async (io, socket, roomData, callback) => {
+  // Make sure user isnt already creating a room (should never happen but just in case)
+  if (socket.isCreatingRoom) {
+    return callback({ error: "You are already creating a room" });
+  }
+
   // Get host username
   const username = socket.data.username;
   if (!username) {
@@ -138,6 +143,10 @@ const createRoom = async (io, socket, roomData, callback) => {
   if (currentRoomNames.has(roomName)) {
     return callback({ error: "Room name is currently used by another room" });
   }
+
+  // Flag player as creating room
+  socket.isCreatingRoom = true;
+
   currentRoomNames.add(roomName);
 
   // Create a random code
@@ -180,6 +189,9 @@ const createRoom = async (io, socket, roomData, callback) => {
   // call back to the creator
   console.log(`Room ${code} created by ${username}`);
   callback({ roomInfo: buildRoomInfo(rooms[code]) });
+
+  // Unflag player as creating room
+  socket.isCreatingRoom = false;
 };
 
 export default createRoom;
