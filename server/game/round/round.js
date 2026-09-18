@@ -127,6 +127,9 @@ const startRound = async (io, socket, code) => {
     return;
   }
 
+  // Notify client that server is processing results now
+  io.to(code).emit("processing-results");
+
   // Calculate all scores
   calculateAllScores(io, code, roundData);
 
