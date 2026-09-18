@@ -24,7 +24,7 @@ const EVENT_STYLES = {
 };
 
 // GameStatusBar component to display current round and latest event
-const GameStatusBar = ({ events = [], currentRound }) => {
+const GameStatusBar = ({ events = [], currentRound, processingResults }) => {
   // States
   const [showHistory, setShowHistory] = useState(false);
 
@@ -63,52 +63,66 @@ const GameStatusBar = ({ events = [], currentRound }) => {
         )}
       </div>
 
-      <div className="relative">
-        <button
-          onClick={() => setShowHistory((prev) => !prev)}
-          className="flex cursor-pointer items-center gap-1.5 text-zinc-500 transition-colors hover:text-zinc-200"
-        >
-          <List size={12} />
-          History
-        </button>
-
-        {showHistory && (
-          <>
-            <div
-              className="fixed inset-0 z-40"
-              onClick={() => setShowHistory(false)}
-            />
-            <div className="modal-scroll absolute bottom-full right-0 z-50 mb-2 flex max-h-72 w-72 flex-col gap-1 overflow-y-auto rounded-xs border border-zinc-800 bg-zinc-900 p-3 shadow-xl">
-              <h2 className="mb-1 text-xs font-semibold uppercase tracking-wider text-zinc-400">
-                Recent Updates
-              </h2>
-              {events.length === 0 ? (
-                <p className="text-xs text-zinc-600">
-                  Nothing has happened yet.
-                </p>
-              ) : (
-                [...events]
-                  .reverse()
-                  .slice(0, MAX_HISTORY_EVENTS)
-                  .map((event, index) => {
-                    const {
-                      icon: EventIcon = Flag,
-                      color: eventColor = "text-zinc-400",
-                    } = EVENT_STYLES[event.type] || {};
-                    return (
-                      <div
-                        key={index}
-                        className="flex items-center gap-2 rounded-xs px-2 py-1.5 text-sm text-zinc-300 hover:bg-zinc-800/60"
-                      >
-                        <EventIcon size={13} className={eventColor} />
-                        <span className="flex-1">{event.message}</span>
-                      </div>
-                    );
-                  })
-              )}
-            </div>
-          </>
+      <div className="flex items-center gap-4">
+        {processingResults && (
+          <div className="flex items-center gap-2">
+            <span className="relative flex h-2 w-2">
+              <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-[#ffd687] opacity-75" />
+              <span className="relative inline-flex h-2 w-2 rounded-full bg-[#ffd687]" />
+            </span>
+            <span className="font-bold text-zinc-300">
+              Processing results...
+            </span>
+          </div>
         )}
+
+        <div className="relative">
+          <button
+            onClick={() => setShowHistory((prev) => !prev)}
+            className="flex cursor-pointer items-center gap-1.5 text-zinc-500 transition-colors hover:text-zinc-200"
+          >
+            <List size={12} />
+            History
+          </button>
+
+          {showHistory && (
+            <>
+              <div
+                className="fixed inset-0 z-40"
+                onClick={() => setShowHistory(false)}
+              />
+              <div className="modal-scroll absolute bottom-full right-0 z-50 mb-2 flex max-h-72 w-72 flex-col gap-1 overflow-y-auto rounded-xs border border-zinc-800 bg-zinc-900 p-3 shadow-xl">
+                <h2 className="mb-1 text-xs font-semibold uppercase tracking-wider text-zinc-400">
+                  Recent Updates
+                </h2>
+                {events.length === 0 ? (
+                  <p className="text-xs text-zinc-600">
+                    Nothing has happened yet.
+                  </p>
+                ) : (
+                  [...events]
+                    .reverse()
+                    .slice(0, MAX_HISTORY_EVENTS)
+                    .map((event, index) => {
+                      const {
+                        icon: EventIcon = Flag,
+                        color: eventColor = "text-zinc-400",
+                      } = EVENT_STYLES[event.type] || {};
+                      return (
+                        <div
+                          key={index}
+                          className="flex items-center gap-2 rounded-xs px-2 py-1.5 text-sm text-zinc-300 hover:bg-zinc-800/60"
+                        >
+                          <EventIcon size={13} className={eventColor} />
+                          <span className="flex-1">{event.message}</span>
+                        </div>
+                      );
+                    })
+                )}
+              </div>
+            </>
+          )}
+        </div>
       </div>
     </div>
   );

@@ -6,6 +6,7 @@ import { socket } from "../../socket";
 const useResults = (newRoundPayload) => {
   // States
   const [results, setResults] = useState([]);
+  const [processingResults, setProcessingResults] = useState(false);
   const [resultsReady, setResultsReady] = useState(false);
   const [eliminatedPlayers, setEliminatedPlayers] = useState([]);
   const [missedPlayer, setMissedPlayer] = useState(null);
@@ -21,6 +22,7 @@ const useResults = (newRoundPayload) => {
     setEliminatedPlayers([]);
     setWinner(null);
     setIsMissed(false);
+    setProcessingResults(false);
   }
   useEffect(() => {
     if (cleanupRef.current) {
@@ -52,6 +54,7 @@ const useResults = (newRoundPayload) => {
       setResultsReady(true);
       setMissedPlayer(missedPlayer);
       setEliminatedPlayers(eliminatedPlayers || []);
+      setProcessingResults(false);
       if (cleanupRef.current) {
         cleanupRef.current();
       }
@@ -66,6 +69,7 @@ const useResults = (newRoundPayload) => {
       setMissedPlayer(null);
       setEliminatedPlayers(eliminatedPlayers || []);
       setWinner(winner);
+      setProcessingResults(false);
       if (cleanupRef.current) {
         cleanupRef.current();
       }
@@ -73,6 +77,11 @@ const useResults = (newRoundPayload) => {
 
     // Game over connections
     socket.on("game-over", handleGameOver);
+
+    // Process results if not already processing
+    socket.on("processing-results", () => {
+      setProcessingResults(true);
+    });
 
     // Cleanup on unmount
     return () => {
@@ -82,6 +91,7 @@ const useResults = (newRoundPayload) => {
       }
       socket.off("send-results", handleResults);
       socket.off("game-over", handleGameOver);
+      socket.off("processing-results");
     };
   }, []);
 
@@ -98,6 +108,7 @@ const useResults = (newRoundPayload) => {
     setIsMissed,
     winner,
     setWinner,
+    processingResults,
   };
 };
 

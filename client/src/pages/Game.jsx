@@ -109,6 +109,7 @@ const GameInner = ({ code }) => {
     setIsMissed,
     winner,
     setWinner,
+    processingResults,
   } = useResults(newRoundPayload);
 
   // Status Events
@@ -247,7 +248,11 @@ const GameInner = ({ code }) => {
             />
           </div>
         </div>
-        <GameStatusBar events={statusEvents} currentRound={currentRound} />
+        <GameStatusBar
+          events={statusEvents}
+          currentRound={currentRound}
+          processingResults={processingResults}
+        />
         {/* Show Results if ready */}
         {resultsReady && (
           <Results
