@@ -105,6 +105,7 @@ const profileRouter = () => {
              m.difficulty,
              m.won,
              m.played_at,
+             m.survival_time,
              COALESCE(h.username, h.name) AS host_name
            FROM matches m
            LEFT JOIN "user" h ON m.host_id = h.id
@@ -190,6 +191,7 @@ const profileRouter = () => {
           host: m.host_name ?? "deleted user",
           difficulty: m.difficulty,
           date: m.played_at,
+          survivalTime: m.survival_time,
           totalRounds: summary.total_rounds,
           testCasesPassed: summary.test_cases_passed,
           totalTestCases: summary.total_test_cases,

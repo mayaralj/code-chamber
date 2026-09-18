@@ -41,6 +41,16 @@ const formatStat = (value, suffix = "") =>
 const roundStat = (value) =>
   typeof value === "number" ? Math.round(value * 100) / 100 : value;
 
+// Format a total-seconds duration as MM:SS
+const formatDuration = (totalSeconds) => {
+  if (totalSeconds === null || totalSeconds === undefined) {
+    return "N/A";
+  }
+  const minutes = Math.floor(totalSeconds / 60);
+  const seconds = totalSeconds % 60;
+  return `${String(minutes).padStart(2, "0")}:${String(seconds).padStart(2, "0")}`;
+};
+
 // Profile component
 const Profile = () => {
   // Navigate and search params
@@ -1013,7 +1023,14 @@ const renderMatchCard = (match, expandedMatchId, setExpandedMatchId) => {
           </div>
         </div>
 
-        <div className="flex items-center gap-3">
+        <div className="flex items-center gap-2.5">
+          <span className="font-mono text-[11px] text-[#8a8071]">
+            {match.won ? "Match Time" : "Survived"}
+          </span>
+          <span className="font-mono text-xs font-bold text-[#ffd89a]">
+            {formatDuration(match.survivalTime)}
+          </span>
+          <span className="text-[#5d5549]">•</span>
           <p className="font-mono text-xs text-[#b9a282]">
             {new Date(match.date).toLocaleDateString()}
           </p>
