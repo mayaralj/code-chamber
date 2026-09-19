@@ -10,7 +10,7 @@ const buildRoomInfoToSend = (room) => {
   return {
     code: room.code,
     roomName: room.roomName,
-    host: room.host.username,
+    host: { username: room.host.username, displayName: room.host.displayName },
     playerCount: room.players.length,
     maxPlayers: room.maxPlayers,
     difficulty: room.difficulty,

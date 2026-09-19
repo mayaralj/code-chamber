@@ -20,7 +20,7 @@ export const buildRoomInfo = (room) => {
   return {
     code: room.code,
     roomName: room.roomName,
-    host: room.host.username,
+    host: { username: room.host.username, displayName: room.host.displayName },
     players: buildPlayerList(room),
     maxPlayers: room.maxPlayers,
     isPublic: room.isPublic,
