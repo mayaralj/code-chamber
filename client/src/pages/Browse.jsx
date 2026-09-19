@@ -263,7 +263,19 @@ const Browse = () => {
                 </div>
 
                 <div className="mt-7 space-y-5 text-sm">
-                  <RoomDetail label="HOST" value={room.host || "ROOT_ADMIN"} />
+                  <RoomDetail
+                    label="HOST"
+                    value={
+                      room.host?.displayName ||
+                      room.host?.username ||
+                      "ROOT_ADMIN"
+                    }
+                    subValue={
+                      room.host?.displayName && room.host?.username
+                        ? room.host.username
+                        : null
+                    }
+                  />
                   <RoomDetail
                     label="DIFFICULTY"
                     value={room.difficulty.toUpperCase()}
@@ -398,10 +410,22 @@ const Browse = () => {
 };
 
 // Room detail component for the browse page
-const RoomDetail = ({ label, value, valueClass = "text-[#f1eee7]" }) => (
+const RoomDetail = ({
+  label,
+  value,
+  valueClass = "text-[#f1eee7]",
+  subValue = null,
+}) => (
   <div className="flex items-center justify-between border-b border-[#39342c] pb-4">
     <span className="tracking-wider text-[#a9977e]">{label}</span>
-    <span className={`font-bold tracking-wider ${valueClass}`}>{value}</span>
+    <div className="flex flex-col items-center text-center">
+      <span className={`font-bold tracking-wider ${valueClass}`}>{value}</span>
+      {subValue && (
+        <span className="text-xs tracking-wider text-[#e7c49d]/50">
+          {subValue}
+        </span>
+      )}
+    </div>
   </div>
 );
 

@@ -117,29 +117,45 @@ const GameNavbar = ({
               </div>
               {/* List out players, put an icon next to them for submtited or judging or not submitted */}
               <div className="flex max-h-64 flex-col gap-1 overflow-y-auto">
-                {playerList.map((player) => (
-                  <div
-                    key={player.username}
-                    className="flex items-center justify-between gap-3 rounded-xs px-2 py-1.5 text-sm text-zinc-200 hover:bg-zinc-800/60"
-                  >
-                    <span className="truncate">{player.username}</span>
-                    <span
-                      className={`shrink-0 text-[10px] font-semibold uppercase tracking-wide ${
-                        player.codeStatus === "submitted"
-                          ? "text-emerald-400"
-                          : player.codeStatus === "judging"
-                            ? "text-[#ffd687]"
-                            : "text-rose-400"
-                      }`}
+                {playerList.map((player) => {
+                  const showUsernameSubline =
+                    player.displayName &&
+                    player.username &&
+                    player.displayName !== player.username;
+
+                  return (
+                    <div
+                      key={player.username}
+                      className="flex items-center justify-between gap-3 rounded-xs px-2 py-1.5 text-sm text-zinc-200 hover:bg-zinc-800/60"
                     >
-                      {player.codeStatus === "submitted"
-                        ? "Submitted"
-                        : player.codeStatus === "judging"
-                          ? "Judging"
-                          : "Not Submitted"}
-                    </span>
-                  </div>
-                ))}
+                      <div className="min-w-0">
+                        <p className="truncate text-sm text-zinc-200">
+                          {player.displayName || player.username}
+                        </p>
+                        {showUsernameSubline && (
+                          <p className="truncate text-[11px] text-zinc-500">
+                            {player.username}
+                          </p>
+                        )}
+                      </div>
+                      <span
+                        className={`shrink-0 text-[10px] font-semibold uppercase tracking-wide ${
+                          player.codeStatus === "submitted"
+                            ? "text-emerald-400"
+                            : player.codeStatus === "judging"
+                              ? "text-[#ffd687]"
+                              : "text-rose-400"
+                        }`}
+                      >
+                        {player.codeStatus === "submitted"
+                          ? "Submitted"
+                          : player.codeStatus === "judging"
+                            ? "Judging"
+                            : "Not Submitted"}
+                      </span>
+                    </div>
+                  );
+                })}
               </div>
             </div>
           </>

@@ -401,8 +401,15 @@ const Leaderboard = () => {
                     className="border-b border-[#2a2419]/60 last:border-none"
                   >
                     <td className="px-4 py-3 text-[#e7c49d]/50">{index + 1}</td>
-                    <td className="truncate px-4 py-3 font-bold text-[#ffd89a]">
-                      {row.displayUsername ?? row.username}
+                    <td className="px-4 py-3">
+                      <div className="flex flex-col overflow-hidden">
+                        <span className="truncate font-bold text-[#ffd89a]">
+                          {row.displayUsername ?? row.username}
+                        </span>
+                        <span className="truncate text-xs text-[#e7c49d]/50">
+                          {row.username}
+                        </span>
+                      </div>
                     </td>
                     <td className="px-4 py-3 text-center">
                       {config.format(row[config.field])}

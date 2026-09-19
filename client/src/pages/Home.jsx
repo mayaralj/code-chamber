@@ -266,9 +266,15 @@ const Home = () => {
                   <span className="text-xl font-black text-[#d9bd89]">
                     {String(index + 1).padStart(2, "0")}
                   </span>
-                  <span className="text-sm font-bold text-[#e6cfaa]">
-                    {player.username}
-                  </span>
+
+                  <div className="flex flex-col">
+                    <span className="text-sm font-bold text-[#ffd89a]">
+                      {player.displayUsername}
+                    </span>
+                    <span className="text-xs text-[#e7c49d]/50">
+                      {player.username}
+                    </span>
+                  </div>
 
                   <span className="text-right text-sm font-bold text-[#ffd99d]">
                     {player.win_rate !== undefined

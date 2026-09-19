@@ -35,7 +35,7 @@ const RoomWait = () => {
   const checkInProgressRef = useRef(false);
 
   // Check if the current player is the host
-  const isHost = roomInfo?.host === player?.username;
+  const isHost = roomInfo?.host?.username === player?.username;
 
   // Update previous connection status ref on change
   useEffect(() => {
