@@ -1,10 +1,31 @@
 // RequireNoUsername.jsx
-import { Navigate, Outlet } from "react-router";
+import { useEffect } from "react";
+import { Navigate, Outlet, useLocation } from "react-router";
 import useStableSession from "../../hooks/useStableSession";
 import toast from "react-hot-toast";
 
 const RequireNoUsername = () => {
   const { session, isPending, error, persistentError } = useStableSession();
+  const location = useLocation();
+
+  const isLoggedIn = Boolean(session?.user);
+  const hasUsername = Boolean(session?.user?.username?.trim());
+
+  const shouldRedirectToLogin = !isPending && !error && !isLoggedIn;
+  const shouldRedirectToProfile =
+    !isPending && !error && isLoggedIn && hasUsername;
+
+  useEffect(() => {
+    if (shouldRedirectToLogin) {
+      toast.error("You must be logged in to choose a username.");
+    }
+  }, [shouldRedirectToLogin]);
+
+  useEffect(() => {
+    if (shouldRedirectToProfile) {
+      toast.error("You already have a username. Redirecting to your profile.");
+    }
+  }, [shouldRedirectToProfile]);
 
   if (isPending) {
     return (
@@ -24,8 +45,11 @@ const RequireNoUsername = () => {
     );
   }
 
-  if (session?.user && session.user?.username) {
-    toast.error("You already have a username. Redirecting to your profile.");
+  if (shouldRedirectToLogin) {
+    return <Navigate to="/login" replace state={{ from: location.pathname }} />;
+  }
+
+  if (shouldRedirectToProfile) {
     return <Navigate to="/profile" replace />;
   }
 
