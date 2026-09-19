@@ -7,7 +7,7 @@ const MINUTE = 60 * 1000;
 // Global limited
 export const globalLimiter = rateLimit({
   windowMs: 15 * MINUTE,
-  max: 300,
+  max: 3000,
   standardHeaders: true,
   legacyHeaders: false,
 });
@@ -42,10 +42,18 @@ export const leaderboardLimiter = rateLimit({
   legacyHeaders: false,
 });
 
+// Home Leaderboard Limiter
+export const homeLeaderboardLimiter = rateLimit({
+  windowMs: MINUTE,
+  max: 20,
+  standardHeaders: true,
+  legacyHeaders: false,
+});
+
 // Match history limiter
 export const matchHistoryLimiter = rateLimit({
   windowMs: MINUTE,
-  max: 30,
+  max: 100,
   standardHeaders: true,
   legacyHeaders: false,
 });

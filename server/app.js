@@ -15,6 +15,7 @@ import {
   sessionCheckLimiter,
   profileLimiter,
   leaderboardLimiter,
+  homeLeaderboardLimiter,
   matchHistoryLimiter,
   liveStatsLimiter,
   healthLimiter,
@@ -61,6 +62,10 @@ export const createApp = () => {
   app.use("/api/health", healthLimiter, serverHealthRouter());
   app.use("/api/matchHistory", matchHistoryLimiter, matchHistoryRouter());
   app.use("/api/liveStats", liveStatsLimiter, liveStatsRouter());
-  app.use("/api/homeLeaderboard", leaderboardLimiter, homeLeaderboardRouter());
+  app.use(
+    "/api/homeLeaderboard",
+    homeLeaderboardLimiter,
+    homeLeaderboardRouter(),
+  );
   return app;
 };
