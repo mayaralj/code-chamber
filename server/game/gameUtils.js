@@ -13,12 +13,17 @@ export const trackBeforeMatch = async (player, room) => {
   // destructure roomId and difficulty from the room object
   const { roomId, difficulty } = room;
 
+  // Guests never have a row in "user", so host_id must be NULL for them —
+  const hostIsGuest =
+    room.host?.isGuest || room.host?.userId?.startsWith("guest");
+  const hostId = hostIsGuest ? null : room.host.userId;
+
   // Insert match into the database (not full match data, just the fact that the player played a match in this room)
   try {
     await db.query(
-      `INSERT INTO matches (room_id, user_id, host_id, difficulty, played_at)
-     VALUES ($1, $2, $3, $4, NOW())`,
-      [roomId, player.userId, room.host.userId, difficulty],
+      `INSERT INTO matches (room_id, user_id, host_id, host_is_guest, difficulty, played_at)
+     VALUES ($1, $2, $3, $4, $5, NOW())`,
+      [roomId, player.userId, hostId, hostIsGuest, difficulty],
     );
   } catch (error) {
     console.error(

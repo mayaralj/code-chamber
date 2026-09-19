@@ -57,7 +57,8 @@ export const getMatchResults = async (userId, limit, offset) => {
         m.won,
         m.played_at,
         m.survival_time,
-        COALESCE(h.username, h.name) AS host_name
+        CASE WHEN m.host_is_guest THEN 'guest' ELSE h.username END AS host_username,
+        CASE WHEN m.host_is_guest THEN 'Guest' ELSE h.name END AS host_display_name
       FROM matches m
       LEFT JOIN "user" h ON m.host_id = h.id
       WHERE m.user_id = $1
@@ -82,7 +83,8 @@ export const getSubmissionResults = async (userId, roomIds) => {
 export const getEliminationResults = async (userId, roomIds) => {
   const eliminationsResult = await db.query(
     `SELECT se.submission_id, se.eliminated_user_id,
-      COALESCE(u.username, u.name) AS eliminated_name
+      CASE WHEN se.eliminated_user_id LIKE 'guest%' THEN 'guest' ELSE u.username END AS eliminated_username,
+      CASE WHEN se.eliminated_user_id LIKE 'guest%' THEN 'Guest' ELSE u.name END AS eliminated_display_name
      FROM submission_eliminations se
      JOIN submissions s ON se.submission_id = s.id  
     LEFT JOIN "user" u ON se.eliminated_user_id = u.id
@@ -106,11 +108,16 @@ export const buildMatchHistory = async (userId, limit, offset) => {
   // Group eliminations by submission_id
   const eliminationsBySubmission = {};
   for (const row of eliminationResults) {
-    const name =
-      row.eliminated_user_id === userId
+    const isYou = row.eliminated_user_id === userId;
+    const eliminated = {
+      username: row.eliminated_username ?? null,
+      displayName: isYou
         ? "YOU"
-        : (row.eliminated_name ?? "DELETED USER");
-    (eliminationsBySubmission[row.submission_id] ??= []).push(name);
+        : (row.eliminated_display_name ??
+          row.eliminated_username ??
+          "Deleted User"),
+    };
+    (eliminationsBySubmission[row.submission_id] ??= []).push(eliminated);
   }
 
   // Group submissions by room_id
@@ -134,7 +141,10 @@ export const buildMatchHistory = async (userId, limit, offset) => {
     return {
       id: m.room_id,
       won: m.won,
-      host: m.host_name ?? "deleted user",
+      host: {
+        username: m.host_username ?? null,
+        displayName: m.host_display_name ?? m.host_username ?? "Deleted User",
+      },
       difficulty: m.difficulty,
       date: m.played_at,
       survivalTime: m.survival_time,
