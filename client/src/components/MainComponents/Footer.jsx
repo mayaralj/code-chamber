@@ -1,3 +1,6 @@
+// Imports
+import { NavLink } from "react-router";
+
 // Footer Component
 const Footer = () => {
   return (
@@ -5,12 +8,12 @@ const Footer = () => {
       <span>CODE_CHAMBER.V{__APP_VERSION__}</span>
 
       <div className="flex flex-wrap gap-4">
-        <a href="/privacy" className="hover:text-white transition-colors">
+        <NavLink to="/privacy" className="hover:text-white transition-colors">
           PRIVACY
-        </a>
-        <a href="/terms" className="hover:text-white transition-colors">
+        </NavLink>
+        <NavLink to="/terms" className="hover:text-white transition-colors">
           TERMS
-        </a>
+        </NavLink>
         <a
           href="https://github.com/mayaralj/code-chamber"
           target="_blank"
