@@ -1,5 +1,5 @@
 // Imports
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect, useRef, useCallback } from "react";
 import authClient from "../authClient";
 import StableSessionContext from "./StableSessionContext";
 import useServerHealth from "../hooks/useServerHealth";
@@ -15,6 +15,18 @@ export const StableSessionProvider = ({ children }) => {
   // Track server health
   const { serverUnreachable } = useServerHealth();
   const wasUnreachable = useRef(serverUnreachable);
+
+  // Safely refetch
+  const isRefetchingRef = useRef(false);
+  const safeRefetch = useCallback(async () => {
+    if (isRefetchingRef.current) return;
+    isRefetchingRef.current = true;
+    try {
+      await refetch();
+    } finally {
+      isRefetchingRef.current = false;
+    }
+  }, [refetch]);
 
   const [prevIsPending, setPrevIsPending] = useState(isPending);
   const [stableSession, setStableSession] = useState(session);
@@ -37,7 +49,7 @@ export const StableSessionProvider = ({ children }) => {
         if (cancelled) return;
         attempt++;
         setAttemptCount(attempt);
-        await refetch();
+        await safeRefetch();
       }
     };
 
@@ -46,7 +58,7 @@ export const StableSessionProvider = ({ children }) => {
       cancelled = true;
       setAttemptCount(0);
     };
-  }, [error, refetch]);
+  }, [error, safeRefetch]);
 
   // Derive persistentError based on error and attemptCount
   const persistentError =
@@ -65,10 +77,10 @@ export const StableSessionProvider = ({ children }) => {
   useEffect(() => {
     if (wasUnreachable.current && !serverUnreachable) {
       console.log("Server became reachable again, refetching session...");
-      refetch();
+      safeRefetch();
     }
     wasUnreachable.current = serverUnreachable;
-  }, [serverUnreachable, refetch]);
+  }, [serverUnreachable, safeRefetch]);
 
   if (isPending !== prevIsPending) {
     setPrevIsPending(isPending);
