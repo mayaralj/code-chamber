@@ -989,6 +989,10 @@ const Profile = () => {
 const renderMatchCard = (match, expandedMatchId, setExpandedMatchId) => {
   const isExpanded = expandedMatchId === match.id;
 
+  // Username only, falling back to displayName then "Deleted User"
+  const hostLabel =
+    match.host?.username || match.host?.displayName || "Deleted User";
+
   return (
     <div
       key={match.id}
@@ -1015,7 +1019,7 @@ const renderMatchCard = (match, expandedMatchId, setExpandedMatchId) => {
           </span>
           <div>
             <p className="font-mono text-sm font-bold text-[#e8d9c0]">
-              host: {match.host}
+              host: {hostLabel}
             </p>
             <p className="mt-1 font-mono text-xs text-[#c6baa5]">
               {match.difficulty}
@@ -1127,18 +1131,30 @@ const renderMatchCard = (match, expandedMatchId, setExpandedMatchId) => {
                     </span>
                   ) : (
                     <div className="flex flex-wrap gap-1.5">
-                      {eliminatedList.map((name) => (
-                        <span
-                          key={name}
-                          className={`rounded-sm border px-2 py-0.5 font-mono text-xs font-bold ${
-                            name === "YOU"
-                              ? "border-[#ffd89a]/50 bg-[#ffd89a]/10 text-[#ffd89a]"
-                              : "border-[#5d5549] bg-[#242322] text-[#e8d9c0]"
-                          }`}
-                        >
-                          {name}
-                        </span>
-                      ))}
+                      {eliminatedList.map((eliminated, eliminatedIndex) => {
+                        const isYou = eliminated.displayName === "YOU";
+                        const isGuest = eliminated.username === "guest";
+                        const label = isYou
+                          ? "YOU"
+                          : eliminated.username || eliminated.displayName;
+
+                        return (
+                          <span
+                            key={
+                              !isGuest && eliminated.username
+                                ? eliminated.username
+                                : `${label}-${eliminatedIndex}`
+                            }
+                            className={`rounded-sm border px-2 py-0.5 font-mono text-xs font-bold ${
+                              isYou
+                                ? "border-[#ffd89a]/50 bg-[#ffd89a]/10 text-[#ffd89a]"
+                                : "border-[#5d5549] bg-[#242322] text-[#e8d9c0]"
+                            }`}
+                          >
+                            {label}
+                          </span>
+                        );
+                      })}
                     </div>
                   )}
                 </div>
