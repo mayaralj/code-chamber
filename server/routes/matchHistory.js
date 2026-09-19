@@ -83,8 +83,8 @@ export const getSubmissionResults = async (userId, roomIds) => {
 export const getEliminationResults = async (userId, roomIds) => {
   const eliminationsResult = await db.query(
     `SELECT se.submission_id, se.eliminated_user_id,
-      CASE WHEN se.eliminated_user_id LIKE 'guest%' THEN 'guest' ELSE u.username END AS eliminated_username,
-      CASE WHEN se.eliminated_user_id LIKE 'guest%' THEN 'Guest' ELSE u.name END AS eliminated_display_name
+      CASE WHEN se.eliminated_is_guest THEN 'guest' ELSE u.username END AS eliminated_username,
+      CASE WHEN se.eliminated_is_guest THEN 'Guest' ELSE u.name END AS eliminated_display_name
      FROM submission_eliminations se
      JOIN submissions s ON se.submission_id = s.id  
     LEFT JOIN "user" u ON se.eliminated_user_id = u.id

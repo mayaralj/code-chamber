@@ -189,14 +189,15 @@ export const trackSubmissionElimination = async (
   const values = [];
   const placeholders = eliminatedIds
     .map((userId) => {
-      values.push(submissionId, userId);
-      return `($${values.length - 1}, $${values.length})`;
+      const isGuest = userId?.startsWith("guest");
+      values.push(submissionId, isGuest ? null : userId, isGuest);
+      return `($${values.length - 2}, $${values.length - 1}, $${values.length})`;
     })
     .join(", ");
 
   try {
     await db.query(
-      `INSERT INTO submission_eliminations (submission_id, eliminated_user_id)
+      `INSERT INTO submission_eliminations (submission_id, eliminated_user_id, eliminated_is_guest)
      VALUES ${placeholders}
      ON CONFLICT (submission_id, eliminated_user_id) DO NOTHING`,
       values,
