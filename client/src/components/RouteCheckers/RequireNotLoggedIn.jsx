@@ -1,4 +1,5 @@
 // Imports
+import { useEffect } from "react";
 import { Navigate, Outlet, useLocation } from "react-router";
 import useStableSession from "../../hooks/useStableSession";
 import toast from "react-hot-toast";
@@ -6,6 +7,14 @@ import toast from "react-hot-toast";
 const RequireNotLoggedIn = () => {
   const { session, isPending, error, persistentError } = useStableSession();
   const location = useLocation();
+
+  const shouldRedirect = !isPending && !error && Boolean(session?.user);
+
+  useEffect(() => {
+    if (shouldRedirect) {
+      toast.error("You are already logged in. Redirecting to your profile.");
+    }
+  }, [shouldRedirect]);
 
   if (isPending) {
     return (
@@ -25,8 +34,7 @@ const RequireNotLoggedIn = () => {
     );
   }
 
-  if (session?.user) {
-    toast.error("You are already logged in. Redirecting to your profile.");
+  if (shouldRedirect) {
     return (
       <Navigate to="/profile" replace state={{ from: location.pathname }} />
     );
