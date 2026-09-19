@@ -9,7 +9,7 @@ const DEFAULT_LIMIT = 5;
 const MAX_LIMIT = 25;
 
 // Small helper to average only over non-null/non-undefined numeric values
-const average = (values) => {
+export const average = (values) => {
   const validValues = values.filter(
     (value) => value !== null && value !== undefined,
   );
@@ -19,7 +19,7 @@ const average = (values) => {
 };
 
 // Helper to aggregate a match's own submissions into per-match summary stats
-const buildMatchSummary = (submissions) => {
+export const buildMatchSummary = (submissions) => {
   if (!submissions.length) {
     return {
       total_rounds: 0,
@@ -48,6 +48,107 @@ const buildMatchSummary = (submissions) => {
   };
 };
 
+export const getMatchResults = async (userId, limit, offset) => {
+  // Fetch this page of matches, most recent first
+  const matchesResult = await db.query(
+    `SELECT
+       m.room_id,
+       m.difficulty,
+        m.won,
+        m.played_at,
+        m.survival_time,
+        COALESCE(h.username, h.name) AS host_name
+      FROM matches m
+      LEFT JOIN "user" h ON m.host_id = h.id
+      WHERE m.user_id = $1
+      ORDER BY m.played_at DESC
+      LIMIT $2 OFFSET $3`,
+    [userId, limit, offset],
+  );
+  return matchesResult.rows;
+};
+
+export const getSubmissionResults = async (userId, roomIds) => {
+  const submissionsResult = await db.query(
+    `SELECT id, room_id, language, execution_time, submit_time, test_cases_passed, total_test_cases, round_number, submitted_at
+     FROM submissions
+     WHERE user_id = $1 AND room_id = ANY($2::text[])
+     ORDER BY room_id, round_number ASC, submitted_at ASC`,
+    [userId, roomIds],
+  );
+  return submissionsResult.rows;
+};
+
+export const getEliminationResults = async (userId, roomIds) => {
+  const eliminationsResult = await db.query(
+    `SELECT se.submission_id, se.eliminated_user_id,
+      COALESCE(u.username, u.name) AS eliminated_name
+     FROM submission_eliminations se
+     JOIN submissions s ON se.submission_id = s.id  
+    LEFT JOIN "user" u ON se.eliminated_user_id = u.id
+      WHERE s.user_id = $1 AND s.room_id = ANY($2::text[])`,
+    [userId, roomIds],
+  );
+  return eliminationsResult.rows;
+};
+
+export const buildMatchHistory = async (userId, limit, offset) => {
+  // Fetch this page of matches, most recent first
+  const matchResults = await getMatchResults(userId, limit, offset);
+  const roomIds = matchResults.map((m) => m.room_id);
+
+  // Fetch each user's own submissions + their eliminations for those rooms
+  const [submissionResults, eliminationResults] = await Promise.all([
+    roomIds.length ? getSubmissionResults(userId, roomIds) : { rows: [] },
+    roomIds.length ? getEliminationResults(userId, roomIds) : { rows: [] },
+  ]);
+
+  // Group eliminations by submission_id
+  const eliminationsBySubmission = {};
+  for (const row of eliminationResults) {
+    const name =
+      row.eliminated_user_id === userId
+        ? "YOU"
+        : (row.eliminated_name ?? "DELETED USER");
+    (eliminationsBySubmission[row.submission_id] ??= []).push(name);
+  }
+
+  // Group submissions by room_id
+  const submissionsByRoom = {};
+  for (const row of submissionResults) {
+    (submissionsByRoom[row.room_id] ??= []).push({
+      id: row.id,
+      language: row.language,
+      executionTime: row.execution_time,
+      submissionTime: row.submit_time,
+      testCasesPassed: row.test_cases_passed,
+      totalTestCases: row.total_test_cases,
+      eliminated: eliminationsBySubmission[row.id] ?? [],
+    });
+  }
+
+  const matches = matchResults.map((m) => {
+    const matchSubmissions = submissionsByRoom[m.room_id] ?? [];
+    const summary = buildMatchSummary(matchSubmissions);
+
+    return {
+      id: m.room_id,
+      won: m.won,
+      host: m.host_name ?? "deleted user",
+      difficulty: m.difficulty,
+      date: m.played_at,
+      survivalTime: m.survival_time,
+      totalRounds: summary.total_rounds,
+      testCasesPassed: summary.test_cases_passed,
+      totalTestCases: summary.total_test_cases,
+      avgExecutionTime: summary.avg_execution_time,
+      avgSubmissionTime: summary.avg_submission_time,
+      submissions: matchSubmissions,
+    };
+  });
+  return matches;
+};
+
 const matchHistoryRouter = () => {
   const router = express.Router();
 
@@ -70,94 +171,10 @@ const matchHistoryRouter = () => {
       );
       const offset = Math.max(parseInt(req.query.offset, 10) || 0, 0);
 
-      // Fetch this page of matches, most recent first
-      const matchesResult = await db.query(
-        `SELECT
-           m.room_id,
-           m.difficulty,
-           m.won,
-           m.played_at,
-           m.survival_time,
-           COALESCE(h.username, h.name) AS host_name
-         FROM matches m
-         LEFT JOIN "user" h ON m.host_id = h.id
-         WHERE m.user_id = $1
-         ORDER BY m.played_at DESC
-         LIMIT $2 OFFSET $3`,
-        [userId, limit, offset],
-      );
+      // Fetch the match history for the user
+      const matches = await buildMatchHistory(userId, limit, offset);
 
-      const matchRows = matchesResult.rows;
-      const roomIds = matchRows.map((m) => m.room_id);
-
-      // Fetch each user's own submissions + their eliminations for those rooms
-      const [submissionsResult, eliminationsResult] = await Promise.all([
-        roomIds.length
-          ? db.query(
-              `SELECT id, room_id, language, execution_time, submit_time, test_cases_passed, total_test_cases, round_number, submitted_at
-         FROM submissions
-         WHERE user_id = $1 AND room_id = ANY($2::text[])
-         ORDER BY room_id, round_number ASC, submitted_at ASC`,
-              [userId, roomIds],
-            )
-          : { rows: [] },
-        roomIds.length
-          ? db.query(
-              `SELECT se.submission_id, se.eliminated_user_id,
-                COALESCE(u.username, u.name) AS eliminated_name
-         FROM submission_eliminations se
-         JOIN submissions s ON se.submission_id = s.id
-         LEFT JOIN "user" u ON se.eliminated_user_id = u.id
-         WHERE s.user_id = $1 AND s.room_id = ANY($2::text[])`,
-              [userId, roomIds],
-            )
-          : { rows: [] },
-      ]);
-
-      // Group eliminations by submission_id
-      const eliminationsBySubmission = {};
-      for (const row of eliminationsResult.rows) {
-        const name =
-          row.eliminated_user_id === userId
-            ? "YOU"
-            : (row.eliminated_name ?? "DELETED USER");
-        (eliminationsBySubmission[row.submission_id] ??= []).push(name);
-      }
-
-      // Group submissions by room_id
-      const submissionsByRoom = {};
-      for (const row of submissionsResult.rows) {
-        (submissionsByRoom[row.room_id] ??= []).push({
-          id: row.id,
-          language: row.language,
-          executionTime: row.execution_time,
-          submissionTime: row.submit_time,
-          testCasesPassed: row.test_cases_passed,
-          totalTestCases: row.total_test_cases,
-          eliminated: eliminationsBySubmission[row.id] ?? [],
-        });
-      }
-
-      const matches = matchRows.map((m) => {
-        const matchSubmissions = submissionsByRoom[m.room_id] ?? [];
-        const summary = buildMatchSummary(matchSubmissions);
-
-        return {
-          id: m.room_id,
-          won: m.won,
-          host: m.host_name ?? "deleted user",
-          difficulty: m.difficulty,
-          date: m.played_at,
-          survivalTime: m.survival_time,
-          totalRounds: summary.total_rounds,
-          testCasesPassed: summary.test_cases_passed,
-          totalTestCases: summary.total_test_cases,
-          avgExecutionTime: summary.avg_execution_time,
-          avgSubmissionTime: summary.avg_submission_time,
-          submissions: matchSubmissions,
-        };
-      });
-
+      // Return the match history as JSON
       return res.status(200).json(matches);
     } catch (error) {
       console.error("Error fetching match history:", error);
