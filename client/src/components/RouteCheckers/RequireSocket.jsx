@@ -21,7 +21,7 @@ const RequireSocket = () => {
     location.pathname.startsWith("/game") ||
     location.pathname.startsWith("/room");
 
-  // If server disconnnects when in a game/room, kick the player out the server already guarantees cleanup for players stuck in this state
+  // If socket disconnnects when in a game/room, kick the player out the server already guarantees cleanup for players stuck in this state (server disconnects them from game/room much quicker than the client can react to the disconnect)
   const shouldKickOut = isDisconnected && isInGameOrRoom;
 
   useEffect(() => {
