@@ -3,7 +3,7 @@ import { useState, useEffect, useRef } from "react";
 import ServerHealthContext from "./ServerHealthContext";
 
 // Config
-const SERVER_HEALTH_CHECK_URL = "http://localhost:5000/api/health";
+const SERVER_HEALTH_CHECK_URL = `${import.meta.env.VITE_APP_URL}/api/health`;
 const SERVER_HEALTH_CHECK_INTERVAL = 5000;
 const SERVER_UNREACHABLE_TIMEOUT = 3000;
 

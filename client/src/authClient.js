@@ -5,7 +5,7 @@ import { usernameClient } from "better-auth/client/plugins";
 // Create auth client
 const authClient = createAuthClient({
   // server URL
-  baseURL: "http://localhost:5000",
+  baseURL: import.meta.env.VITE_APP_URL,
   fetchOptions: {
     credentials: "include",
     timeout: 5000,

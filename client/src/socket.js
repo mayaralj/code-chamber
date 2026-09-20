@@ -4,7 +4,7 @@ import { io } from "socket.io-client";
 const storedGuestId = localStorage.getItem("guestId");
 
 // Connect to the Socket.io server
-export const socket = io("http://localhost:5000", {
+export const socket = io(import.meta.env.VITE_APP_URL, {
   withCredentials: true,
   autoConnect: false,
   reconnection: true,

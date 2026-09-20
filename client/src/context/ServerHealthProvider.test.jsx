@@ -66,7 +66,7 @@ describe("ServerHealthProvider - initial state", () => {
 
     expect(mockFetch).toHaveBeenCalledTimes(1);
     expect(mockFetch).toHaveBeenCalledWith(
-      "http://localhost:5000/api/health",
+      `${import.meta.env.VITE_APP_URL}/api/health`,
       expect.objectContaining({ method: "GET" }),
     );
   });
