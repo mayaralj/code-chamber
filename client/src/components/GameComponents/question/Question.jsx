@@ -1,7 +1,30 @@
+import { useEffect, useRef } from "react";
 import { DIFFICULTY_STYLES, highlightWords } from "./questionHelpers";
 
 // Question component
 const Question = ({ question }) => {
+  const contentRef = useRef(null);
+
+  // Block copying the question content — no legitimate feature depends on it,
+  // so this is free friction against copy-pasting into external AI tools
+  useEffect(() => {
+    const node = contentRef.current;
+    if (!node) return;
+
+    const blockEvent = (e) => {
+      e.preventDefault();
+      e.stopPropagation();
+    };
+
+    node.addEventListener("copy", blockEvent, true);
+    node.addEventListener("contextmenu", blockEvent, true);
+
+    return () => {
+      node.removeEventListener("copy", blockEvent, true);
+      node.removeEventListener("contextmenu", blockEvent, true);
+    };
+  }, []);
+
   // Determine the badge styling based on the question's difficulty, defaulting to neutral if not found
   const difficultyStyle =
     DIFFICULTY_STYLES[question?.difficulty?.toLowerCase()] ||
@@ -14,7 +37,10 @@ const Question = ({ question }) => {
           Question
         </span>
       </div>
-      <div className="modal-scroll flex-1 overflow-y-auto px-5 py-4">
+      <div
+        ref={contentRef}
+        className="modal-scroll flex-1 select-none overflow-y-auto px-5 py-4"
+      >
         <div className="mb-5 flex items-center justify-between gap-3">
           <h2 className="text-3xl font-bold text-zinc-100">
             {question?.title}
