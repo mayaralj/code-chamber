@@ -107,7 +107,6 @@ const Home = () => {
         if (hasAllLiveStatsFields(data)) {
           setLiveStats(data);
         } else {
-          console.log("Incomplete live stats data received:", data);
           setLiveStats(null);
         }
       } catch {

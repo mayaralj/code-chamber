@@ -25,12 +25,6 @@ const useStatusEvents = (newRoundPayload) => {
   // Handle eliminated and missed players from results
   useEffect(() => {
     const handleStatusResults = ({ eliminatedPlayers, missedPlayer }) => {
-      console.log(
-        "Received results with eliminatedPlayers:",
-        eliminatedPlayers,
-        "and missedPlayer:",
-        missedPlayer,
-      );
       // Add eliminated players to status events
       if (eliminatedPlayers && eliminatedPlayers.length > 0) {
         eliminatedPlayers.forEach((player) => {

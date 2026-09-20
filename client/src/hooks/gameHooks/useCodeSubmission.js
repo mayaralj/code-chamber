@@ -74,11 +74,6 @@ const useCodeSubmission = (code, setPlayerList, newRoundPayload) => {
     // Track time submitted now instead on server for more accuracy
     const timeSubmitted = Date.now();
 
-    // Log the code
-    console.log(`Submitting code for room ${code} at time ${timeSubmitted}:`, {
-      codeInput: codeInputRef.current,
-    });
-
     // Emit code submission to server
     socket.emit("submit-code", {
       code,
@@ -104,7 +99,6 @@ const useCodeSubmission = (code, setPlayerList, newRoundPayload) => {
     });
 
     socket.on("request-code", (data, callback) => {
-      console.log(`Server requested current code for room ${code}`);
       callback({
         codeInput: codeInputRef.current,
         language: languageRef.current,

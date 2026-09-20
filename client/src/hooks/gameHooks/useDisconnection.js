@@ -8,10 +8,8 @@ const useDisconnection = (code, roomDeletedRef) => {
   useEffect(() => {
     return () => {
       if (roomDeletedRef.current) {
-        console.log("Disconnection: Room deleted, not leaving game");
         return;
       }
-      console.log("Disconnection: Player leaving game");
       socket.emit("leave-game", { code });
     };
   }, [code, roomDeletedRef]);

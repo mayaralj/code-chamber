@@ -263,10 +263,8 @@ const Profile = () => {
     } catch (error) {
       // ignore abort error
       if (error.name === "AbortError") {
-        console.log("Profile fetch aborted");
         return;
       }
-      console.log("Error fetching profile info:", error);
       setProfileFetchStatus("error");
     }
   }, [navigate]);
@@ -319,10 +317,8 @@ const Profile = () => {
         return data;
       } catch (error) {
         if (error.name === "AbortError") {
-          console.log("Match fetch aborted");
           return;
         }
-        console.log("Error fetching Match History:", error);
         setMatchFetchError("Error Fetching Match History");
       }
     },

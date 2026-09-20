@@ -14,7 +14,6 @@ const useResults = (newRoundPayload) => {
   const [winner, setWinner] = useState(null);
   const [appliedPayLoad, setAppliedPayLoad] = useState(null);
   if (newRoundPayload && newRoundPayload !== appliedPayLoad) {
-    console.log("New round payload detected, resetting results state");
     setAppliedPayLoad(newRoundPayload);
     setResults([]);
     setResultsReady(false);

@@ -42,7 +42,6 @@ const useRoundTimer = (
 
   useEffect(() => {
     socket.on("round-tick", ({ roundEndsAt, timeMultiplier }) => {
-      console.log(`Received round-tick with endsAt: ${roundEndsAt}`);
       // Game timer tick
       setRoundEndsAt(roundEndsAt);
       setTimeMultiplier(timeMultiplier);

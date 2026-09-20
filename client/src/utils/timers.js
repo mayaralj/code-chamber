@@ -22,7 +22,6 @@ export const playAnyTimer = ({
     );
 
     if (timeLeft !== lastSecond) {
-      console.log("Timer tick:", timeLeft);
       lastSecond = timeLeft;
       functionSetter(timeLeft);
     }

@@ -44,8 +44,8 @@ const ChooseUsername = () => {
     try {
       await refreshSocketConnection();
     } catch (socketError) {
-      console.warn(
-        "Username saved but socket refresh failed. It will retry.",
+      console.error(
+        "Username saved but socket refresh failed, navigating to profile page anyway",
         socketError,
       );
     }

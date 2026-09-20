@@ -76,7 +76,6 @@ export const StableSessionProvider = ({ children }) => {
   // Refetch session if server becomes reachable again
   useEffect(() => {
     if (wasUnreachable.current && !serverUnreachable) {
-      console.log("Server became reachable again, refetching session...");
       safeRefetch();
     }
     wasUnreachable.current = serverUnreachable;
