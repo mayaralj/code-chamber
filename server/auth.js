@@ -20,7 +20,7 @@ const auth = betterAuth({
   databaseHooks: {
     user: {},
   },
-  trustedOrigins: ["http://localhost:3000"],
+  trustedOrigins: [process.env.FRONTEND_URL],
   emailAndPassword: {
     enabled: true,
   },

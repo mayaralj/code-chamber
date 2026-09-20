@@ -7,7 +7,7 @@ export const createServer = (app) => {
   const server = http.createServer(app);
   const io = new Server(server, {
     cors: {
-      origin: "http://localhost:3000",
+      origin: process.env.FRONTEND_URL,
       credentials: true,
     },
     // adjust ping interval and timeout to 2 and 3 seconds for faster detection of disconnects
