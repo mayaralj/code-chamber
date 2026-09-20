@@ -3,6 +3,8 @@ import languageConfig from "./languageConfig.js";
 import { execAsync } from "./execHelper.js";
 
 // CONFIG
+const POOL_LABEL = process.env.POOL_LABEL || "code-chamber";
+console.log(`Using pool label: ${POOL_LABEL}`);
 const MAX_RETRIES = 3;
 const RETRY_DELAY_MS = 1000;
 const SWEEP_INTERVAL_MS = 5 * 60 * 1000;
@@ -35,7 +37,7 @@ let started = false;
 const createContainer = async (language, timeout = 30000) => {
   const config = languageConfig[language];
   const { stdout: id } = await execAsync(
-    `docker run -d --label pool=code-chamber --network none \
+    `docker run -d --label pool=${POOL_LABEL} --network none \
   --memory 256m --memory-swap 256m --cpus 0.5 --pids-limit 64 \
   --cap-drop ALL --security-opt no-new-privileges \
   --read-only \
@@ -219,7 +221,7 @@ export const getContainer = async (language) => {
 const cleanOldPool = async () => {
   try {
     const { stdout } = await execAsync(
-      `docker ps -a --filter "label=pool=code-chamber" -q`,
+      `docker ps -a --filter "label=pool=${POOL_LABEL}" -q`,
       { timeout: 10000 },
     );
     const ids = stdout.trim().split("\n").filter(Boolean);
@@ -244,7 +246,7 @@ const cleanOldPool = async () => {
 const sweepOrphanedContainers = async () => {
   try {
     const { stdout } = await execAsync(
-      `docker ps -a --filter "label=pool=code-chamber" -q --no-trunc`,
+      `docker ps -a --filter "label=pool=${POOL_LABEL}" -q --no-trunc`,
       { timeout: 10000 },
     );
     const ids = stdout.trim().split("\n").filter(Boolean);

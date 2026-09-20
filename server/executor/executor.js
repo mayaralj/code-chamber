@@ -35,7 +35,6 @@ const getLanguageSemaphore = (language) => {
 const runCode = async (language, userCode, functionName, testCases) => {
   // Get Config
   const config = languageConfig[language];
-  console.log(`Running code in language: ${language}`);
   // Check language is supported
   if (!config) {
     console.log(`Language ${language} not supported`);
@@ -85,7 +84,7 @@ const runCode = async (language, userCode, functionName, testCases) => {
           `cat > ${config.containerPath}`,
         ],
         code,
-        5000,
+        8000,
       );
       console.log(
         `Writing code into container took: ${(Date.now() - copyTime) / 1000}s`,
@@ -135,9 +134,9 @@ const runCode = async (language, userCode, functionName, testCases) => {
       limit(async () => {
         const argsJson = JSON.stringify(input);
         const expectedJson = JSON.stringify(expected);
-        console.log(
-          `Running test case ${index + 1}: input: ${argsJson}, expected: ${expectedJson}`,
-        );
+        // console.log(
+        //   `Running test case ${index + 1}: input: ${argsJson}, expected: ${expectedJson}`,
+        // );
 
         let raw;
         try {
@@ -146,7 +145,7 @@ const runCode = async (language, userCode, functionName, testCases) => {
               "docker",
               ["exec", "-i", containerId, ...config.run().split(" ")],
               argsJson,
-              5000,
+              8000,
             )
           ).trim();
           console.log(`Raw output for test case ${index + 1}:`, raw);

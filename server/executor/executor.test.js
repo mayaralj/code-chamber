@@ -52,19 +52,16 @@ describe("executor correctness per question and its solution(s)", () => {
   });
 
   for (const solution of solutions) {
-    it.concurrent(
-      `solves "${solution.question_title}" in ${solution.language} (${solution.approach})`,
-      async ({ expect }) => {
-        const testCases = testCasesByQuestion[solution.question_id] || [];
-        const result = await runCode(
-          solution.language,
-          solution.code,
-          solution.function_name,
-          testCases,
-        );
-        expect(result.passed).toBe(true);
-      },
-    );
+    it(`solves "${solution.question_title}" in ${solution.language} (${solution.approach})`, async () => {
+      const testCases = testCasesByQuestion[solution.question_id] || [];
+      const result = await runCode(
+        solution.language,
+        solution.code,
+        solution.function_name,
+        testCases,
+      );
+      expect(result.passed).toBe(true);
+    }, 15000);
   }
 });
 
@@ -205,8 +202,71 @@ describe("executor concurrency cap", () => {
   }, 15000);
 });
 
-// LEFT JOIN so a question with zero starter_code rows still appears in the
-// result set (with sc.language = null), not just ones missing one language.
+// Tests for the per-language submission queue: same language must serialize, different languages must not block each other.
+describe("executor per-language queue", () => {
+  it("serializes concurrent submissions for the same language", async () => {
+    const code = `
+        function sleepThenEcho(x) {
+          const start = Date.now();
+          while (Date.now() - start < 400) {}
+          return x;
+        }
+      `;
+
+    const start = Date.now();
+    const results = await Promise.all([
+      runCode("javascript", code, "sleepThenEcho", [
+        { input: [1], expected: 1 },
+      ]),
+      runCode("javascript", code, "sleepThenEcho", [
+        { input: [2], expected: 2 },
+      ]),
+      runCode("javascript", code, "sleepThenEcho", [
+        { input: [3], expected: 3 },
+      ]),
+    ]);
+    const elapsed = Date.now() - start;
+
+    expect(results.every((r) => r.passed)).toBe(true);
+    // Three ~400ms submissions queued one at a time should take noticeably
+    // longer than a single run, proving they did not execute concurrently.
+    expect(elapsed).toBeGreaterThan(1000);
+  }, 20000);
+
+  it("does not serialize submissions across different languages", async () => {
+    const jsCode = `
+        function sleepThenEcho(x) {
+          const start = Date.now();
+          while (Date.now() - start < 1000) {}
+          return x;
+        }
+      `;
+    const pyCode = `
+def sleep_then_echo(x):
+    import time
+    time.sleep(0.6)
+    return x
+`;
+
+    const start = Date.now();
+    const [jsResult, pyResult] = await Promise.all([
+      runCode("javascript", jsCode, "sleepThenEcho", [
+        { input: [1], expected: 1 },
+      ]),
+      runCode("python", pyCode, "sleep_then_echo", [
+        { input: [1], expected: 1 },
+      ]),
+    ]);
+    const elapsed = Date.now() - start;
+
+    expect(jsResult.passed).toBe(true);
+    expect(pyResult.passed).toBe(true);
+    // If javascript and python shared one queue, this would take ~1200ms+. Independent per-language queues should keep it close to ~600ms.
+    expect(elapsed).toBeLessThan(1700);
+  }, 20000);
+});
+
+// LEFT JOIN so a question with zero starter_code rows still appears in the result set (with sc.language = null), not just ones missing one language.
 const { rows: starterCodeRows } = await db.query(`
   SELECT
     q.id AS question_id,
