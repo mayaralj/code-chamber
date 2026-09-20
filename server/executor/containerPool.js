@@ -3,22 +3,33 @@ import languageConfig from "./languageConfig.js";
 import { execAsync } from "./execHelper.js";
 
 // CONFIG
-const usePool = true;
-const languagePoolSize = {
+const MAX_RETRIES = 3;
+const RETRY_DELAY_MS = 1000;
+const SWEEP_INTERVAL_MS = 5 * 60 * 1000;
+
+// Export configs
+export const usePool = true;
+export const languagePoolSize = {
   python: 1,
   javascript: 1,
   cpp: 1,
 };
-const MAX_RETRIES = 3;
-const RETRY_DELAY_MS = 1000;
 
-// Cleanup any old pool containers that failed to be removed every interval
-const SWEEP_INTERVAL_MS = 5 * 60 * 1000;
+// Pool and replenish tracking
 const pool = {};
+const pendingReplenish = {};
+for (const language of Object.keys(languagePoolSize)) {
+  pool[language] = [];
+  pendingReplenish[language] = 0;
+}
 
-// Store known containers so we can sweep orphaned ones that docker still knows about but we don't.
+// Track removing containers to avoid double-removal attempts
+const removingContainers = new Set();
+
+// Track known containers so we can sweep orphaned ones that docker still knows about but we don't.
 const knownContainers = new Set();
 let sweepTimer = null;
+let started = false;
 
 // Helper to create a single container (one attempt)
 const createContainer = async (language, timeout = 30000) => {
@@ -63,7 +74,6 @@ const createContainerWithRetry = async (
 };
 
 // Remove container with retries
-const removingContainers = new Set();
 export const removeContainer = async (
   containerId,
   maxRetries = MAX_RETRIES,
@@ -74,7 +84,6 @@ export const removeContainer = async (
   removingContainers.add(containerId);
   knownContainers.delete(containerId);
 
-  // Try removing the container with retries
   try {
     for (let attempt = 1; attempt <= maxRetries; attempt++) {
       try {
@@ -95,7 +104,6 @@ export const removeContainer = async (
       }
     }
   } finally {
-    // Regardless of success or failure, ensure we remove it from the set of containers being removed
     removingContainers.delete(containerId);
   }
 };
@@ -103,7 +111,7 @@ export const removeContainer = async (
 // Helper to check container
 const checkContainer = async (containerId) => {
   try {
-    const { stdout } = await execAsync(`docker inspect  ${containerId}`, {
+    const { stdout } = await execAsync(`docker inspect ${containerId}`, {
       timeout: 5000,
     });
     const info = JSON.parse(stdout);
@@ -114,24 +122,30 @@ const checkContainer = async (containerId) => {
   }
 };
 
-// Helper to replenish the pool for a specific language
-const replenishingLanguages = new Set();
+// Replenish the pool for a given language if it's below the target size
 const replenishContainer = async (language) => {
   if (!usePool) return;
 
-  // If replenishment is already in progress for this language, skip this attempt
-  if (replenishingLanguages.has(language)) {
-    console.log(
-      `Replenishment already in progress for language: ${language}, skipping this attempt.`,
-    );
+  const target = languagePoolSize[language] || 0;
+  const idleCount = pool[language]?.length || 0;
+  const pending = pendingReplenish[language] || 0;
+
+  // If the pool is already at or above target, don't start a new replenish.
+  if (idleCount + pending >= target) {
     return;
   }
 
-  // Mark this language as being replenished
-  replenishingLanguages.add(language);
+  // If we get here, we need to replenish the pool. Increment the pending count and start the replenish.
+  pendingReplenish[language] = pending + 1;
   try {
-    // Try replenishing the container with retries
     const id = await createContainerWithRetry(language);
+    if (!pool[language]) {
+      console.error(
+        `No pool configured for language: ${language}, discarding replenished container instead of leaking it.`,
+      );
+      removeContainer(id);
+      return;
+    }
     pool[language].push(id);
   } catch (error) {
     console.error(
@@ -139,7 +153,10 @@ const replenishContainer = async (language) => {
       error,
     );
   } finally {
-    replenishingLanguages.delete(language);
+    pendingReplenish[language] = Math.max(
+      0,
+      (pendingReplenish[language] || 1) - 1,
+    );
   }
 };
 
@@ -223,7 +240,7 @@ const cleanOldPool = async () => {
   }
 };
 
-// Cleanup containers that are no longer in the pool (orphaned containers)
+// Periodic cleanup of orphaned containers that are still running but not in our knownContainers set
 const sweepOrphanedContainers = async () => {
   try {
     const { stdout } = await execAsync(
@@ -259,17 +276,18 @@ export const startPool = async () => {
     return;
   }
 
-  if (Object.keys(pool).length > 0) {
+  if (started) {
     console.log("Container pool already started");
     return;
   }
+  started = true;
 
   await cleanOldPool();
 
+  // Scales automatically to whatever languagePoolSize specifies per language
   await Promise.all(
-    Object.keys(languagePoolSize).map(async (language) => {
-      const size = languagePoolSize[language];
-      pool[language] = [];
+    Object.entries(languagePoolSize).map(async ([language, size]) => {
+      pool[language] = pool[language] || [];
       await Promise.all(
         Array.from({ length: size }, async () => {
           try {
@@ -305,6 +323,8 @@ export const stopPool = async () => {
   knownContainers.clear();
   for (const language of Object.keys(pool)) {
     pool[language] = [];
+    pendingReplenish[language] = 0;
   }
+  started = false;
   console.log("Container pool stopped");
 };

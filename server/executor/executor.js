@@ -4,17 +4,31 @@ import pLimit from "p-limit";
 import { execWithStdin, cleanErrorMessage } from "./execHelper.js";
 import languageConfig from "./languageConfig.js";
 import { getParamTypes } from "./cpp/cppHelpers.js";
-import { getContainer, removeContainer } from "./containerPool.js";
+import {
+  getContainer,
+  removeContainer,
+  languagePoolSize,
+} from "./containerPool.js";
+import Semaphore from "./Semaphore.js";
 
 // Config
 const MAX_CONCURRENT_EXECUTIONS = 3;
 const limit = pLimit(MAX_CONCURRENT_EXECUTIONS);
+const DEFAULT_LANGUAGE_CONCURRENCY = 1;
 
-// Per-language mutex chain — ensures only one submission per language is ever actively using a container at a time.
-const languageChain = {
-  python: Promise.resolve(),
-  javascript: Promise.resolve(),
-  cpp: Promise.resolve(),
+// Semaphore per language to limit concurrent executions
+const languageSemaphores = {};
+const getLanguageSemaphore = (language) => {
+  if (!languageSemaphores[language]) {
+    const size = languagePoolSize[language] || DEFAULT_LANGUAGE_CONCURRENCY;
+    if (!(language in languagePoolSize)) {
+      console.warn(
+        `Language ${language} not found in languagePoolSize, using default concurrency of ${DEFAULT_LANGUAGE_CONCURRENCY}`,
+      );
+    }
+    languageSemaphores[language] = new Semaphore(size);
+  }
+  return languageSemaphores[language];
 };
 
 // Executor (via docker)
@@ -39,13 +53,8 @@ const runCode = async (language, userCode, functionName, testCases) => {
   // Build the code to run in the container — also outside the queue
   const { code, offset } = config.buildCode(userCode, functionName, paramTypes);
 
-  // Wait for our turn: chain onto whoever is currently using this language
-  const myTurn = languageChain[language];
-  let releaseNext;
-  languageChain[language] = new Promise((resolve) => {
-    releaseNext = resolve;
-  });
-  await myTurn;
+  // Wait for a slot in the queue for this language
+  const release = await getLanguageSemaphore(language).acquire();
   console.log(`Acquired queue slot for language: ${language}`);
 
   let containerId = null;
@@ -243,7 +252,7 @@ const runCode = async (language, userCode, functionName, testCases) => {
   } finally {
     // Release the queue slot for the next player
     console.log(`Releasing queue slot for language: ${language}`);
-    releaseNext();
+    release();
 
     // Cleanup runs in the background
     if (containerId) {
