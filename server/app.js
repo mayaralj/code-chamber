@@ -30,7 +30,7 @@ export const createApp = () => {
   app.set("trust proxy", 1);
 
   // cors
-  app.use(cors({ origin: "process.env.FRONTEND_URL", credentials: true }));
+  app.use(cors({ origin: process.env.FRONTEND_URL, credentials: true }));
 
   // Use the globally applied rate limiter
   app.use(globalLimiter);
