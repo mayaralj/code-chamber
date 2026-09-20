@@ -76,7 +76,7 @@ vi.mock("../hooks/usePlayer.js", () => ({
 
 // Helper to render the RoomWait component with default or overridden roomInfo
 const roomInfo = {
-  host: "hostuser",
+  host: { username: "hostuser", displayName: "Host User" },
   roomName: "Test Room",
   code: "ABCD",
   difficulty: "easy",

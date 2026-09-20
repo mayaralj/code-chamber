@@ -100,7 +100,7 @@ describe("Leaderboard - initial fetch", () => {
     expect(
       screen.getByRole("columnheader", { name: "MATCHES WON" }),
     ).toBeInTheDocument();
-    expect(screen.getByText("alice")).toBeInTheDocument();
+    expect(screen.getAllByText("alice")).toHaveLength(2);
     expect(screen.getByText("12")).toBeInTheDocument();
   });
 
@@ -140,7 +140,7 @@ describe("Leaderboard - retry flow", () => {
     expect(screen.getByText("LOADING LEADERBOARD...")).toBeInTheDocument();
 
     await resolveLatestWith(sampleData);
-    expect(screen.getByText("alice")).toBeInTheDocument();
+    expect(screen.getAllByText("alice")).toHaveLength(2);
   });
 });
 
@@ -160,7 +160,7 @@ describe("Leaderboard - row rendering", () => {
     render(<Leaderboard />);
     await resolveLatestWith(sampleData);
 
-    expect(screen.getByText("alice")).toBeInTheDocument();
+    expect(screen.getAllByText("alice")).toHaveLength(2);
   });
 
   it("prefers displayUsername over username when both are present", async () => {
@@ -180,7 +180,7 @@ describe("Leaderboard - row rendering", () => {
     });
 
     expect(screen.getByText("AliceCodes")).toBeInTheDocument();
-    expect(screen.queryByText("alice")).not.toBeInTheDocument();
+    expect(screen.getByText("alice")).toBeInTheDocument();
   });
 
   it("formats a percentage metric using the win_rate formatter", async () => {
@@ -204,7 +204,7 @@ describe("Leaderboard - filters", () => {
       target: { value: "easy" },
     });
 
-    expect(screen.getByText("bob")).toBeInTheDocument();
+    expect(screen.getAllByText("bob")).toHaveLength(2);
     expect(screen.queryByText("alice")).not.toBeInTheDocument();
   });
 
@@ -219,7 +219,7 @@ describe("Leaderboard - filters", () => {
     expect(
       screen.getByRole("columnheader", { name: "TOTAL SUBMISSIONS" }),
     ).toBeInTheDocument();
-    expect(screen.getByText("carol")).toBeInTheDocument();
+    expect(screen.getAllByText("carol")).toHaveLength(2);
   });
 
   it("does not show match-related metrics in the metric dropdown for a specific language", async () => {
@@ -254,7 +254,7 @@ describe("Leaderboard - background refresh behavior", () => {
     vi.useFakeTimers();
     render(<Leaderboard />);
     await resolveLatestWith(sampleData);
-    expect(screen.getByText("alice")).toBeInTheDocument();
+    expect(screen.getAllByText("alice")).toHaveLength(2);
 
     act(() => {
       vi.advanceTimersByTime(60000);
@@ -264,7 +264,7 @@ describe("Leaderboard - background refresh behavior", () => {
     expect(
       screen.queryByText("Couldn't load leaderboard"),
     ).not.toBeInTheDocument();
-    expect(screen.getByText("alice")).toBeInTheDocument();
+    expect(screen.getAllByText("alice")).toHaveLength(2);
   });
 
   it("still shows the full-page error screen if the very first fetch fails (no prior data to fall back on)", async () => {

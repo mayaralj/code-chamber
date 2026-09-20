@@ -128,12 +128,12 @@ describe("ServerHealthProvider - polling (fake timers)", () => {
     vi.useFakeTimers();
   });
 
-  it("polls again after the 10 second interval elapses", () => {
+  it("polls again after the interval elapses", () => {
     renderProvider();
     expect(mockFetch).toHaveBeenCalledTimes(1);
 
     act(() => {
-      vi.advanceTimersByTime(10000);
+      vi.advanceTimersByTime(5000);
     });
 
     expect(mockFetch).toHaveBeenCalledTimes(2);
@@ -145,7 +145,7 @@ describe("ServerHealthProvider - polling (fake timers)", () => {
     expect(firstSignal.aborted).toBe(false);
 
     act(() => {
-      vi.advanceTimersByTime(10000);
+      vi.advanceTimersByTime(5000);
     });
 
     expect(firstSignal.aborted).toBe(true);
@@ -155,7 +155,7 @@ describe("ServerHealthProvider - polling (fake timers)", () => {
     renderProvider();
 
     act(() => {
-      vi.advanceTimersByTime(10000);
+      vi.advanceTimersByTime(5000);
     });
     expect(pendingFetches).toHaveLength(2);
 

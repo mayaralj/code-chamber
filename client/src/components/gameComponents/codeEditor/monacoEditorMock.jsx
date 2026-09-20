@@ -23,6 +23,10 @@ const MockEditor = ({ onMount, onChange, options }) => {
         }
       }),
       deltaDecorations: vi.fn((_oldIds, newDecorations) => newDecorations),
+      addCommand: vi.fn(),
+      trigger: vi.fn(),
+      onDidChangeModelContent: vi.fn(() => ({ dispose: vi.fn() })),
+      getContainerDomNode: vi.fn(() => document.createElement("div")),
     };
 
     // fake monaco instance with a Range constructor to simulate the behavior of the Monaco editor in tests. The Range constructor creates a range object with start and end positions.
@@ -33,6 +37,17 @@ const MockEditor = ({ onMount, onChange, options }) => {
         this.endLine = endLine;
         this.endCol = endCol;
       }),
+      KeyMod: {
+        CtrlCmd: 2048,
+        Shift: 1024,
+        Alt: 512,
+        WinCtrl: 256,
+      },
+      KeyCode: {
+        KeyC: 33,
+        KeyX: 54,
+        KeyV: 56,
+      },
     };
 
     const fireMount = () => {

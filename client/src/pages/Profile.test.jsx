@@ -52,7 +52,7 @@ const makeSubmission = (overrides = {}) => ({
 const makeMatch = (overrides = {}) => ({
   id: "match-1",
   won: true,
-  host: "hostuser",
+  host: { username: "hostuser" },
   difficulty: "easy",
   date: "2026-09-01T00:00:00.000Z",
   totalRounds: 1,
@@ -239,7 +239,8 @@ describe("Profile FIXED: submission time fields no longer crash on expand", () =
       fireEvent.click(matchToggle);
     }).not.toThrow();
 
-    expect(screen.getByText("N/A")).toBeInTheDocument();
+    const execTimeLabel = screen.getByText("Exec Time");
+    expect(execTimeLabel.nextElementSibling).toHaveTextContent("N/A");
   });
 
   it("renders 'N/A' instead of crashing when a submission has an undefined submissionTime", async () => {
@@ -254,7 +255,8 @@ describe("Profile FIXED: submission time fields no longer crash on expand", () =
       fireEvent.click(matchToggle);
     }).not.toThrow();
 
-    expect(screen.getByText("N/A")).toBeInTheDocument();
+    const submitTimeLabel = screen.getByText("Submit Time");
+    expect(submitTimeLabel.nextElementSibling).toHaveTextContent("N/A");
   });
 
   it("still shows real values normally when submission times are present", async () => {
@@ -293,7 +295,7 @@ describe("Profile match history", () => {
 
   it("opens the ALL MATCHES modal and paginates via LOAD MORE", async () => {
     const matches = Array.from({ length: 5 }, (_, i) =>
-      makeMatch({ id: `m${i}`, host: `host${i}` }),
+      makeMatch({ id: `m${i}`, host: { username: `host${i}` } }),
     );
     render(<Profile />);
     await resolveProfile({ ...sampleProfile, matches });
@@ -304,7 +306,7 @@ describe("Profile match history", () => {
 
     fireEvent.click(screen.getByText("LOAD MORE"));
     const extraMatches = Array.from({ length: 5 }, (_, i) =>
-      makeMatch({ id: `m2-${i}`, host: `host2-${i}` }),
+      makeMatch({ id: `m2-${i}`, host: { username: `host2-${i}` } }),
     );
     await resolveMatchHistory(extraMatches);
 
@@ -313,28 +315,32 @@ describe("Profile match history", () => {
 
   it("hides LOAD MORE once a short page indicates no more matches", async () => {
     const matches = Array.from({ length: 5 }, (_, i) =>
-      makeMatch({ id: `m${i}`, host: `host${i}` }),
+      makeMatch({ id: `m${i}`, host: { username: `host${i}` } }),
     );
     render(<Profile />);
     await resolveProfile({ ...sampleProfile, matches });
 
     clickShowMoreOnMatchHistory();
     fireEvent.click(screen.getByText("LOAD MORE"));
-    await resolveMatchHistory([makeMatch({ id: "last", host: "lasthost" })]);
+    await resolveMatchHistory([
+      makeMatch({ id: "last", host: { username: "lasthost" } }),
+    ]);
 
     expect(screen.queryByText("LOAD MORE")).not.toBeInTheDocument();
   });
 
   it("reopening the modal after loading more still shows the full match list", async () => {
     const matches = Array.from({ length: 5 }, (_, i) =>
-      makeMatch({ id: `m${i}`, host: `host${i}` }),
+      makeMatch({ id: `m${i}`, host: { username: `host${i}` } }),
     );
     render(<Profile />);
     await resolveProfile({ ...sampleProfile, matches });
 
     clickShowMoreOnMatchHistory();
     fireEvent.click(screen.getByText("LOAD MORE"));
-    await resolveMatchHistory([makeMatch({ id: "m5", host: "host5" })]);
+    await resolveMatchHistory([
+      makeMatch({ id: "m5", host: { username: "host5" } }),
+    ]);
 
     fireEvent.click(getModalCloseButton());
     clickShowMoreOnMatchHistory();

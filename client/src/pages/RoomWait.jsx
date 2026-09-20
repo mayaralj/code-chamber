@@ -335,7 +335,7 @@ const RoomWait = () => {
               >
                 <div className="flex min-w-0 items-center gap-3">
                   <div className="flex h-8 w-8 shrink-0 items-center justify-center border border-[#8b7658] text-[#ffdd9d] sm:h-10 sm:w-10">
-                    {roomInfo.host === otherPlayer.username ? (
+                    {roomInfo.host?.username === otherPlayer.username ? (
                       <Crown className="h-4 w-4" />
                     ) : (
                       "◉"

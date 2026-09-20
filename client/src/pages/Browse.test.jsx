@@ -183,7 +183,7 @@ describe("Browse - room card display", () => {
 
   it("displays the provided host when present", () => {
     render(<Browse />);
-    emitRoomsList([makeRoom({ host: "alice" })]);
+    emitRoomsList([makeRoom({ host: { username: "alice" } })]);
 
     expect(screen.getByText("alice")).toBeInTheDocument();
   });
