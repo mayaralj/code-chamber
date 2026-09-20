@@ -5,9 +5,9 @@ import { execAsync } from "./execHelper.js";
 // CONFIG
 const usePool = true;
 const languagePoolSize = {
-  python: 3,
-  javascript: 3,
-  cpp: 3,
+  python: 1,
+  javascript: 1,
+  cpp: 1,
 };
 const MAX_RETRIES = 3;
 const pool = {};
@@ -60,12 +60,7 @@ const checkContainer = async (containerId) => {
 };
 
 // Helper to replenish container
-const replenishContainer = async (language, attempt = 1) => {
-  if (!usePool) {
-    return;
-  }
-
-  // Replenish the pool asynchronously
+const doReplenish = async (language, attempt = 1) => {
   try {
     pool[language].push(await createContainer(language));
   } catch (error) {
@@ -75,9 +70,8 @@ const replenishContainer = async (language, attempt = 1) => {
     );
     if (attempt < MAX_RETRIES) {
       console.log(`Retrying replenishContainer for language: ${language}`);
-      // Wait for a short delay before retrying
       await new Promise((resolve) => setTimeout(resolve, 1000));
-      await replenishContainer(language, attempt + 1);
+      await doReplenish(language, attempt + 1);
     } else {
       console.error(
         `Failed to replenish container for language: ${language} after ${MAX_RETRIES} attempts`,
@@ -86,26 +80,38 @@ const replenishContainer = async (language, attempt = 1) => {
   }
 };
 
+const replenishingLanguages = new Set();
+const replenishContainer = (language) => {
+  if (!usePool) return;
+
+  // If replenishment is already in progress for this language, skip this attempt
+  if (replenishingLanguages.has(language)) {
+    console.log(
+      `Replenishment already in progress for language: ${language}, skipping this attempt.`,
+    );
+    return;
+  }
+
+  replenishingLanguages.add(language);
+  doReplenish(language, 1).finally(() => {
+    replenishingLanguages.delete(language);
+  });
+};
+
 // Get a container
-export const getContainer = async (language, forceCreate = false) => {
-  // Track start time
+export const getContainer = async (language) => {
   const startTime = Date.now();
 
-  // Create container if pool is disabled or no containers are available
-  if (
-    forceCreate ||
-    !usePool ||
-    !pool[language] ||
-    pool[language].length <= 0
-  ) {
+  if (!pool[language] || pool[language].length <= 0) {
     console.error(
-      `No available containers for language: ${language}... Creating a new one`,
+      `No available container for language: ${language}... Creating a new one`,
     );
     try {
       const id = await createContainer(language, 10000);
       console.log(
         `Container creation took: ${(Date.now() - startTime) / 1000}s`,
       );
+      replenishContainer(language); // refill container pool asynchronously while this one is used
       return id;
     } catch (error) {
       console.error(
@@ -116,24 +122,33 @@ export const getContainer = async (language, forceCreate = false) => {
     }
   }
 
-  // Otherwise return a container from the pool
   const containerId = pool[language].pop();
-  // Check if this container is valid
   const isValid = await checkContainer(containerId);
+
   if (!isValid) {
     console.error(
-      `Container ${containerId} for language: ${language} is invalid.`,
+      `Container ${containerId} for language: ${language} is invalid. Replacing it and using the replacement for this request.`,
     );
-    // Remove container
-    removeContainer(containerId);
-    // Force create a new container
-    return await getContainer(language, true);
+    removeContainer(containerId); // Remove the invalid container
+    try {
+      const freshId = await createContainer(language, 10000);
+      console.log(
+        `Created replacement container for language: ${language}, took: ${(Date.now() - startTime) / 1000}s`,
+      );
+      replenishContainer(language); // refill container pool asynchronously while this one is used
+      return freshId;
+    } catch (error) {
+      console.error(
+        `Failed to create replacement container for language: ${language}`,
+        error,
+      );
+      return null;
+    }
   }
 
-  // Replenish the pool asynchronously
+  // Replenish the pool asynchronously while this one is used
   replenishContainer(language);
 
-  // Otherwise return a container from the pool
   console.log(`Container retrieval took: ${(Date.now() - startTime) / 1000}s`);
   return containerId;
 };
