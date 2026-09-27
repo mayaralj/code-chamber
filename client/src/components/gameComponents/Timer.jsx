@@ -19,7 +19,7 @@ const Timer = ({ timeLeft, currentRound, beforeRoundEvents }) => {
       <h1 className="text-7xl font-black tracking-tight text-[#f7e7c8]">
         {timeLeft}
       </h1>
-      {beforeRoundEvents && (
+      {beforeRoundEvents && Object.keys(beforeRoundEvents).length > 0 && (
         <div className="mt-2 w-full max-w-sm border border-[#4b4133] bg-[#111111] p-5">
           <h2 className="mb-3 text-xs font-bold uppercase tracking-[0.16em] text-[#a9977e]">
             Bonus Events
