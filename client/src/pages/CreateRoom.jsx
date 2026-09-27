@@ -110,7 +110,13 @@ const CreateRoom = () => {
           </p>
         </div>
 
-        <div className="space-y-10">
+        <form
+          onSubmit={(e) => {
+            e.preventDefault();
+            handleCreate();
+          }}
+          className="space-y-10"
+        >
           <label className="block text-center">
             <span className="mb-3 block text-xs font-bold tracking-wider text-[#d8c09d]">
               ROOM NAME
@@ -121,7 +127,7 @@ const CreateRoom = () => {
               maxLength={MAX_ROOM_NAME_LENGTH}
               onChange={(e) => setRoomName(e.target.value)}
               placeholder="ENTER IDENTIFIER..."
-              className={`w-full border border-[#4b4133] bg-[#111111] px-4 py-4 text-[#f1eee7] outline-none placeholder:text-[#4e483e] text-lg  focus:border-[#d8b77f] focus:ring-1 focus:ring-[#d8b77f] ${
+              className={`w-full border border-[#4b4133] bg-[#111111] px-4 py-4 text-lg text-[#f1eee7] outline-none placeholder:text-[#4e483e] focus:border-[#d8b77f] focus:ring-1 focus:ring-[#d8b77f] ${
                 roomName.length > 0 ? "text-center" : "text-left"
               }`}
             />
@@ -202,15 +208,16 @@ const CreateRoom = () => {
                 ERROR: {createError}
               </div>
             )}
+
             <button
+              type="submit"
               disabled={isCreating}
               className="w-full cursor-pointer border border-[#ffdd9d] bg-[#ffdd9d] py-5 text-3xl font-black tracking-[0.12em] text-[#251b0f] transition-colors duration-200 hover:bg-[#e7bc76] disabled:cursor-not-allowed disabled:opacity-60"
-              onClick={handleCreate}
             >
               {isCreating ? "INITIALIZING CHAMBER..." : "CREATE CHAMBER ›"}
             </button>
           </div>
-        </div>
+        </form>
       </div>
     </div>
   );
