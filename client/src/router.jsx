@@ -14,12 +14,12 @@ import NotFound from "./pages/NotFound";
 import Terms from "./pages/Terms";
 import Privacy from "./pages/Privacy";
 
-import RequireUsername from "./components/routeCheckers/RequireUsername";
-import RequireNoUsername from "./components/routeCheckers/RequireNoUsername";
-import RequireSocket from "./components/routeCheckers/RequireSocket";
-import RequireLogin from "./components/routeCheckers/RequireLogin";
-import RequireNotLoggedIn from "./components/routeCheckers/RequireNotLoggedIn";
-import RequireServer from "./components/routeCheckers/RequireServer";
+import RequireUsername from "./components/RouteCheckers/RequireUsername";
+import RequireNoUsername from "./components/RouteCheckers/RequireNoUsername";
+import RequireSocket from "./components/RouteCheckers/RequireSocket";
+import RequireLogin from "./components/RouteCheckers/RequireLogin";
+import RequireNotLoggedIn from "./components/RouteCheckers/RequireNotLoggedIn";
+import RequireServer from "./components/RouteCheckers/RequireServer";
 import MainLayout from "./layouts/MainLayout";
 
 const router = createBrowserRouter([
