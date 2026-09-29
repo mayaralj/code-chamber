@@ -26,6 +26,7 @@ import toast from "react-hot-toast";
 import useStatusEvents from "../hooks/gameHooks/useStatusEvents";
 import useNewRound from "../hooks/gameHooks/useNewRound";
 import { socket } from "../socket";
+import usePageTitle from "../hooks/usePageTitle";
 
 const Game = () => {
   const { code } = useParams();
@@ -70,6 +71,9 @@ const GameInner = ({ code }) => {
     setRoundEndsAt,
     setTimeMultiplier,
   } = useRoundTimer(roundEndsAt, timeMultiplier, newRoundPayload);
+
+  // Set  page title with round number title
+  usePageTitle(`Round ${currentRound}`);
 
   // Code Submission
   const {

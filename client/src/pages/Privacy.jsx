@@ -1,5 +1,6 @@
 // Imports
 import { useNavigate } from "react-router";
+import usePageTitle from "../hooks/usePageTitle";
 
 // GitHub repo used as the contact channel for this project (no dedicated support inbox)
 const GITHUB_REPO_URL = "https://github.com/mayaralj/code-chamber";
@@ -18,6 +19,9 @@ const PolicySection = ({ title, children }) => (
 
 // Privacy component
 const Privacy = () => {
+  // Set page title
+  usePageTitle("Privacy Policy");
+
   // Navigate
   const navigate = useNavigate();
 

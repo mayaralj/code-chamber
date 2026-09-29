@@ -15,6 +15,7 @@ import {
 import { Link, useNavigate, useSearchParams } from "react-router";
 import authClient from "../authClient";
 import { refreshSocketConnection } from "../socket";
+import usePageTitle from "../hooks/usePageTitle";
 
 // Config
 const FETCH_TIMEOUT = 10 * 1000;
@@ -53,6 +54,9 @@ const formatDuration = (totalSeconds) => {
 
 // Profile component
 const Profile = () => {
+  // Page title
+  usePageTitle("Profile");
+
   // Navigate and search params
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();

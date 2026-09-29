@@ -1,6 +1,7 @@
 // Imports
 import { useNavigate } from "react-router";
 import { useState, useEffect, useRef } from "react";
+import usePageTitle from "../hooks/usePageTitle";
 
 // Bunch of helpers to format live stats numbers for display
 const formatPercent = (value) =>
@@ -26,6 +27,9 @@ const FETCH_TIMEOUT = 10000;
 
 // Home component
 const Home = () => {
+  // Page title
+  usePageTitle();
+
   // Navigate
   const navigate = useNavigate();
 

@@ -1,5 +1,6 @@
 // Imports
 import { useState, useEffect, useCallback, useRef } from "react";
+import usePageTitle from "../hooks/usePageTitle";
 
 // Config
 const FETCH_INTERVAL = 60 * 1000;
@@ -94,6 +95,9 @@ const languageOptions = {
 
 // Leaderboard.jsx
 const Leaderboard = () => {
+  // Page title
+  usePageTitle("Leaderboard");
+
   // States
   const [leaderboardData, setLeaderboardData] = useState(null);
   const [errorMessage, setErrorMessage] = useState("");

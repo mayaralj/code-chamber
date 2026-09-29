@@ -5,9 +5,13 @@ import { NavLink, useNavigate, useSearchParams } from "react-router";
 import authClient from "../authClient";
 import { refreshSocketConnection } from "../socket";
 import { withTimeout } from "../utils/timeout";
+import usePageTitle from "../hooks/usePageTitle";
 
 // Signup component
 const Signup = () => {
+  // Page title
+  usePageTitle("Sign up");
+
   // Navigate and search params
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();

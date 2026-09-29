@@ -2,12 +2,16 @@
 import { useNavigate } from "react-router";
 import { useState, useEffect } from "react";
 import { socket } from "../socket";
+import usePageTitle from "../hooks/usePageTitle";
 
 // Config
 const CODE_LENGTH = 6;
 
 // Browse component
 const Browse = () => {
+  // page title
+  usePageTitle("Browse Rooms");
+
   // Navigate
   const navigate = useNavigate();
 

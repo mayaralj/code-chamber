@@ -3,9 +3,13 @@ import { useState } from "react";
 import { useNavigate } from "react-router";
 import authClient from "../authClient";
 import { refreshSocketConnection } from "../socket";
+import usePageTitle from "../hooks/usePageTitle";
 
 // ChooseUsername component
 const ChooseUsername = () => {
+  // Set page title
+  usePageTitle("Choose Username");
+
   // Navigate
   const navigate = useNavigate();
 

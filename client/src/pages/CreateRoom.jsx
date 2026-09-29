@@ -1,6 +1,7 @@
 import { useNavigate } from "react-router";
 import { useState, useRef, useEffect } from "react";
 import { socket } from "../socket";
+import usePageTitle from "../hooks/usePageTitle";
 
 // Config
 const CREATE_ROOM_TIMEOUT = 3000;
@@ -8,6 +9,9 @@ const MIN_ROOM_NAME_LENGTH = 3;
 const MAX_ROOM_NAME_LENGTH = 20;
 
 const CreateRoom = () => {
+  // Page title
+  usePageTitle("Create Room");
+
   // States
   const [roomName, setRoomName] = useState("");
   const [difficulty, setDifficulty] = useState("easy");

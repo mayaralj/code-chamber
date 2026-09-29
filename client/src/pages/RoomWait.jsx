@@ -5,12 +5,16 @@ import { useState, useEffect, useRef } from "react";
 import { LoaderCircle, Crown } from "lucide-react";
 import usePlayer from "../hooks/usePlayer.js";
 import toast from "react-hot-toast";
+import usePageTitle from "../hooks/usePageTitle";
 
 // Config
 const MINIMUM_PLAYERS_TO_START = 2;
 
 // RoomWait component
 const RoomWait = () => {
+  // Set page title
+  usePageTitle("Waiting Room");
+
   // Code and navigate
   const { code } = useParams();
   const navigate = useNavigate();

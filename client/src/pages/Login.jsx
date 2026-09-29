@@ -5,9 +5,13 @@ import authClient from "../authClient";
 import { refreshSocketConnection } from "../socket";
 import { FaGoogle, FaGithub, FaDiscord } from "react-icons/fa";
 import { withTimeout } from "../utils/timeout";
+import usePageTitle from "../hooks/usePageTitle";
 
 // Login component
 const Login = () => {
+  // Page title
+  usePageTitle("Login");
+
   // Navigate
   const navigate = useNavigate();
 
