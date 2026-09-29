@@ -124,14 +124,17 @@ const Leaderboard = () => {
         abortController.current.signal,
         AbortSignal.timeout(FETCH_TIMEOUT),
       ]);
-      const response = await fetch(`/api/leaderboard`, {
-        method: "GET",
-        headers: {
-          "Content-Type": "application/json",
+      const response = await fetch(
+        `${import.meta.env.VITE_API_URL}/api/leaderboard`,
+        {
+          method: "GET",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          credentials: "include",
+          signal: combinedSignal,
         },
-        credentials: "include",
-        signal: combinedSignal,
-      });
+      );
 
       if (!response.ok) {
         throw new Error(`HTTP error: ${response.status}`);

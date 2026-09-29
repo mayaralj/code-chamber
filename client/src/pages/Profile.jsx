@@ -236,15 +236,18 @@ const Profile = () => {
         abortControllerRef.current.signal,
         AbortSignal.timeout(FETCH_TIMEOUT),
       ]);
-      const response = await fetch("/api/profile", {
-        method: "GET",
-        headers: {
-          "Content-Type": "application/json",
+      const response = await fetch(
+        `${import.meta.env.VITE_API_URL}/api/profile`,
+        {
+          method: "GET",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          credentials: "include",
+          // Add the signal from the abort controller to the fetch request
+          signal: combinedSignal,
         },
-        credentials: "include",
-        // Add the signal from the abort controller to the fetch request
-        signal: combinedSignal,
-      });
+      );
 
       // Log repsonse text
       if (response.status === 401) {
@@ -294,12 +297,15 @@ const Profile = () => {
 
         const params = new URLSearchParams({ limit, offset });
 
-        const response = await fetch(`/api/matchHistory?${params.toString()}`, {
-          method: "GET",
-          headers: { "Content-Type": "application/json" },
-          credentials: "include",
-          signal: combinedSignal,
-        });
+        const response = await fetch(
+          `${import.meta.env.VITE_API_URL}/api/matchHistory?${params.toString()}`,
+          {
+            method: "GET",
+            headers: { "Content-Type": "application/json" },
+            credentials: "include",
+            signal: combinedSignal,
+          },
+        );
 
         if (response.status === 401) {
           setMatchFetchError("Error Fetching Match History");

@@ -52,9 +52,12 @@ const Home = () => {
           AbortSignal.timeout(FETCH_TIMEOUT),
         ]);
 
-        const response = await fetch("/api/homeLeaderboard", {
-          signal: combinedSignal,
-        });
+        const response = await fetch(
+          `${import.meta.env.VITE_API_URL}/api/homeLeaderboard`,
+          {
+            signal: combinedSignal,
+          },
+        );
         if (!response.ok) {
           throw new Error(`HTTP error status: ${response.status}`);
         }
@@ -98,7 +101,9 @@ const Home = () => {
 
   // Handle incoming events
   useEffect(() => {
-    const source = new EventSource("/api/liveStats");
+    const source = new EventSource(
+      `${import.meta.env.VITE_APP_URL}/api/liveStats`,
+    );
 
     // Handle each data set
     source.onmessage = (event) => {
