@@ -101,8 +101,8 @@ export const buildMatchHistory = async (userId, limit, offset) => {
 
   // Fetch each user's own submissions + their eliminations for those rooms
   const [submissionResults, eliminationResults] = await Promise.all([
-    roomIds.length ? getSubmissionResults(userId, roomIds) : { rows: [] },
-    roomIds.length ? getEliminationResults(userId, roomIds) : { rows: [] },
+    roomIds.length ? getSubmissionResults(userId, roomIds) : [],
+    roomIds.length ? getEliminationResults(userId, roomIds) : [],
   ]);
 
   // Group eliminations by submission_id
