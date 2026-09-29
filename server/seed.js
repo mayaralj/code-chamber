@@ -19,33 +19,35 @@ const seedPath = path.join(__dirname, "seed", "questionSeed.sql");
 
 const seed = async () => {
   const seedId = "questionSeed.sql";
-  const client = await db.connect();
 
   try {
-    // Create a table that tracks all the seeds
-    await client.query(`
-      CREATE TABLE IF NOT EXISTS seed_data (
-        id text PRIMARY KEY,
-        seeded_at timestamp with time zone DEFAULT CURRENT_TIMESTAMP NOT NULL
+    const client = await db.connect();
+
+    try {
+      // Create a table that tracks all the seeds
+      await client.query(`
+        CREATE TABLE IF NOT EXISTS seed_data (
+          id text PRIMARY KEY,
+          seeded_at timestamp with time zone DEFAULT CURRENT_TIMESTAMP NOT NULL
+        );
+      `);
+
+      // Check if the seed has already been applied
+      const result = await client.query(
+        "SELECT 1 FROM seed_data WHERE id = $1",
+        [seedId],
       );
-    `);
 
-    // Check if the seed has already been applied
-    const result = await client.query("SELECT 1 FROM seed_data WHERE id = $1", [
-      seedId,
-    ]);
-
-    if (result.rowCount > 0) {
-      console.log(`Already seeded: ${seedId}`);
-      return;
+      if (result.rowCount > 0) {
+        console.log(`Already seeded: ${seedId}`);
+        return;
+      }
+    } finally {
+      client.release();
     }
-  } finally {
-    client.release();
-  }
 
-  console.log(`Applying seed: ${seedId}`);
+    console.log(`Applying seed: ${seedId}`);
 
-  try {
     // Run the PostgreSQL dump using psql
     await execFileAsync("psql", [
       process.env.DB_URL,
@@ -56,12 +58,14 @@ const seed = async () => {
     ]);
 
     // Record the seed as completed
-    const client = await db.connect();
+    const seedClient = await db.connect();
 
     try {
-      await client.query("INSERT INTO seed_data (id) VALUES ($1)", [seedId]);
+      await seedClient.query("INSERT INTO seed_data (id) VALUES ($1)", [
+        seedId,
+      ]);
     } finally {
-      client.release();
+      seedClient.release();
     }
 
     console.log(`Seed applied: ${seedId}`);
@@ -74,4 +78,5 @@ const seed = async () => {
   }
 };
 
+// Run the seed
 seed();
