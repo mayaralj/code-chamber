@@ -133,7 +133,7 @@ describe("Home - live stats ticker (SSE)", () => {
     render(<Home />);
 
     expect(latestEventSource().url).toBe(
-      `${import.meta.env.VITE_API_URL}/api/liveStats`,
+      `${import.meta.env.VITE_APP_URL}/api/liveStats`,
     );
   });
 
@@ -224,7 +224,7 @@ describe("Home - global ranking leaderboard", () => {
     render(<Home />);
 
     expect(fetchMock).toHaveBeenCalledWith(
-      `${import.meta.env.VITE_API_URL}/api/homeLeaderboard`,
+      `${import.meta.env.VITE_APP_URL}/api/homeLeaderboard`,
       expect.objectContaining({ signal: expect.anything() }),
     );
   });

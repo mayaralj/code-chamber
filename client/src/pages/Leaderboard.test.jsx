@@ -83,7 +83,7 @@ describe("Leaderboard - initial fetch", () => {
     render(<Leaderboard />);
 
     expect(mockFetch).toHaveBeenCalledWith(
-      `${import.meta.env.VITE_API_URL}/api/leaderboard`,
+      `${import.meta.env.VITE_APP_URL}/api/leaderboard`,
       expect.objectContaining({
         method: "GET",
         credentials: "include",

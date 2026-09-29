@@ -237,7 +237,7 @@ const Profile = () => {
         AbortSignal.timeout(FETCH_TIMEOUT),
       ]);
       const response = await fetch(
-        `${import.meta.env.VITE_API_URL}/api/profile`,
+        `${import.meta.env.VITE_APP_URL}/api/profile`,
         {
           method: "GET",
           headers: {
@@ -298,7 +298,7 @@ const Profile = () => {
         const params = new URLSearchParams({ limit, offset });
 
         const response = await fetch(
-          `${import.meta.env.VITE_API_URL}/api/matchHistory?${params.toString()}`,
+          `${import.meta.env.VITE_APP_URL}/api/matchHistory?${params.toString()}`,
           {
             method: "GET",
             headers: { "Content-Type": "application/json" },

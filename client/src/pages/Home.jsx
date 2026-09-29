@@ -53,7 +53,7 @@ const Home = () => {
         ]);
 
         const response = await fetch(
-          `${import.meta.env.VITE_API_URL}/api/homeLeaderboard`,
+          `${import.meta.env.VITE_APP_URL}/api/homeLeaderboard`,
           {
             signal: combinedSignal,
           },

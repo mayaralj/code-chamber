@@ -125,7 +125,7 @@ const Leaderboard = () => {
         AbortSignal.timeout(FETCH_TIMEOUT),
       ]);
       const response = await fetch(
-        `${import.meta.env.VITE_API_URL}/api/leaderboard`,
+        `${import.meta.env.VITE_APP_URL}/api/leaderboard`,
         {
           method: "GET",
           headers: {
