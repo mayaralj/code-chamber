@@ -4,12 +4,15 @@ import App from "./App.jsx";
 import PlayerProvider from "./context/PlayerProvider.jsx";
 import StableSessionProvider from "./context/StableSessionProvider.jsx";
 import ServerHealthProvider from "./context/ServerHealthProvider.jsx";
+import LiveStatsProvider from "./context/LiveStatsProvider.jsx";
 
 createRoot(document.getElementById("root")).render(
   <ServerHealthProvider>
     <StableSessionProvider>
       <PlayerProvider>
-        <App />
+        <LiveStatsProvider>
+          <App />
+        </LiveStatsProvider>
       </PlayerProvider>
     </StableSessionProvider>
   </ServerHealthProvider>,

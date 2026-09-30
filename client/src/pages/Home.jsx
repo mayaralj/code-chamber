@@ -2,21 +2,26 @@
 import { useNavigate } from "react-router";
 import { useState, useEffect, useRef } from "react";
 import usePageTitle from "../hooks/usePageTitle";
+import useLiveStats from "../hooks/useLiveStats";
 
 // Bunch of helpers to format live stats numbers for display
 const formatPercent = (value) =>
   value === "N/A" || value === null || value === undefined
     ? "N/A"
     : `${Math.round(value * 100)}%`;
+
 const formatMs = (value) =>
   value === "N/A" || value === null || value === undefined
     ? "N/A"
     : `${Math.round(value)}ms`;
+
 const formatDuration = (value) => {
   if (value === "N/A" || value === null || value === undefined) return "N/A";
+
   const totalSeconds = Math.round(value);
   const minutes = Math.floor(totalSeconds / 60);
   const seconds = totalSeconds % 60;
+
   return `${String(minutes).padStart(2, "0")}:${String(seconds).padStart(2, "0")} MIN`;
 };
 
@@ -33,8 +38,10 @@ const Home = () => {
   // Navigate
   const navigate = useNavigate();
 
+  // Live stats
+  const { liveStats } = useLiveStats();
+
   // States
-  const [liveStats, setLiveStats] = useState(null);
   const [homeLeaderboard, setHomeLeaderboard] = useState(null);
 
   // Refs
@@ -48,6 +55,7 @@ const Home = () => {
       if (abortControllerRef.current) {
         abortControllerRef.current.abort();
       }
+
       abortControllerRef.current = new AbortController();
 
       try {
@@ -62,19 +70,27 @@ const Home = () => {
             signal: combinedSignal,
           },
         );
+
         if (!response.ok) {
           throw new Error(`HTTP error status: ${response.status}`);
         }
 
         const data = await response.json();
-        if (isMounted) setHomeLeaderboard(data);
+
+        if (isMounted) {
+          setHomeLeaderboard(data);
+        }
       } catch (error) {
         console.error("Error fetching home leaderboard:", error);
-        if (isMounted) setHomeLeaderboard(null);
+
+        if (isMounted) {
+          setHomeLeaderboard(null);
+        }
       }
     };
 
     fetchHomeLeaderboard();
+
     const intervalId = setInterval(fetchHomeLeaderboard, FETCH_INTERVAL);
 
     return () => {
@@ -84,114 +100,73 @@ const Home = () => {
     };
   }, []);
 
-  // Helper to check if all live stats fields are present and valid
-  const hasAllLiveStatsFields = (stats) => {
-    const requiredFields = [
-      "active_users",
-      "total_matches",
-      "total_submissions",
-      "avg_pass_rate",
-      "avg_execution_time",
-      "avg_submission_time",
-      "most_used_language",
-      "most_used_difficulty",
-      "avg_survival_time",
-      "avg_match_time",
-    ];
-    return requiredFields.every(
-      (field) => stats[field] !== undefined && stats[field] !== null,
-    );
-  };
-
-  // Handle incoming events
-  useEffect(() => {
-    const source = new EventSource(
-      `${import.meta.env.VITE_APP_URL}/api/liveStats`,
-    );
-
-    // Handle each data set
-    source.onmessage = (event) => {
-      try {
-        const data = JSON.parse(event.data);
-        if (hasAllLiveStatsFields(data)) {
-          setLiveStats(data);
-        } else {
-          setLiveStats(null);
-        }
-      } catch {
-        console.error("Invalid JSON data received:", event.data);
-      }
-    };
-
-    source.onerror = (err) => {
-      console.error("SSE connection error:", err);
-    };
-
-    // Cleanup on unmount
-    return () => {
-      source.close();
-    };
-  }, []);
-
   // Build the ticker from live stats, or a connecting message until the first payload arrives
   const tickerText = (
     <>
-      <span className="text-[15px] mr-8">
+      <span className="mr-8 text-[15px]">
         {liveStats
           ? "PLAYERS ONLINE: " + liveStats.active_users
           : "CONNECTING TO LIVE FEED..."}
       </span>
-      <span className="text-[15px] mr-8">|</span>
-      <span className="text-[15px] mr-8">
+      <span className="mr-8 text-[15px]">|</span>
+
+      <span className="mr-8 text-[15px]">
         {liveStats
           ? "MATCHES PLAYED: " + liveStats.total_matches
           : "CONNECTING TO LIVE FEED..."}
       </span>
-      <span className="text-[15px] mr-8">|</span>
-      <span className="text-[15px] mr-8">
+      <span className="mr-8 text-[15px]">|</span>
+
+      <span className="mr-8 text-[15px]">
         {liveStats
           ? "SUBMISSIONS: " + liveStats.total_submissions
           : "CONNECTING TO LIVE FEED..."}
       </span>
-      <span className="text-[15px] mr-8">|</span>
-      <span className="text-[15px] mr-8">
+      <span className="mr-8 text-[15px]">|</span>
+
+      <span className="mr-8 text-[15px]">
         {liveStats
           ? "AVG PASS RATE: " + formatPercent(liveStats.avg_pass_rate)
           : "CONNECTING TO LIVE FEED..."}
       </span>
-      <span className="text-[15px] mr-8">|</span>
-      <span className="text-[15px] mr-8">
+      <span className="mr-8 text-[15px]">|</span>
+
+      <span className="mr-8 text-[15px]">
         {liveStats
           ? "AVG EXEC TIME: " + formatMs(liveStats.avg_execution_time)
           : "CONNECTING TO LIVE FEED..."}
       </span>
-      <span className="text-[15px] mr-8">|</span>
-      <span className="text-[15px] mr-8">
+      <span className="mr-8 text-[15px]">|</span>
+
+      <span className="mr-8 text-[15px]">
         {liveStats
           ? "AVG SURVIVAL TIME: " + formatDuration(liveStats.avg_survival_time)
           : "CONNECTING TO LIVE FEED..."}
       </span>
-      <span className="text-[15px] mr-8">|</span>
-      <span className="text-[15px] mr-8">
+      <span className="mr-8 text-[15px]">|</span>
+
+      <span className="mr-8 text-[15px]">
         {liveStats
           ? "AVG MATCH TIME: " + formatDuration(liveStats.avg_match_time)
           : "CONNECTING TO LIVE FEED..."}
       </span>
-      <span className="text-[15px] mr-8">|</span>
-      <span className="text-[15px] mr-8">
+      <span className="mr-8 text-[15px]">|</span>
+
+      <span className="mr-8 text-[15px]">
         {liveStats
           ? "MOST USED LANGUAGE: " +
             (liveStats.most_used_language?.toUpperCase() || "—")
           : "CONNECTING TO LIVE FEED..."}
       </span>
-      <span className="text-[15px] mr-8">|</span>
-      <span className="text-[15px] mr-8">
+      <span className="mr-8 text-[15px]">|</span>
+
+      <span className="mr-8 text-[15px]">
         {liveStats
           ? "MOST PLAYED DIFFICULTY: " +
             (liveStats.most_used_difficulty?.toUpperCase() || "—")
           : "CONNECTING TO LIVE FEED..."}
       </span>
-      <span className="text-[15px] mr-8">|</span>
+      <span className="mr-8 text-[15px]">|</span>
     </>
   );
 
@@ -203,9 +178,11 @@ const Home = () => {
           <h1 className="text-6xl font-black tracking-tight text-[#ffedd1] md:text-7xl">
             CODE CHAMBER
           </h1>
+
           <p className="mt-4 text-md font-bold tracking-[0.08em] text-[#fcdca9]">
             The Multiplayer Way To Sharpen Your Coding Skills.
           </p>
+
           <p className="mt-6 text-[15px] leading-7 text-[#c7b499]">
             A high-stakes multiplayer coding game where your DSA skills can
             truly shine. Survive round after round of coding challenges. Last
@@ -234,14 +211,14 @@ const Home = () => {
         </section>
 
         {/* Ticker */}
-        <section className="mx-auto text-center mt-10 max-w-5xl">
+        <section className="mx-auto mt-10 max-w-5xl text-center">
           <div className="mt-6 overflow-hidden border-y border-[#4b4133] bg-gray-950 py-1.5 select-none pointer-events-none">
             <div className="marquee-track whitespace-nowrap">
               {[0, 1].map((copy) => (
                 <span
                   key={copy}
                   aria-hidden={copy > 0}
-                  className="shrink-0 inline-block text-[10px] font-bold tracking-wider text-[#d5b68f]"
+                  className="inline-block shrink-0 text-[10px] font-bold tracking-wider text-[#d5b68f]"
                 >
                   {tickerText}
                 </span>
@@ -320,12 +297,14 @@ const ActionCard = ({
   <article className="flex min-h-[300px] flex-col border border-[#4b4133] bg-[#111111] p-7 [background-image:radial-gradient(rgba(91,78,62,0.4)_0.7px,transparent_0.7px)] [background-size:14.1px_14.1px]">
     <div className="flex items-center justify-between">
       <span className="text-2xl text-[#ffd99d]">{primary ? "⊞" : "◎"}</span>
+
       <span className="border border-[#9e8968] px-2 py-1 text-[10px] font-bold text-[#d8c09d]">
         {tag}
       </span>
     </div>
 
     <h2 className="mt-6 text-3xl font-black text-[#f1eee7]">{title}</h2>
+
     <p className="mt-3 text-sm leading-6 text-[#c7b499]">{description}</p>
 
     <button

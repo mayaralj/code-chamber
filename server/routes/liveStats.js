@@ -3,7 +3,7 @@ import express from "express";
 import { liveStats } from "../liveStats/precomputeLiveStats.js";
 
 // Config
-const SEND_INTERVAL_MS = 10 * 1000;
+const SEND_INTERVAL_MS = 30 * 1000;
 
 // Set of connected clients' response objects
 const connectedClients = new Set();
