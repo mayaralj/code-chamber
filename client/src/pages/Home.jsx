@@ -25,6 +25,17 @@ const formatDuration = (value) => {
   return `${String(minutes).padStart(2, "0")}:${String(seconds).padStart(2, "0")} MIN`;
 };
 
+const formatLanguage = (value) => {
+  // Check if language exists
+  if (value === "N/A" || value === null || value === undefined) return "N/A";
+
+  // Display language modified for visibility
+  value = value.toLowerCase();
+  if (value === "python") return "Python";
+  if (value === "javascript") return "JavaScript";
+  if (value === "cpp") return "C++";
+};
+
 // Config
 const RANKING_LIMIT = 5;
 const FETCH_INTERVAL = 60000;
@@ -155,7 +166,7 @@ const Home = () => {
       <span className="mr-8 text-[15px]">
         {liveStats
           ? "MOST USED LANGUAGE: " +
-            (liveStats.most_used_language?.toUpperCase() || "—")
+            formatLanguage(liveStats.most_used_language)
           : "CONNECTING TO LIVE FEED..."}
       </span>
       <span className="mr-8 text-[15px]">|</span>
