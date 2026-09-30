@@ -150,7 +150,7 @@ const Browse = () => {
 
   // Display list of public rooms with option to click and join
   return (
-    <div className="min-h-[calc(100vh-72px)] bg-[#0b0b0b] px-10 py-14 font-mono text-[#e7c49d] [background-image:radial-gradient(#5b4e3e_0.6px,transparent_0.6px)] [background-size:20px_20px]">
+    <div className="min-h-[calc(100vh-72px)] bg-[#0b0b0b] px-10 py-14 font-mono text-[#e7c49d] [background-image:radial-gradient(rgba(91,78,62,0)_0.7px,transparent_0.7px)]  [background-size:20px_20px]">
       <div className="mx-auto max-w-[1200px]">
         <section className="flex flex-col justify-between gap-8 lg:flex-row lg:items-end">
           <div>

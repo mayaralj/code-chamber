@@ -317,7 +317,7 @@ const ActionCard = ({
   primary = false,
   onClick,
 }) => (
-  <article className="flex min-h-[300px] flex-col border border-[#4b4133] bg-[#111111] p-7 [background-image:radial-gradient(#5b4e3e_0.7px,transparent_0.7px)] [background-size:14.1px_14.1px]">
+  <article className="flex min-h-[300px] flex-col border border-[#4b4133] bg-[#111111] p-7 [background-image:radial-gradient(rgba(91,78,62,0.4)_0.7px,transparent_0.7px)] [background-size:14.1px_14.1px]">
     <div className="flex items-center justify-between">
       <span className="text-2xl text-[#ffd99d]">{primary ? "⊞" : "◎"}</span>
       <span className="border border-[#9e8968] px-2 py-1 text-[10px] font-bold text-[#d8c09d]">
