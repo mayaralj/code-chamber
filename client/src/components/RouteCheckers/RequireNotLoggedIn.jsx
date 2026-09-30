@@ -5,14 +5,14 @@ import useStableSession from "../../hooks/useStableSession";
 import toast from "react-hot-toast";
 
 const RequireNotLoggedIn = () => {
-  const { session, isPending, error, persistentError, suppressGuard } =
+  const { session, isPending, error, persistentError, suppressGuardRef } =
     useStableSession();
   const location = useLocation();
 
   const shouldRedirect = !isPending && !error && Boolean(session?.user);
 
   useEffect(() => {
-    if (shouldRedirect && !suppressGuard.current) {
+    if (shouldRedirect && !suppressGuardRef.current) {
       toast.error("You are already logged in. Redirecting to your profile.");
     }
   }, [shouldRedirect]);
