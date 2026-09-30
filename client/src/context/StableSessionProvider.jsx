@@ -16,6 +16,9 @@ export const StableSessionProvider = ({ children }) => {
   const { serverUnreachable } = useServerHealth();
   const wasUnreachable = useRef(serverUnreachable);
 
+  // Suppress guard ref
+  const suppressGuardRef = useRef(false);
+
   // Safely refetch
   const isRefetchingRef = useRef(false);
   const safeRefetch = useCallback(async () => {
@@ -100,6 +103,7 @@ export const StableSessionProvider = ({ children }) => {
         isPending: !hasLoadedOnce && isPending,
         error,
         persistentError,
+        suppressGuardRef,
       }}
     >
       {children}

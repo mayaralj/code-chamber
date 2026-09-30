@@ -4,6 +4,7 @@ import { useNavigate } from "react-router";
 import authClient from "../authClient";
 import { refreshSocketConnection } from "../socket";
 import usePageTitle from "../hooks/usePageTitle";
+import useStableSession from "../hooks/useStableSession";
 
 // ChooseUsername component
 const ChooseUsername = () => {
@@ -12,6 +13,9 @@ const ChooseUsername = () => {
 
   // Navigate
   const navigate = useNavigate();
+
+  // Hooks
+  const { suppressGuardRef } = useStableSession();
 
   // States
   const [username, setUsername] = useState("");
@@ -32,6 +36,9 @@ const ChooseUsername = () => {
     setError("");
     setIsSubmitting(true);
 
+    // suppress guard so route checkers dont flag
+    suppressGuardRef.current = true;
+
     const { error } = await authClient.updateUser({
       username: cleanUsername.toLowerCase(),
       displayUsername: cleanUsername,
@@ -42,6 +49,7 @@ const ChooseUsername = () => {
       console.error("Failed to set username:", error);
       setError(error.message || "Could not save username.");
       setIsSubmitting(false);
+      suppressGuardRef.current = false;
       return;
     }
 
@@ -55,6 +63,7 @@ const ChooseUsername = () => {
     }
 
     navigate("/profile", { replace: true });
+    suppressGuardRef.current = false;
   };
 
   // Render

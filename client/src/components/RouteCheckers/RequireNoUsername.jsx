@@ -5,7 +5,8 @@ import useStableSession from "../../hooks/useStableSession";
 import toast from "react-hot-toast";
 
 const RequireNoUsername = () => {
-  const { session, isPending, error, persistentError } = useStableSession();
+  const { session, isPending, error, persistentError, suppressGuard } =
+    useStableSession();
   const location = useLocation();
 
   const isLoggedIn = Boolean(session?.user);
@@ -22,7 +23,7 @@ const RequireNoUsername = () => {
   }, [shouldRedirectToLogin]);
 
   useEffect(() => {
-    if (shouldRedirectToProfile) {
+    if (shouldRedirectToProfile && !suppressGuard.current) {
       toast.error("You already have a username. Redirecting to your profile.");
     }
   }, [shouldRedirectToProfile]);
