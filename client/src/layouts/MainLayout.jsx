@@ -6,9 +6,10 @@ const MainLayout = () => {
   return (
     <>
       <Navbar />
-      <div className="pt-18">
+      {/* Add minimum height so the footer doesn't appear right under navbar  */}
+      <div className="pt-18 min-h-[calc(100vh-72px)]">
         <Outlet />
-      </div>{" "}
+      </div>
       <Footer />
     </>
   );
