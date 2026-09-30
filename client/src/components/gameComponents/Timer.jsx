@@ -6,13 +6,7 @@ const cleanEventMap = {
 
 const Timer = ({ timeLeft, currentRound, beforeRoundEvents }) => {
   return (
-    <div
-      className="flex min-h-screen flex-col items-center justify-center gap-6 bg-[#0b0b0b] font-mono text-[#e7c49d] select-none pointer-events-none"
-      style={{
-        backgroundImage: "radial-gradient(#5b4e3e 0.55px, transparent 0.55px)",
-        backgroundSize: "20px 20px",
-      }}
-    >
+    <div className="flex min-h-screen flex-col items-center justify-center gap-6 bg-[#0b0b0b] font-mono text-[#e7c49d] select-none pointer-events-none">
       <h2 className="text-xs font-bold uppercase tracking-[0.2em] text-[#ffdd9d]">
         Round {currentRound}
       </h2>

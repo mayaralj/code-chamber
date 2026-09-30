@@ -272,7 +272,7 @@ const RoomWait = () => {
   const isReconnecting = connectionStatus === "reconnecting";
 
   return (
-    <div className="relative h-dvh overflow-hidden bg-[#0b0b0b] px-4 py-[clamp(1rem,6vh,5rem)] font-mono text-[#e7c49d] [background-image:radial-gradient(#5b4e3e_0.55px,transparent_0.55px)] [background-size:20px_20px] sm:px-6">
+    <div className="relative h-dvh overflow-hidden bg-[#0b0b0b] px-4 py-[clamp(1rem,6vh,5rem)] font-mono text-[#e7c49d] [background-size:20px_20px] sm:px-6">
       {gameStarting && (
         <div className="absolute inset-0 z-50 flex items-center justify-center bg-[#0b0b0b]/90 px-6 backdrop-blur-sm">
           <div className="w-full max-w-md border border-[#ffdd9d] bg-[#151515] p-8 text-center shadow-[0_0_50px_rgba(255,221,157,0.12)]">

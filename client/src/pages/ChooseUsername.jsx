@@ -72,7 +72,8 @@ const ChooseUsername = () => {
       <div
         className="pointer-events-none absolute inset-0 opacity-35"
         style={{
-          backgroundImage: "radial-gradient(#7c7468 1px, transparent 1px)",
+          backgroundImage:
+            "radial-gradient(rgba(91, 78, 62, 0.75) 1px, transparent 1px)",
           backgroundSize: "24px 24px",
         }}
       />
