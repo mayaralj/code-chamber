@@ -6,6 +6,7 @@ import authClient from "../authClient";
 import { refreshSocketConnection } from "../socket";
 import { withTimeout } from "../utils/timeout";
 import usePageTitle from "../hooks/usePageTitle";
+import useStableSession from "../hooks/useStableSession";
 
 // Signup component
 const Signup = () => {
@@ -29,6 +30,9 @@ const Signup = () => {
       ? "An account already exists with this email. Log in using your password, then connect your social account."
       : initialError,
   );
+
+  // Refs
+  const { suppressGuardRef } = useStableSession();
 
   // Handle change function
   const handleChange = (e) => {
@@ -78,6 +82,7 @@ const Signup = () => {
     const username = form.username.trim();
     const cleanUsername = username.toLowerCase();
 
+    suppressGuardRef.current = true;
     setErrorMessage("");
     setIsLoading(true);
 
@@ -94,6 +99,7 @@ const Signup = () => {
       if (error) {
         setErrorMessage(error.message || "Unable to create account.");
         setIsLoading(false);
+        suppressGuardRef.current = false;
         localStorage.setItem("wasLoggedIn", "false");
         return;
       }
@@ -101,6 +107,7 @@ const Signup = () => {
     } catch (err) {
       setErrorMessage(err.message || "Something went wrong. Try again.");
       setIsLoading(false);
+      suppressGuardRef.current = false;
       localStorage.setItem("wasLoggedIn", "false");
       return;
     }
@@ -112,6 +119,7 @@ const Signup = () => {
     }
 
     navigate("/profile", { replace: true });
+    suppressGuardRef.current = false;
   };
 
   // Render

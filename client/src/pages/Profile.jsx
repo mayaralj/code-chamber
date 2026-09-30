@@ -16,6 +16,7 @@ import { Link, useNavigate, useSearchParams } from "react-router";
 import authClient from "../authClient";
 import { refreshSocketConnection } from "../socket";
 import usePageTitle from "../hooks/usePageTitle";
+import useStableSession from "../hooks/useStableSession";
 
 // Config
 const FETCH_TIMEOUT = 10 * 1000;
@@ -83,6 +84,7 @@ const Profile = () => {
   // Refs
   const abortControllerRef = useRef(null);
   const matchAbortControllerRef = useRef(null);
+  const { suppressGuardRef } = useStableSession();
 
   // Handle OAuth error from query params
   const oauthError = searchParams.get("error");
@@ -135,6 +137,7 @@ const Profile = () => {
 
   // Handle logout function
   const handleLogout = async () => {
+    suppressGuardRef.current = true;
     setIsLoggingOut(true);
     setErrorMessage("");
 
@@ -144,6 +147,7 @@ const Profile = () => {
         console.error("Logout failed:", error);
         setErrorMessage(error.message || "Logout failed.");
         setIsLoggingOut(false);
+        suppressGuardRef.current = false;
         return;
       }
       localStorage.setItem("wasLoggedIn", "false");
@@ -151,6 +155,8 @@ const Profile = () => {
       console.error("Error during logout:", error);
       setErrorMessage("Logout failed.");
       setIsLoggingOut(false);
+      suppressGuardRef.current = false;
+      return;
     }
 
     try {
@@ -159,10 +165,12 @@ const Profile = () => {
       console.error("Error refreshing socket connection after logout:", error);
     }
     navigate("/", { replace: true });
+    suppressGuardRef.current = false;
   };
 
   // Handle delete account function (UI only for now, logic to be added later)
   const handleDeleteAccount = async () => {
+    suppressGuardRef.current = true;
     setIsDeletingAccount(true);
     setErrorMessage("");
     try {
@@ -171,6 +179,7 @@ const Profile = () => {
       if (error) {
         setErrorMessage(error.message || "Could not delete account.");
         setIsDeletingAccount(false);
+        suppressGuardRef.current = false;
         return;
       }
 
@@ -182,6 +191,8 @@ const Profile = () => {
       );
       setErrorMessage("Error occurred while deleting account.");
       setIsDeletingAccount(false);
+      suppressGuardRef.current = false;
+      return;
     }
 
     try {
@@ -193,6 +204,7 @@ const Profile = () => {
       );
     }
     navigate("/", { replace: true });
+    suppressGuardRef.current = false;
   };
 
   // Handle displayname change

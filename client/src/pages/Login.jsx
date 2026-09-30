@@ -6,6 +6,7 @@ import { refreshSocketConnection } from "../socket";
 import { FaGoogle, FaGithub, FaDiscord } from "react-icons/fa";
 import { withTimeout } from "../utils/timeout";
 import usePageTitle from "../hooks/usePageTitle";
+import useStableSession from "../hooks/useStableSession";
 
 // Login component
 const Login = () => {
@@ -22,6 +23,9 @@ const Login = () => {
   });
   const [errorMessage, setErrorMessage] = useState("");
   const [isLoading, setIsLoading] = useState(false);
+
+  // Refs
+  const { suppressGuardRef } = useStableSession();
 
   // Handle change function
   const handleChange = (e) => {
@@ -65,6 +69,7 @@ const Login = () => {
   // Handle submit function (manual login)
   const handleSubmit = async (e) => {
     e.preventDefault();
+    suppressGuardRef.current = true;
     setErrorMessage("");
     setIsLoading(true);
 
@@ -79,6 +84,7 @@ const Login = () => {
       if (error) {
         setErrorMessage(error.message || "Invalid username or password.");
         setIsLoading(false);
+        suppressGuardRef.current = false;
         localStorage.setItem("wasLoggedIn", "false");
         return;
       }
@@ -87,6 +93,7 @@ const Login = () => {
     } catch (err) {
       setErrorMessage(err.message || "Something went wrong. Try again.");
       setIsLoading(false);
+      suppressGuardRef.current = false;
       localStorage.setItem("wasLoggedIn", "false");
       return;
     }
@@ -98,6 +105,7 @@ const Login = () => {
     }
 
     navigate("/profile", { replace: true });
+    suppressGuardRef.current = false;
   };
 
   // Render
