@@ -7,7 +7,7 @@ const GITHUB_REPO_URL = "https://github.com/mayaralj/code-chamber";
 
 // Reusable section wrapper matching the app's dark, mono-spaced aesthetic
 const PolicySection = ({ title, children }) => (
-  <section className="border border-[#2a251d] bg-[#111111] p-7 [background-image:radial-gradient(#5b4e3e_0.7px,transparent_0.7px)] [background-size:14.1px_14.1px]">
+  <section className="border border-[#2a251d] bg-[#111111] p-7 [background-size:14.1px_14.1px]">
     <h2 className="text-lg font-black tracking-widest text-[#ffd99d]">
       {title}
     </h2>
