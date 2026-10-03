@@ -256,7 +256,7 @@ const Signup = () => {
 
         <footer className="mt-9 flex justify-between font-mono text-xs text-[#6d685f]">
           <span>■ SYSTEM: SECURED</span>
-          <span>VER: 1.0.0</span>
+          <span>VER: {__APP_VERSION__}</span>
         </footer>
       </section>
     </main>

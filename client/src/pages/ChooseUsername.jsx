@@ -134,7 +134,7 @@ const ChooseUsername = () => {
         </div>
 
         <footer className="mt-10 text-center font-mono text-xs tracking-[0.18em] text-[#555047]">
-          SECURITY PROTOCOL V4.0.2
+          SECURITY PROTOCOL V{__APP_VERSION__}
         </footer>
       </section>
     </main>
