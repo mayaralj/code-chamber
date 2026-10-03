@@ -38,7 +38,7 @@ const submitFormDirectly = (container) =>
 
 // Before each test, clear mocks and reset their implementations to ensure a clean slate for each test
 beforeEach(() => {
-  useStableSession.mockReturnValue({ suppressGuardRef: { current: false } });
+  useStableSession.mockReturnValue({ suppressGuards: false, setSuppressGuards: vi.fn() });
   mockNavigate.mockClear();
   authClientMocks.updateUser.mockReset().mockResolvedValue({ error: null });
   refreshSocketConnection.mockReset().mockResolvedValue(undefined);
@@ -169,6 +169,23 @@ describe("ChooseUsername - successful submission", () => {
 });
 
 describe("ChooseUsername - failed submission", () => {
+  it("clears guard suppression and re-enables submission when the request throws", async () => {
+    authClientMocks.updateUser.mockRejectedValue(new Error("Network unavailable"));
+    const setSuppressGuards = vi.fn();
+    useStableSession.mockReturnValue({ suppressGuards: false, setSuppressGuards });
+    render(<ChooseUsername />);
+
+    fireEvent.change(getInput(), { target: { value: "coolcoder" } });
+    fireEvent.click(getSubmitButton());
+    await flush();
+
+    expect(screen.getByText(/Network unavailable/)).toBeInTheDocument();
+    expect(setSuppressGuards).toHaveBeenCalledWith(true);
+    expect(setSuppressGuards).toHaveBeenLastCalledWith(false);
+    expect(getSubmitButton()).toBeEnabled();
+    expect(mockNavigate).not.toHaveBeenCalled();
+    expect(refreshSocketConnection).not.toHaveBeenCalled();
+  });
   it("shows the server error message and does not navigate when updateUser fails", async () => {
     authClientMocks.updateUser.mockResolvedValue({
       error: { message: "Username already taken." },

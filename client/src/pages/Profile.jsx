@@ -84,7 +84,10 @@ const Profile = () => {
   // Refs
   const abortControllerRef = useRef(null);
   const matchAbortControllerRef = useRef(null);
-  const { suppressGuardRef } = useStableSession();
+  const { setSuppressGuards } = useStableSession();
+
+  // Release suppression after this page unmounts, once navigation commits.
+  useEffect(() => () => setSuppressGuards(false), [setSuppressGuards]);
 
   // Handle OAuth error from query params
   const oauthError = searchParams.get("error");
@@ -137,7 +140,7 @@ const Profile = () => {
 
   // Handle logout function
   const handleLogout = async () => {
-    suppressGuardRef.current = true;
+    setSuppressGuards(true);
     setIsLoggingOut(true);
     setErrorMessage("");
 
@@ -147,7 +150,7 @@ const Profile = () => {
         console.error("Logout failed:", error);
         setErrorMessage(error.message || "Logout failed.");
         setIsLoggingOut(false);
-        suppressGuardRef.current = false;
+        setSuppressGuards(false);
         return;
       }
       localStorage.setItem("wasLoggedIn", "false");
@@ -155,7 +158,7 @@ const Profile = () => {
       console.error("Error during logout:", error);
       setErrorMessage("Logout failed.");
       setIsLoggingOut(false);
-      suppressGuardRef.current = false;
+      setSuppressGuards(false);
       return;
     }
 
@@ -164,13 +167,12 @@ const Profile = () => {
     } catch (error) {
       console.error("Error refreshing socket connection after logout:", error);
     }
-    navigate("/", { replace: true });
-    suppressGuardRef.current = false;
+    await navigate("/", { replace: true });
   };
 
-  // Handle delete account function (UI only for now, logic to be added later)
+  // Handle account deletion; keep guards suppressed until home navigation completes.
   const handleDeleteAccount = async () => {
-    suppressGuardRef.current = true;
+    setSuppressGuards(true);
     setIsDeletingAccount(true);
     setErrorMessage("");
     try {
@@ -179,7 +181,7 @@ const Profile = () => {
       if (error) {
         setErrorMessage(error.message || "Could not delete account.");
         setIsDeletingAccount(false);
-        suppressGuardRef.current = false;
+        setSuppressGuards(false);
         return;
       }
 
@@ -191,7 +193,7 @@ const Profile = () => {
       );
       setErrorMessage("Error occurred while deleting account.");
       setIsDeletingAccount(false);
-      suppressGuardRef.current = false;
+      setSuppressGuards(false);
       return;
     }
 
@@ -203,8 +205,7 @@ const Profile = () => {
         error,
       );
     }
-    navigate("/", { replace: true });
-    suppressGuardRef.current = false;
+    await navigate("/", { replace: true });
   };
 
   // Handle displayname change

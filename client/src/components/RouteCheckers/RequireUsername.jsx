@@ -5,7 +5,7 @@ import useStableSession from "../../hooks/useStableSession";
 import toast from "react-hot-toast";
 
 const RequireUsername = () => {
-  const { session, isPending, error, persistentError } = useStableSession();
+  const { session, isPending, error, persistentError, suppressGuards } = useStableSession();
   const location = useLocation();
 
   const isLoggedIn = Boolean(session?.user);
@@ -15,12 +15,12 @@ const RequireUsername = () => {
   const shouldRedirect = !isPending && !error && isLoggedIn && !hasUsername;
 
   useEffect(() => {
-    if (shouldRedirect) {
+    if (shouldRedirect && !suppressGuards) {
       toast.error(
         "You need a username to access this page. Redirecting to choose username.",
       );
     }
-  }, [shouldRedirect]);
+  }, [shouldRedirect, suppressGuards]);
 
   if (isPending) {
     return (
@@ -40,7 +40,7 @@ const RequireUsername = () => {
     );
   }
 
-  if (shouldRedirect) {
+  if (shouldRedirect && !suppressGuards) {
     return (
       <Navigate
         to="/choose-username"

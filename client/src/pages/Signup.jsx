@@ -1,5 +1,5 @@
 // Imports
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { FaDiscord, FaGithub, FaGoogle } from "react-icons/fa";
 import { NavLink, useNavigate, useSearchParams } from "react-router";
 import authClient from "../authClient";
@@ -32,7 +32,10 @@ const Signup = () => {
   );
 
   // Refs
-  const { suppressGuardRef } = useStableSession();
+  const { setSuppressGuards } = useStableSession();
+
+  // Release suppression after this page unmounts, once navigation commits.
+  useEffect(() => () => setSuppressGuards(false), [setSuppressGuards]);
 
   // Handle change function
   const handleChange = (e) => {
@@ -82,7 +85,7 @@ const Signup = () => {
     const username = form.username.trim();
     const cleanUsername = username.toLowerCase();
 
-    suppressGuardRef.current = true;
+    setSuppressGuards(true);
     setErrorMessage("");
     setIsLoading(true);
 
@@ -99,7 +102,7 @@ const Signup = () => {
       if (error) {
         setErrorMessage(error.message || "Unable to create account.");
         setIsLoading(false);
-        suppressGuardRef.current = false;
+        setSuppressGuards(false);
         localStorage.setItem("wasLoggedIn", "false");
         return;
       }
@@ -107,7 +110,7 @@ const Signup = () => {
     } catch (err) {
       setErrorMessage(err.message || "Something went wrong. Try again.");
       setIsLoading(false);
-      suppressGuardRef.current = false;
+      setSuppressGuards(false);
       localStorage.setItem("wasLoggedIn", "false");
       return;
     }
@@ -118,8 +121,7 @@ const Signup = () => {
       console.error("Signup succeeded but socket refresh failed:", socketError);
     }
 
-    navigate("/profile", { replace: true });
-    suppressGuardRef.current = false;
+    await navigate("/profile", { replace: true });
   };
 
   // Render

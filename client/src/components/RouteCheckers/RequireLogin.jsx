@@ -5,19 +5,19 @@ import useStableSession from "../../hooks/useStableSession";
 import toast from "react-hot-toast";
 
 const RequireLogin = () => {
-  const { session, isPending, error, persistentError, suppressGuardRef } =
+  const { session, isPending, error, persistentError, suppressGuards } =
     useStableSession();
   const location = useLocation();
 
   const shouldRedirect = !isPending && !error && !session?.user;
 
   useEffect(() => {
-    if (shouldRedirect && !suppressGuardRef.current) {
+    if (shouldRedirect && !suppressGuards) {
       toast.error(
         "You must be logged in to access this page. Redirecting to login.",
       );
     }
-  }, [shouldRedirect]);
+  }, [shouldRedirect, suppressGuards]);
 
   if (isPending) {
     return (
@@ -37,7 +37,7 @@ const RequireLogin = () => {
     );
   }
 
-  if (shouldRedirect) {
+  if (shouldRedirect && !suppressGuards) {
     return <Navigate to="/login" replace state={{ from: location.pathname }} />;
   }
 

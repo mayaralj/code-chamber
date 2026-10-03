@@ -1,5 +1,5 @@
 // Imports
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useNavigate } from "react-router";
 import authClient from "../authClient";
 import { refreshSocketConnection } from "../socket";
@@ -15,7 +15,10 @@ const ChooseUsername = () => {
   const navigate = useNavigate();
 
   // Hooks
-  const { suppressGuardRef } = useStableSession();
+  const { setSuppressGuards } = useStableSession();
+
+  // Release suppression after this page unmounts, once navigation commits.
+  useEffect(() => () => setSuppressGuards(false), [setSuppressGuards]);
 
   // States
   const [username, setUsername] = useState("");
@@ -36,20 +39,21 @@ const ChooseUsername = () => {
     setError("");
     setIsSubmitting(true);
 
-    // suppress guard so route checkers dont flag
-    suppressGuardRef.current = true;
+    // Suppress authentication redirects until this transition finishes.
+    setSuppressGuards(true);
 
-    const { error } = await authClient.updateUser({
-      username: cleanUsername.toLowerCase(),
-      displayUsername: cleanUsername,
-      name: cleanUsername,
-    });
-
-    if (error) {
+    try {
+      const { error } = await authClient.updateUser({
+        username: cleanUsername.toLowerCase(),
+        displayUsername: cleanUsername,
+        name: cleanUsername,
+      });
+      if (error) throw error;
+    } catch (error) {
       console.error("Failed to set username:", error);
-      setError(error.message || "Could not save username.");
+      setError(error?.message || "Could not save username.");
       setIsSubmitting(false);
-      suppressGuardRef.current = false;
+      setSuppressGuards(false);
       return;
     }
 
@@ -62,8 +66,7 @@ const ChooseUsername = () => {
       );
     }
 
-    navigate("/profile", { replace: true });
-    suppressGuardRef.current = false;
+    await navigate("/profile", { replace: true });
   };
 
   // Render

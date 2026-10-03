@@ -16,8 +16,8 @@ export const StableSessionProvider = ({ children }) => {
   const { serverUnreachable } = useServerHealth();
   const wasUnreachable = useRef(serverUnreachable);
 
-  // Suppress guard ref
-  const suppressGuardRef = useRef(false);
+  // Authentication transitions temporarily suppress guard redirects.
+  const [suppressGuards, setSuppressGuards] = useState(false);
 
   // Safely refetch
   const isRefetchingRef = useRef(false);
@@ -103,7 +103,8 @@ export const StableSessionProvider = ({ children }) => {
         isPending: !hasLoadedOnce && isPending,
         error,
         persistentError,
-        suppressGuardRef,
+        suppressGuards,
+        setSuppressGuards,
       }}
     >
       {children}

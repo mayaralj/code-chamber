@@ -1,5 +1,5 @@
 // Imports
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { NavLink, useNavigate } from "react-router";
 import authClient from "../authClient";
 import { refreshSocketConnection } from "../socket";
@@ -25,7 +25,10 @@ const Login = () => {
   const [isLoading, setIsLoading] = useState(false);
 
   // Refs
-  const { suppressGuardRef } = useStableSession();
+  const { setSuppressGuards } = useStableSession();
+
+  // Release suppression after this page unmounts, once navigation commits.
+  useEffect(() => () => setSuppressGuards(false), [setSuppressGuards]);
 
   // Handle change function
   const handleChange = (e) => {
@@ -69,7 +72,7 @@ const Login = () => {
   // Handle submit function (manual login)
   const handleSubmit = async (e) => {
     e.preventDefault();
-    suppressGuardRef.current = true;
+    setSuppressGuards(true);
     setErrorMessage("");
     setIsLoading(true);
 
@@ -84,7 +87,7 @@ const Login = () => {
       if (error) {
         setErrorMessage(error.message || "Invalid username or password.");
         setIsLoading(false);
-        suppressGuardRef.current = false;
+        setSuppressGuards(false);
         localStorage.setItem("wasLoggedIn", "false");
         return;
       }
@@ -93,7 +96,7 @@ const Login = () => {
     } catch (err) {
       setErrorMessage(err.message || "Something went wrong. Try again.");
       setIsLoading(false);
-      suppressGuardRef.current = false;
+      setSuppressGuards(false);
       localStorage.setItem("wasLoggedIn", "false");
       return;
     }
@@ -104,8 +107,7 @@ const Login = () => {
       console.error("Login succeeded but socket refresh failed:", socketError);
     }
 
-    navigate("/profile", { replace: true });
-    suppressGuardRef.current = false;
+    await navigate("/profile", { replace: true });
   };
 
   // Render

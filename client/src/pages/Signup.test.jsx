@@ -62,7 +62,7 @@ const submitForm = () => {
 
 // beforeEach and afterEach hooks to reset mocks and spies before and after each test, ensuring a clean state for each test case
 beforeEach(() => {
-  useStableSession.mockReturnValue({ suppressGuardRef: { current: false } });
+  useStableSession.mockReturnValue({ suppressGuards: false, setSuppressGuards: vi.fn() });
   navigateMock.mockClear();
   authClient.signIn.social.mockReset();
   authClient.signUp.email.mockReset();

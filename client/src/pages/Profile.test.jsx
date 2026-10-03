@@ -156,7 +156,7 @@ const getModalCloseButton = () => {
 
 // Before each test, reset the pending fetches, mock search params, and stub global fetch with the mockFetch function. Also clear any previous calls to mocks and spy on console.log and console.error to suppress output during tests.
 beforeEach(() => {
-  useStableSession.mockReturnValue({ suppressGuardRef: { current: false } });
+  useStableSession.mockReturnValue({ suppressGuards: false, setSuppressGuards: vi.fn() });
   vi.stubGlobal("localStorage", createLocalStorageMock());
   pendingProfileFetches = [];
   pendingMatchFetches = [];
