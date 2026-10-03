@@ -241,9 +241,8 @@ const Login = () => {
           </p>
         </div>
 
-        <footer className="mt-9 flex justify-between font-mono text-xs text-[#6d685f]">
-          <span>■ SYSTEM: SECURED</span>
-          <span>VER: {__APP_VERSION__}</span>
+        <footer className="mt-9 text-center font-mono text-xs tracking-[0.1em] text-[#504c45]">
+          SESSION_SECURE
         </footer>
       </section>
     </main>
