@@ -2,6 +2,7 @@ import { NavLink } from "react-router";
 import { useLocation, useNavigate } from "react-router";
 import { User } from "lucide-react";
 import useStableSession from "../../hooks/useStableSession";
+import logo from "../../assets/codechamber-navbar-128.png";
 
 const Navbar = () => {
   const location = useLocation();
@@ -24,9 +25,10 @@ const Navbar = () => {
       {/* Left: logo */}
       <button
         onClick={() => navigate("/")}
-        className="flex-shrink-0 cursor-pointer text-3xl font-black tracking-tighter text-[#ffedd1] hover:text-[#e7bc76] transition-colors duration-200 whitespace-nowrap justify-self-start"
+        className="flex items-center gap-3 flex-shrink-0 cursor-pointer text-3xl font-black tracking-tighter text-[#ffedd1] hover:text-[#ffd99d] transition-colors duration-200 whitespace-nowrap justify-self-start"
       >
-        CODE CHAMBER
+        <img src={logo} alt="" className="h-9 w-9 object-contain" />
+        <span>CODE CHAMBER</span>
       </button>
 
       {/* Center: truly centered regardless of side widths */}
