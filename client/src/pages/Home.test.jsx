@@ -1,7 +1,11 @@
 // Imports
 import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
-import { render, screen, act, waitFor } from "@testing-library/react";
+import { render as renderUI, screen, act, waitFor } from "@testing-library/react";
 import Home from "./Home";
+import LiveStatsProvider from "../context/LiveStatsProvider";
+
+// Home consumes the shared stats provider, which owns the SSE connection.
+const render = (ui) => renderUI(<LiveStatsProvider>{ui}</LiveStatsProvider>);
 
 // Macks
 const navigateMock = vi.fn();
@@ -129,7 +133,7 @@ describe("Home - live stats ticker (SSE)", () => {
     expect(FakeEventSource.instances).toHaveLength(1);
   });
 
-  it("constructs the EventSource with the relative /api/liveStats path", () => {
+  it("constructs the EventSource with the configured backend URL", () => {
     render(<Home />);
 
     expect(latestEventSource().url).toBe(
@@ -152,7 +156,7 @@ describe("Home - live stats ticker (SSE)", () => {
       0,
     );
     expect(
-      screen.getAllByText(/MOST USED LANGUAGE: PYTHON/).length,
+      screen.getAllByText(/MOST USED LANGUAGE: Python/).length,
     ).toBeGreaterThan(0);
   });
 
@@ -173,7 +177,7 @@ describe("Home - live stats ticker (SSE)", () => {
     ).toBeGreaterThan(0);
   });
 
-  it("reverts to the connecting message if an incomplete payload arrives", () => {
+  it("keeps the last complete stats when an incomplete payload arrives", () => {
     render(<Home />);
 
     act(() => {
@@ -189,9 +193,9 @@ describe("Home - live stats ticker (SSE)", () => {
       });
     });
 
-    expect(
-      screen.getAllByText("CONNECTING TO LIVE FEED...").length,
-    ).toBeGreaterThan(0);
+    expect(screen.getAllByText(/PLAYERS ONLINE: 42/).length).toBeGreaterThan(0);
+    expect(screen.getAllByText(/SUBMISSIONS: 500/).length).toBeGreaterThan(0);
+    expect(screen.queryByText("CONNECTING TO LIVE FEED...")).not.toBeInTheDocument();
   });
 
   it("does not crash and logs an error when malformed JSON is received", () => {

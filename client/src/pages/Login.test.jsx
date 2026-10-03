@@ -5,7 +5,10 @@ import { MemoryRouter } from "react-router";
 import Login from "./Login";
 import { createLocalStorageMock } from "../test/localStorageMock";
 
+import useStableSession from "../hooks/useStableSession";
+
 // Mocks
+vi.mock("../hooks/useStableSession", () => ({ default: vi.fn() }));
 const navigateMock = vi.fn();
 vi.mock("react-router", async () => {
   const actual = await vi.importActual("react-router");
@@ -61,6 +64,7 @@ const submitForm = () => {
 
 // beforeEach and afterEach hooks to reset mocks and spies before and after each test
 beforeEach(() => {
+  useStableSession.mockReturnValue({ suppressGuardRef: { current: false } });
   navigateMock.mockClear();
   authClient.signIn.social.mockReset();
   authClient.signIn.username.mockReset();

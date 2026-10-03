@@ -3,7 +3,10 @@ import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
 import { render, screen, fireEvent, act } from "@testing-library/react";
 import ChooseUsername from "./ChooseUsername";
 
+import useStableSession from "../hooks/useStableSession";
+
 // Mocks
+vi.mock("../hooks/useStableSession", () => ({ default: vi.fn() }));
 const mockNavigate = vi.fn();
 vi.mock("react-router", () => ({
   useNavigate: () => mockNavigate,
@@ -35,6 +38,7 @@ const submitFormDirectly = (container) =>
 
 // Before each test, clear mocks and reset their implementations to ensure a clean slate for each test
 beforeEach(() => {
+  useStableSession.mockReturnValue({ suppressGuardRef: { current: false } });
   mockNavigate.mockClear();
   authClientMocks.updateUser.mockReset().mockResolvedValue({ error: null });
   refreshSocketConnection.mockReset().mockResolvedValue(undefined);

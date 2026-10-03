@@ -2,8 +2,12 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
 import { render, screen, fireEvent, act, within } from "@testing-library/react";
 import Profile from "./Profile";
+import { createLocalStorageMock } from "../test/localStorageMock";
+
+import useStableSession from "../hooks/useStableSession";
 
 // Mocks
+vi.mock("../hooks/useStableSession", () => ({ default: vi.fn() }));
 const mockNavigate = vi.fn();
 let mockSearchParams = new URLSearchParams();
 vi.mock("react-router", () => ({
@@ -99,7 +103,7 @@ let pendingMatchFetches;
 const mockFetch = vi.fn((url, options) => {
   return new Promise((resolve, reject) => {
     const entry = { resolve, reject };
-    if (url.startsWith("/api/profile")) {
+    if (url === `${import.meta.env.VITE_APP_URL}/api/profile`) {
       pendingProfileFetches.push(entry);
     } else {
       pendingMatchFetches.push(entry);
@@ -152,6 +156,8 @@ const getModalCloseButton = () => {
 
 // Before each test, reset the pending fetches, mock search params, and stub global fetch with the mockFetch function. Also clear any previous calls to mocks and spy on console.log and console.error to suppress output during tests.
 beforeEach(() => {
+  useStableSession.mockReturnValue({ suppressGuardRef: { current: false } });
+  vi.stubGlobal("localStorage", createLocalStorageMock());
   pendingProfileFetches = [];
   pendingMatchFetches = [];
   mockSearchParams = new URLSearchParams();

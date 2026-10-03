@@ -364,9 +364,10 @@ describe("trackSubmissionElimination", () => {
 
     await trackSubmissionElimination("sub1", ["u1"]);
 
-    expect(db.query).toHaveBeenCalledWith(expect.stringContaining("($1, $2)"), [
+    expect(db.query).toHaveBeenCalledWith(expect.stringContaining("($1, $2, $3)"), [
       "sub1",
       "u1",
+      false,
     ]);
   });
 
@@ -376,8 +377,19 @@ describe("trackSubmissionElimination", () => {
     await trackSubmissionElimination("sub1", ["u1", "u2"]);
 
     expect(db.query).toHaveBeenCalledWith(
-      expect.stringContaining("($1, $2), ($3, $4)"),
-      ["sub1", "u1", "sub1", "u2"],
+      expect.stringContaining("($1, $2, $3), ($4, $5, $6)"),
+      ["sub1", "u1", false, "sub1", "u2", false],
+    );
+  });
+
+  it("records guest eliminations without user foreign keys alongside account players", async () => {
+    db.query.mockResolvedValue({});
+
+    await trackSubmissionElimination("sub1", ["guest-player", "u1"]);
+
+    expect(db.query).toHaveBeenCalledWith(
+      expect.stringContaining("($1, $2, $3), ($4, $5, $6)"),
+      ["sub1", null, true, "sub1", "u1", false],
     );
   });
 

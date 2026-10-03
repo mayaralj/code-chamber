@@ -86,7 +86,7 @@ describe("trackBeforeMatch", () => {
 
     expect(db.query).toHaveBeenCalledWith(
       expect.stringContaining("INSERT INTO matches"),
-      [room.roomId, player.userId, room.host.userId, room.difficulty],
+      [room.roomId, player.userId, room.host.userId, false, room.difficulty],
     );
   });
 
@@ -95,6 +95,21 @@ describe("trackBeforeMatch", () => {
     const player = { userId: "u2", isGuest: false };
 
     await expect(trackBeforeMatch(player, room)).resolves.not.toThrow();
+  });
+
+  it.each([
+    { userId: "guest-host", isGuest: true },
+    { userId: "guest-host" },
+  ])("records a guest host without a user foreign key: %j", async (host) => {
+    db.query.mockResolvedValue({ rows: [] });
+    const player = { userId: "u2", isGuest: false };
+
+    await trackBeforeMatch(player, { ...room, host });
+
+    expect(db.query).toHaveBeenCalledWith(
+      expect.stringContaining("host_is_guest"),
+      [room.roomId, player.userId, null, true, room.difficulty],
+    );
   });
 });
 
