@@ -60,6 +60,7 @@ const Login = () => {
         setErrorMessage(error.message || "Social login failed. Try again.");
         setIsLoading(false);
         localStorage.setItem("wasLoggedIn", "false");
+        return;
       }
       localStorage.setItem("wasLoggedIn", "true");
     } catch (err) {

@@ -319,6 +319,8 @@ describe("Login - social login", () => {
     });
 
     expect(screen.getByText("ERROR: OAuth denied")).toBeInTheDocument();
+    expect(localStorage.getItem("wasLoggedIn")).toBe("false");
+    expect(screen.getByRole("button", { name: "Continue with Google" })).toBeEnabled();
   });
 
   it("shows a fallback error message when signIn.social throws", async () => {
