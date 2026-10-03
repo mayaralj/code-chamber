@@ -2,7 +2,7 @@
 
 # Code Chamber
 
-**A real-time multiplayer coding game — solve, survive, and be the last player standing**
+**A real-time multiplayer coding game: solve, survive, and be the last player standing**
 
 [![React](https://img.shields.io/badge/Frontend-React-61DAFB?style=flat-square&logo=react&logoColor=white)](https://react.dev)
 [![Node.js](https://img.shields.io/badge/Backend-Node.js-339933?style=flat-square&logo=nodedotjs&logoColor=white)](https://nodejs.org)
@@ -310,7 +310,7 @@ Tests cover room membership, round orchestration, submissions, scoring and elimi
 
 **Mayar Al Jawhary**
 
-📧 [Mayar2006.m6@gmail.com](mailto:Mayar2006.m6@gmail.com)
+📧 [mayar.aljwh@gmail.com](mailto:mayar.aljwh@gmail.com)
 
 💼 [LinkedIn](https://www.linkedin.com/in/mayar-al-jawhary-9b6497390/)
 
