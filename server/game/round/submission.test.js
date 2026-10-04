@@ -22,7 +22,41 @@ import {
   trackSubmission,
   processSubmission,
   handleSubmitCode,
+  forceSubmitAll,
 } from "./submission.js";
+
+describe("forceSubmitAll", () => {
+  it.each([1, 2])("uses solution code only when one player remains (remaining: %s)", async (remaining) => {
+    const player = makePlayer();
+    const room = makeRoom(player);
+    const ownCode = "function solve() { return 0; }";
+    const solutionCode = "function solve(value) { return value; }";
+    room.roundData[1].question.solutions = {
+      javascript: { optimal: { code: solutionCode } },
+    };
+    if (remaining === 2) {
+      room.players.push(makePlayer({
+        userId: "u2", socketId: "s2",
+        gameData: { roundData: { 1: { codeStatus: "submitted" } } },
+      }));
+    }
+    rooms.ROOM1 = room;
+    runCode.mockResolvedValue({
+      passed: remaining === 1,
+      testCasesPassed: remaining === 1 ? 1 : 0,
+      executionTime: 1,
+      languageUsed: "javascript",
+    });
+    db.query.mockResolvedValue({ rows: [{ id: 1 }] });
+
+    await forceSubmitAll(makeIo(), "ROOM1", [{ player, codeInput: ownCode, language: "javascript" }]);
+
+    expect(runCode).toHaveBeenCalledExactlyOnceWith(
+      "javascript", remaining === 1 ? solutionCode : ownCode,
+      "solve", room.roundData[1].question.testCases,
+    );
+  });
+});
 
 // Mock helpers
 const makeIo = () => {
