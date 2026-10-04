@@ -10,6 +10,7 @@ const baseProps = (overrides = {}) => ({
   playerList: [],
   roundTimeLeft: 30,
   isReconnecting: false,
+  difficulty: "easy",
   ...overrides,
 });
 
@@ -18,28 +19,36 @@ describe("GameNavbar round timer tests", () => {
   it("renders the current round time left", () => {
     render(<GameNavbar {...baseProps({ roundTimeLeft: 42 })} />);
 
-    expect(screen.getByText("42")).toBeInTheDocument();
+    expect(screen.getByText("00:42")).toBeInTheDocument();
   });
 
   it("uses normal styling when time is not low", () => {
-    render(<GameNavbar {...baseProps({ roundTimeLeft: 30 })} />);
+    render(<GameNavbar {...baseProps({ roundTimeLeft: 45 })} />);
 
-    expect(screen.getByText("30")).toHaveClass("text-[#f7e7c8]");
+    expect(screen.getByText("00:45")).toHaveClass("text-[#f7e7c8]");
   });
 
   it("uses low-time (pulsing rose) styling when 10 seconds or fewer remain", () => {
     render(<GameNavbar {...baseProps({ roundTimeLeft: 10 })} />);
 
-    expect(screen.getByText("10")).toHaveClass("text-rose-400");
+    expect(screen.getByText("00:10")).toHaveClass("text-rose-400");
   });
 
   it("uses a distinct white style (not the pulsing low-time style) when time hits exactly 0", () => {
     render(<GameNavbar {...baseProps({ roundTimeLeft: 0 })} />);
 
-    const timeEl = screen.getByText("0");
+    const timeEl = screen.getByText("00:00");
     expect(timeEl).toHaveClass("text-white/80");
     expect(timeEl).not.toHaveClass("text-rose-400");
   });
+
+  it.each([[60, "01:00"], [65, "01:05"], [450, "07:30"], [600, "10:00"]])(
+    "formats %s seconds as %s",
+    (seconds, expected) => {
+      render(<GameNavbar {...baseProps({ roundTimeLeft: seconds })} />);
+      expect(screen.getByText(expected)).toBeInTheDocument();
+    },
+  );
 });
 
 // GameNavbar submit button tests

@@ -223,6 +223,7 @@ const GameInner = ({ code }) => {
           playerList={playerList}
           roundTimeLeft={roundTimeLeft}
           isReconnecting={isReconnecting}
+          difficulty={question?.difficulty}
         />
         <div ref={splitRef} className="flex flex-1 overflow-hidden bg-zinc-950">
           <div

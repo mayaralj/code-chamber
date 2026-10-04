@@ -19,6 +19,9 @@ const GameNavbar = ({
   // Modal state
   const [showModal, setShowModal] = useState(false);
 
+  // Format time in MM:SS
+  const formattedTime = `${String(Math.floor(roundTimeLeft / 60)).padStart(2, "0")}:${String(roundTimeLeft % 60).padStart(2, "0")}`;
+
   // Handle open/close of the players dropdown (anchored to the button, no manual position math)
   const handleOpenModal = () => {
     setShowModal((prev) => !prev);
@@ -55,9 +58,8 @@ const GameNavbar = ({
                   : "text-[#f7e7c8]"
             }`}
           >
-            {roundTimeLeft}
+            {formattedTime}
           </span>
-          <span className="text-[10px] font-semibold text-zinc-500">s</span>
         </div>
       </div>
 
