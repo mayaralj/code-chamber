@@ -7,10 +7,18 @@ const NotFound = () => {
   // Page Title
   usePageTitle("Page Not Found");
   return (
-    <div className="min-h-screen overflow-x-hidden bg-[#0b0b0b] font-mono text-[#e7c49d] flex items-center justify-center px-6">
-      <div className="mx-auto w-full max-w-md text-center">
-        {/* Card, same dotted texture as ActionCard */}
-        <div className="border border-[#4b4133] bg-[#111111] p-10 [background-image:radial-gradient(#5b4e3e_0.7px,transparent_0.7px)] [background-size:14.1px_14.1px]">
+    <div className="relative min-h-screen overflow-x-hidden bg-[#0b0b0b] font-mono text-[#e7c49d] flex items-center justify-center px-6">
+      <div
+        aria-hidden="true"
+        className="pointer-events-none absolute inset-0 opacity-40"
+        style={{
+          backgroundImage:
+            "radial-gradient(rgba(91, 78, 62, 0.75) 1px, transparent 1px)",
+          backgroundSize: "24px 24px",
+        }}
+      />
+      <div className="relative mx-auto w-full max-w-md text-center">
+        <div className="border border-[#4b4133] bg-[#111111] p-10">
           <div className="flex items-center justify-center">
             <span className="border border-[#9e8968] px-2 py-1 text-[10px] font-bold tracking-widest text-[#d8c09d]">
               ERROR
