@@ -117,7 +117,7 @@ const GameInner = ({ code }) => {
   } = useResults(newRoundPayload);
 
   // Status Events
-  const { statusEvents } = useStatusEvents(newRoundPayload);
+  const { statusEvents } = useStatusEvents(newRoundPayload, firstBeforeEvents);
 
   // Refs
   const roomDeletedRef = useRef(false);

@@ -53,7 +53,8 @@ describe("GameStatusBar latest event banner tests", () => {
     ["missed", "text-[#ffd687]"],
     ["submitted", "text-emerald-400"],
     ["round", "text-zinc-400"],
-    ["game", "text-[#4f5f9c]"],
+    ["game", "text-[#ffd687]"],
+    ["round-event", "text-[#ffd687]"],
   ])(
     "applies the correct icon color for a latest event of type '%s'",
     (type, expectedClass) => {

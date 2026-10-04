@@ -3,11 +3,23 @@ import { useState, useEffect } from "react";
 import { socket } from "../../socket";
 
 // Status Events
-const useStatusEvents = (newRoundPayload) => {
+const ROUND_EVENT_NAMES = {
+  fasterTimer: "Faster Timer",
+  doubleElimination: "Double Elimination",
+};
+
+const buildRoundEvents = (events) =>
+  Object.keys(events || {}).map((name) => ({
+    type: "round-event",
+    message: ROUND_EVENT_NAMES[name] || name,
+  }));
+
+const useStatusEvents = (newRoundPayload, firstBeforeEvents) => {
   // States
-  const [statusEvents, setStatusEvents] = useState([
+  const [statusEvents, setStatusEvents] = useState(() => [
     // Initial with game started and round 1 started
     { type: "game", message: "Game started" },
+    ...buildRoundEvents(firstBeforeEvents),
     { type: "round", message: "Round 1 started" },
   ]);
   const [appliedPayLoad, setAppliedPayLoad] = useState(null);
@@ -15,6 +27,7 @@ const useStatusEvents = (newRoundPayload) => {
     setAppliedPayLoad(newRoundPayload);
     setStatusEvents((prevEvents) => [
       ...prevEvents,
+      ...buildRoundEvents(newRoundPayload.beforeRoundEvents),
       {
         type: "round",
         message: `Round ${newRoundPayload?.currentRound} started`,

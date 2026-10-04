@@ -6,7 +6,8 @@ import {
   UserX,
   UserCheck,
   Flag,
-  Rocket,
+  CodeXml,
+  Shuffle,
   CheckCircle2,
 } from "lucide-react";
 
@@ -20,7 +21,8 @@ const EVENT_STYLES = {
   missed: { icon: UserCheck, color: "text-[#ffd687]" },
   submitted: { icon: CheckCircle2, color: "text-emerald-400" },
   round: { icon: Flag, color: "text-zinc-400" },
-  game: { icon: Rocket, color: "text-[#4f5f9c]" },
+  game: { icon: CodeXml, color: "text-[#ffd687]" },
+  "round-event": { icon: Shuffle, color: "text-[#ffd687]" },
 };
 
 // GameStatusBar component to display current round and latest event

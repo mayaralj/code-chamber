@@ -19,6 +19,30 @@ beforeEach(() => {
 
 // useStatusEvents tests
 describe("useStatusEvents", () => {
+  it("places first-round events between game start and round start", () => {
+    const { result } = renderHook(() => useStatusEvents(null, {
+      fasterTimer: 1.5, doubleElimination: true,
+    }));
+    expect(result.current.statusEvents).toEqual([
+      { type: "game", message: "Game started" },
+      { type: "round-event", message: "Faster Timer" },
+      { type: "round-event", message: "Double Elimination" },
+      { type: "round", message: "Round 1 started" },
+    ]);
+  });
+
+  it("adds later-round events before round start without duplicating on rerender", () => {
+    const { result, rerender } = renderHook(({ payload }) => useStatusEvents(payload), {
+      initialProps: { payload: null },
+    });
+    const payload = { currentRound: 2, beforeRoundEvents: { doubleElimination: true } };
+    rerender({ payload });
+    rerender({ payload });
+    expect(result.current.statusEvents.slice(2)).toEqual([
+      { type: "round-event", message: "Double Elimination" },
+      { type: "round", message: "Round 2 started" },
+    ]);
+  });
   it("initializes with the game-started and round-1-started events", () => {
     const { result } = renderHook(() => useStatusEvents());
 
