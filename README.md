@@ -30,35 +30,65 @@ Inspired by LeetCode-style coding challenges, Code Chamber started with a simple
 
 ## 🎬 Demos & GIFs
 
-*Gameplay recordings coming soon.*
+### Home Page
 
-<!--
-Add recordings to a gifs/ directory and uncomment the blocks below when ready.
+![Code Chamber home page](gifs/HomePageDemo.gif)
 
-<div align="center">
+*Touring the home page, with shortcuts to create or browse chambers, live platform statistics, and a preview of the global rankings.*
 
-![Lobby and matchmaking](gifs/lobby.gif)
+<br><br>
 
-*Creating a room, joining friends, and starting a match*
+### Creating and Joining Chambers
 
-![Live coding](gifs/live-coding.gif)
+![Creating a chamber](gifs/CreateChamberDemo.gif)
 
-*Solving a challenge and submitting code for live test-case feedback*
+*Creating a chamber by choosing its name, difficulty, player limit, and public or private visibility, then entering the waiting lobby.*
 
-![Round results](gifs/round-results.gif)
+<br><br>
 
-*Scores, random events, and round eliminations*
+![Joining a chamber and starting a match](gifs/StartJoinDemo.gif)
 
-![Match victory](gifs/victory.gif)
+*A guest joins a public chamber, the lobby updates to show both players, and the host starts the match countdown.*
 
-*The last player standing*
+<br><br>
 
-![Profiles and leaderboards](gifs/profiles-leaderboards.gif)
+### Coding Workspace
 
-*Persistent statistics, match history, and global rankings*
+![Switching editor languages](gifs/EditorShowcase1.gif)
 
-</div>
--->
+*Switching between JavaScript, Python, and C++ to view each language's starter code for the same question.*
+
+<br><br>
+
+![Submitting code and reviewing test cases](gifs/EditorShowcase2.gif)
+
+*Submitting a solution and inspecting individual failed test cases, including their inputs, actual outputs, and expected outputs.*
+
+<br><br>
+
+![Language drafts and player submission status](gifs/EditorShowcase3.gif)
+
+*Opening the player list to see who has submitted and who is still working.*
+
+<br><br>
+
+![Resizing the coding workspace](gifs/EditorShowcase4.gif)
+
+*Resizing the question and editor panels and expanding or collapsing the output panel to adjust the coding workspace.*
+
+<br><br>
+
+### Profile Page
+
+![Player profile and language statistics](gifs/ProfileShowcase1.gif)
+
+*Browsing account details, linked sign-in providers, game statistics, and a breakdown of submission performance by language.*
+
+<br><br>
+
+![Match history and round details](gifs/ProfileShowcase2.gif)
+
+*Loading more match history and expanding a match to review its round submissions, language, difficulty, and performance details.*
 
 ---
 
