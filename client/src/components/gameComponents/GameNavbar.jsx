@@ -1,12 +1,20 @@
 import { useState } from "react";
 import { Clock, LoaderCircle } from "lucide-react";
 
+// Low time map
+const LOW_TIME_MAP = {
+  easy: 30,
+  medium: 60,
+  hard: 120,
+};
+
 const GameNavbar = ({
   codeStatus,
   onSubmit,
   playerList,
   roundTimeLeft,
   isReconnecting,
+  difficulty,
 }) => {
   // Modal state
   const [showModal, setShowModal] = useState(false);
@@ -16,8 +24,10 @@ const GameNavbar = ({
     setShowModal((prev) => !prev);
   };
 
-  // Time is considered "running low" once 10 seconds or less remain
-  const isLowTime = typeof roundTimeLeft === "number" && roundTimeLeft <= 10;
+  // Time is considered "running low" once n seconds or less remain
+  const isLowTime =
+    typeof roundTimeLeft === "number" &&
+    roundTimeLeft <= LOW_TIME_MAP[difficulty];
 
   // Show a spinning indicator next to Submit while the code is being judged/processed
   const isProcessing = codeStatus === "judging" || codeStatus === "processing";
