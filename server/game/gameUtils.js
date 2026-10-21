@@ -3,6 +3,8 @@ import db from "../db.js";
 import { rooms } from "../globals.js";
 import { broadcastRemoveRoom } from "../broadcast/broadcastRooms.js";
 import { playersInRooms, roomIdToCode, currentRoomNames } from "../globals.js";
+import { queueLeaderboard } from "../leaderboard/precomputeLeaderboard.js";
+import { queueLiveStats } from "../liveStats/precomputeLiveStats.js";
 
 // Function to update matches played for a player
 export const trackBeforeMatch = async (player, room) => {
@@ -25,6 +27,8 @@ export const trackBeforeMatch = async (player, room) => {
      VALUES ($1, $2, $3, $4, $5, NOW())`,
       [roomId, player.userId, hostId, hostIsGuest, difficulty],
     );
+    queueLeaderboard();
+    queueLiveStats();
   } catch (error) {
     console.error(
       `Error tracking before match for player ${player.userId} in room ${roomId}:`,

@@ -7,10 +7,14 @@ import {
   currentRoomNames,
 } from "../globals.js";
 import { broadcastRemoveRoom } from "../broadcast/broadcastRooms.js";
+import { queueLeaderboard } from "../leaderboard/precomputeLeaderboard.js";
+import { queueLiveStats } from "../liveStats/precomputeLiveStats.js";
 
 // Config
 const CLEANUP_INTERVAL = 30 * 1000;
+const STALE_MATCH_CLEANUP_INTERVAL = 6 * 60 * 60 * 1000;
 let cleanupTimer = null;
+let staleMatchCleanupTimer = null;
 const INACTIVITY_THRESHOLD = 10 * 60 * 1000; // 10 minutes
 const STALE_MATCH_THRESHOLD = "2 hours"; // only crashed/abandoned games should ever hit this
 
@@ -49,8 +53,12 @@ const deleteInactiveRooms = (io) => {
       // Only rooms that actually started a game were ever inserted into the db
       if (room.isGameStarted) {
         db.query(`DELETE FROM rooms WHERE room_id = $1`, [room.roomId])
-          .then(() => {
+          .then(({ rowCount }) => {
             console.log(`Room ${code} removed from database`);
+            if (rowCount > 0) {
+              queueLeaderboard();
+              queueLiveStats();
+            }
           })
           .catch((err) => {
             console.error(
@@ -76,6 +84,8 @@ const deleteStaleUnfinishedMatches = async () => {
     );
 
     if (rows.length > 0) {
+      queueLeaderboard();
+      queueLiveStats();
       console.log(
         `Removed ${rows.length} stale unfinished match room(s): ${rows
           .map((r) => r.room_id)
@@ -88,9 +98,8 @@ const deleteStaleUnfinishedMatches = async () => {
 };
 
 // Helper to cleanup rooms that have been inactive for a certain amount of time
-const roomsCleanup = async (io) => {
+const roomsCleanup = (io) => {
   deleteInactiveRooms(io);
-  await deleteStaleUnfinishedMatches();
 };
 
 // Helper to start the leaderboard compute interval (index starts this on server start)
@@ -100,22 +109,32 @@ export const startRoomsCleanup = (io) => {
 
   console.log("Starting scheduled rooms cleanup...");
 
-  // Warm the cache immediately so the first request isn't empty
+  // Check in-memory room inactivity immediately.
   roomsCleanup(io);
 
-  // Start running on an interval
-  cleanupTimer = setInterval(async () => {
+  // Stale database rows only need an occasional sweep. This query wakes the
+  // Neon compute, so keep it separate from the frequent in-memory cleanup.
+  void deleteStaleUnfinishedMatches();
+
+  // Check in-memory room inactivity frequently without polling the database.
+  cleanupTimer = setInterval(() => {
     try {
-      await roomsCleanup(io);
+      roomsCleanup(io);
     } catch (err) {
       console.error("Rooms cleanup failed:", err);
-      // dont update liveStats if there's an error, keep the last good data
     }
   }, CLEANUP_INTERVAL);
+
+  // Sweep abandoned database rows every six hours instead of every 30 seconds.
+  staleMatchCleanupTimer = setInterval(() => {
+    void deleteStaleUnfinishedMatches();
+  }, STALE_MATCH_CLEANUP_INTERVAL);
 };
 
 // Helper to stop the leaderboard compute interval
 export const stopRoomsCleanup = () => {
   clearInterval(cleanupTimer);
   cleanupTimer = null;
+  clearInterval(staleMatchCleanupTimer);
+  staleMatchCleanupTimer = null;
 };

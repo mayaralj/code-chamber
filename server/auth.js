@@ -5,6 +5,7 @@ import pool from "./db.js";
 import "dotenv/config";
 import leaveRoom from "./room/leaveRoom.js";
 import leaveGame from "./game/leaveGame.js";
+import { queueLeaderboard } from "./leaderboard/precomputeLeaderboard.js";
 
 // Initialize Kysely with Postgres dialect and connection pool
 const db = new Kysely({
@@ -18,7 +19,18 @@ const auth = betterAuth({
     type: "postgres",
   },
   databaseHooks: {
-    user: {},
+    user: {
+      update: {
+        after: async () => {
+          queueLeaderboard();
+        },
+      },
+      delete: {
+        after: async () => {
+          queueLeaderboard();
+        },
+      },
+    },
   },
   trustedOrigins: [process.env.FRONTEND_URL],
   emailAndPassword: {

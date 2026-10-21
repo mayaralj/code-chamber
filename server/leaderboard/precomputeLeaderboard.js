@@ -2,8 +2,10 @@
 import db from "../db.js";
 
 // Config
-const COMPUTE_INTERVAL = 60 * 1000;
+const REFRESH_INTERVAL = 5 * 60 * 1000;
 let computeTimer = null;
+let refreshQueued = false;
+let refreshInProgress = false;
 // export so route can easily access it
 export let leaderboardData = null;
 
@@ -152,29 +154,43 @@ const buildLeaderboardData = async () => {
   return result;
 };
 
-// Helper to start the leaderboard compute interval
+// Queue a refresh for the next scheduled refresh check
+export const queueLeaderboard = () => {
+  refreshQueued = true;
+};
+
+const refreshLeaderboardIfQueued = async () => {
+  if (!refreshQueued || refreshInProgress) return;
+
+  refreshQueued = false;
+  refreshInProgress = true;
+
+  try {
+    leaderboardData = await buildLeaderboardData();
+  } catch (err) {
+    console.error("Leaderboard compute failed:", err);
+    // Retry on the next scheduled check, keeping the last good data meanwhile
+    refreshQueued = true;
+  } finally {
+    refreshInProgress = false;
+  }
+};
+
+// Helper to start the leaderboard refresh interval
 export const startLeaderboardCompute = () => {
   // Check if already running
   if (computeTimer) return;
 
   console.log("Starting leaderboard precomputation...");
 
-  // Warm the cache immediately so the first request isn't empty
-  buildLeaderboardData()
-    .then((data) => {
-      leaderboardData = data;
-    })
-    .catch((err) => console.error("Initial leaderboard build failed:", err));
+  // Queue one initial build so the first request isn't empty
+  queueLeaderboard();
+  void refreshLeaderboardIfQueued();
 
-  // Start running on an interval
-  computeTimer = setInterval(async () => {
-    try {
-      leaderboardData = await buildLeaderboardData();
-    } catch (err) {
-      console.error("Leaderboard compute failed:", err);
-      // dont update leaderboardData if there's an error, keep the last good data
-    }
-  }, COMPUTE_INTERVAL);
+  // Check periodically, but only query when a caller has queued a refresh
+  computeTimer = setInterval(() => {
+    void refreshLeaderboardIfQueued();
+  }, REFRESH_INTERVAL);
 };
 
 // Helper to stop the leaderboard compute interval

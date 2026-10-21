@@ -1,10 +1,11 @@
 // Imports
 import db from "../db.js";
-import { totalConnections } from "../socket/socket.js";
 
 // Config
-const COMPUTE_INTERVAL = 60 * 1000;
+const REFRESH_INTERVAL = 60 * 1000;
 let computeTimer = null;
+let refreshQueued = false;
+let refreshInProgress = false;
 // export so route can easily access it
 export let liveStats = null;
 
@@ -66,7 +67,6 @@ const buildLiveStatsData = async () => {
   const difficultyRows = difficultyUsage.rows;
 
   return {
-    active_users: totalConnections ?? 0,
     total_matches: matchStats.total_matches ?? 0,
     total_submissions: submissionStats.total_submissions ?? 0,
     avg_pass_rate: submissionStats.avg_pass_rate ?? "N/A",
@@ -84,29 +84,43 @@ const buildLiveStatsData = async () => {
   };
 };
 
-// Helper to start the leaderboard compute interval (index starts this on server start)
+// Queue a refresh for the next scheduled refresh check
+export const queueLiveStats = () => {
+  refreshQueued = true;
+};
+
+const refreshLiveStatsIfQueued = async () => {
+  if (!refreshQueued || refreshInProgress) return;
+
+  refreshQueued = false;
+  refreshInProgress = true;
+
+  try {
+    liveStats = await buildLiveStatsData();
+  } catch (err) {
+    console.error("Live stats compute failed:", err);
+    // Retry on the next scheduled check, keeping the last good data meanwhile
+    refreshQueued = true;
+  } finally {
+    refreshInProgress = false;
+  }
+};
+
+// Helper to start the live stats refresh interval
 export const startLiveStatsCompute = () => {
   // Check if already running
   if (computeTimer) return;
 
   console.log("Starting live stats precomputation...");
 
-  // Warm the cache immediately so the first request isn't empty
-  buildLiveStatsData()
-    .then((data) => {
-      liveStats = data;
-    })
-    .catch((err) => console.error("Initial live stats build failed:", err));
+  // Queue one initial build so the first request isn't empty
+  queueLiveStats();
+  void refreshLiveStatsIfQueued();
 
-  // Start running on an interval
-  computeTimer = setInterval(async () => {
-    try {
-      liveStats = await buildLiveStatsData();
-    } catch (err) {
-      console.error("Live stats compute failed:", err);
-      // dont update liveStats if there's an error, keep the last good data
-    }
-  }, COMPUTE_INTERVAL);
+  // Check periodically, but only query when a caller has queued a refresh
+  computeTimer = setInterval(() => {
+    void refreshLiveStatsIfQueued();
+  }, REFRESH_INTERVAL);
 };
 
 // Helper to stop the leaderboard compute interval

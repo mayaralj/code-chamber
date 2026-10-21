@@ -1,6 +1,7 @@
 // Imports
 import express from "express";
 import { liveStats } from "../liveStats/precomputeLiveStats.js";
+import { totalConnections } from "../socket/socket.js";
 
 // Config
 const SEND_INTERVAL_MS = 30 * 1000;
@@ -14,9 +15,14 @@ const sendToClient = (res, data) => {
   res.write("data: " + JSON.stringify(data) + "\n\n");
 };
 
+const getLiveStatsSnapshot = () => ({
+  ...(liveStats ?? { message: "Live stats not available yet" }),
+  active_users: totalConnections,
+});
+
 // Helper to write the current liveStats snapshot to every connected client
 const broadcastLiveStats = () => {
-  const payload = liveStats ?? { message: "Live stats not available yet" };
+  const payload = getLiveStatsSnapshot();
   for (const res of connectedClients) {
     // Send to clients on a try catch but handle any errors incase
     try {
@@ -62,7 +68,7 @@ const liveStatsRouter = () => {
     res.flushHeaders();
 
     // Send an immediate snapshot so the client doesn't wait for the next tick
-    sendToClient(res, liveStats ?? { message: "Live stats not available yet" });
+    sendToClient(res, getLiveStatsSnapshot());
 
     // Register this client and make sure the shared interval is running
     connectedClients.add(res);

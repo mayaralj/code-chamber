@@ -3,6 +3,8 @@ import { cancellableSleep } from "../../utils/timers.js";
 import { buildPlayerList } from "../../utils/playerList.js";
 import { rooms } from "../../globals.js";
 import db from "../../db.js";
+import { queueLeaderboard } from "../../leaderboard/precomputeLeaderboard.js";
+import { queueLiveStats } from "../../liveStats/precomputeLiveStats.js";
 
 // Config
 export const ROUND_RECONNECT_TIMEOUT = 5 * 60 * 1000;
@@ -156,10 +158,14 @@ export const trackMatch = async (player, roomId, isWinner, survivalTime) => {
 
   // Update the matches table for the player with the result of the match
   try {
-    await db.query(
+    const { rowCount } = await db.query(
       `UPDATE matches SET won = $1, survival_time = $2 WHERE room_id = $3 AND user_id = $4`,
       [isWinner, survivalTime, roomId, player.userId],
     );
+    if (rowCount > 0) {
+      queueLeaderboard();
+      queueLiveStats();
+    }
     console.log(
       `Updated match for player ${player.username} in room ${roomId}, won: ${isWinner}, survived: ${survivalTime}s`,
     );

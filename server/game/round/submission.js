@@ -2,6 +2,8 @@ import db from "../../db.js";
 import runCode from "../../executor/executor.js";
 import { buildPlayerList } from "../../utils/playerList.js";
 import { rooms } from "../../globals.js";
+import { queueLeaderboard } from "../../leaderboard/precomputeLeaderboard.js";
+import { queueLiveStats } from "../../liveStats/precomputeLiveStats.js";
 
 // Config
 const availableLanguages = ["javascript", "python", "cpp"];
@@ -105,6 +107,8 @@ export const trackSubmission = async (player, result, roomId, roundNumber) => {
         testCasesPassed,
       ],
     );
+    queueLeaderboard();
+    queueLiveStats();
     return rows[0]?.id;
   } catch (error) {
     console.error(
