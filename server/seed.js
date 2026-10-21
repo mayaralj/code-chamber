@@ -26,7 +26,7 @@ const seed = async () => {
     try {
       // Create a table that tracks all the seeds
       await client.query(`
-        CREATE TABLE IF NOT EXISTS seed_data (
+        CREATE TABLE IF NOT EXISTS public.seed_data (
           id text PRIMARY KEY,
           seeded_at timestamp with time zone DEFAULT CURRENT_TIMESTAMP NOT NULL
         );
@@ -34,7 +34,7 @@ const seed = async () => {
 
       // Check if the seed has already been applied
       const result = await client.query(
-        "SELECT 1 FROM seed_data WHERE id = $1",
+        "SELECT 1 FROM public.seed_data WHERE id = $1",
         [seedId],
       );
 
@@ -61,7 +61,7 @@ const seed = async () => {
     const seedClient = await db.connect();
 
     try {
-      await seedClient.query("INSERT INTO seed_data (id) VALUES ($1)", [
+      await seedClient.query("INSERT INTO public.seed_data (id) VALUES ($1)", [
         seedId,
       ]);
     } finally {
